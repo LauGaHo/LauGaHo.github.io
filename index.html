@@ -177,7 +177,7 @@
       
         
         <li class="menu-item menu-item-home">
-          <a href="/%20" rel="section">
+          <a href="/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
@@ -186,8 +186,18 @@
         </li>
       
         
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-tags">
-          <a href="/tags/%20" rel="section">
+          <a href="/tags/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
             
@@ -197,7 +207,7 @@
       
         
         <li class="menu-item menu-item-categories">
-          <a href="/categories/%20" rel="section">
+          <a href="/categories/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
             
@@ -207,7 +217,7 @@
       
         
         <li class="menu-item menu-item-archives">
-          <a href="/archives/%20" rel="section">
+          <a href="/archives/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
             
@@ -248,7 +258,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/09/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/12/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Lau GaHo">
@@ -267,7 +277,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2020/05/09/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA/" itemprop="url">JVM虚拟机</a></h1>
+                <a class="post-title-link" href="/2020/04/12/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA/" itemprop="url">JVM虚拟机</a></h1>
         
 
         <div class="post-meta">
@@ -279,8 +289,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-05-09T23:44:14+08:00">
-                2020-05-09
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-12T16:45:00+08:00">
+                2020-04-12
               </time>
             
 
@@ -319,26 +329,16 @@
       
         
           
-            <h1 id="1、Java内存区域与内存溢出异常"><a href="#1、Java内存区域与内存溢出异常" class="headerlink" title="1、Java内存区域与内存溢出异常"></a>1、Java内存区域与内存溢出异常</h1><h2 id="1-1、运行时数据区"><a href="#1-1、运行时数据区" class="headerlink" title="1.1、运行时数据区"></a>1.1、运行时数据区</h2><p>​        Java虚拟机在执行Java程序的时候会将内存划分为若干个数据区域</p>
-<h3 id="1-1-1、程序计数器"><a href="#1-1-1、程序计数器" class="headerlink" title="1.1.1、程序计数器"></a>1.1.1、程序计数器</h3><p>​        程序计数器是一个较小的空间，他的作用是当前线程所所执行字节码的行号指示器，其实就是表明该线程执行该线程的字节码文件的哪一行 (具体的行号) ，其实就是方便多线程执行程序的时候切换能够恢复到正确的执行位置。因此程序计数器是“线程私有”的内存空间。</p>
-<h3 id="1-1-2、Java虚拟机栈"><a href="#1-1-2、Java虚拟机栈" class="headerlink" title="1.1.2、Java虚拟机栈"></a>1.1.2、Java虚拟机栈</h3><p>​        Java虚拟机栈也是“线程私有”的，他的生命周期是和线程一样的。虚拟机栈描述的是Java方法执行的内存模型，每个方法执行的时候都会创建一个栈帧用于存储局部变量表，操作帧、动态链接、方法出入口等信息。</p>
-<h3 id="1-1-3、本地方法栈"><a href="#1-1-3、本地方法栈" class="headerlink" title="1.1.3、本地方法栈"></a>1.1.3、本地方法栈</h3><p>​        本地方法栈和虚拟机栈所发挥的作用是非常相似的，只不过是虚拟机栈为虚拟机执行Java方法。而本地方法栈则是为虚拟机使用到Native方法。</p>
-<h3 id="1-1-4、Java堆"><a href="#1-1-4、Java堆" class="headerlink" title="1.1.4、Java堆"></a>1.1.4、Java堆</h3><p>​        对于大部分的应用来说，Java堆是Java虚拟机所管理的内存最大的一块区域。在虚拟机启动时创建，他是被所有的Java线程所共享的一个区域。几乎所有的对象实例都是在这里分配内存，以前的说法就是所有的对象实例以及数组都要在堆上分配。Java堆是GC收集器管理的主要区域。</p>
-<h3 id="1-1-5、方法区"><a href="#1-1-5、方法区" class="headerlink" title="1.1.5、方法区"></a>1.1.5、方法区</h3><p>​        方法区和Java堆一样也是各个线程所共享的一个区域。它用于存储已被虚拟机加载的类信息、常量、静态变量。很多人将方法区和永久代画上等号。其实本质上来说这样是不对的。Java对方法区这个区域管理得比较松。</p>
-<h3 id="1-1-6、运行时常量池"><a href="#1-1-6、运行时常量池" class="headerlink" title="1.1.6、运行时常量池"></a>1.1.6、运行时常量池</h3><p>​        运行时常量池是方法区的一部分。Class文件中除了有类的版本、字段、方法、接口等描述信息之外，还有一项信息就是常量池，用于存放编译期生成的各种字面量和符号引用。这部分内容将在类加载后存放到方法区的运行时常量池中。</p>
-<h2 id="1-2、对象访问"><a href="#1-2、对象访问" class="headerlink" title="1.2、对象访问"></a>1.2、对象访问</h2><h3 id="1-2-1、访问过程详细"><a href="#1-2-1、访问过程详细" class="headerlink" title="1.2.1、访问过程详细"></a>1.2.1、访问过程详细</h3><p>​        假设有一句代码Object obj = new Object( )，那么首先Object obj这一句话的就会反映到Java虚拟机栈中的本地变量表当中，并且是以一种reference变量的方式出现。然后new Object( )这一句话的就会反映到Java虚拟机中的Java堆当中的一块结构化的内存。然而reference只是规定了一种对象引用到对象的一个访问方式，具体的实现方式并没有规定到。因此这里就有多种的实现方式。主流的实现方式有两种：第一种是句柄访问方式，Java堆会划分出一快内存出来是作为句柄池，reference中的值就是对象的句柄地址，而句柄中包含了对象实例数据和类型数据各自的具体地址信息。第二种就是直接指针访问方式，reference中存放对象实例数据的地址信息，而Java堆中的对象实例数据中包含了对象类型数据在方法区中的地址。</p>
-<h2 id="1-3、内存溢出"><a href="#1-3、内存溢出" class="headerlink" title="1.3、内存溢出"></a>1.3、内存溢出</h2><h3 id="1-3-1、Java堆溢出"><a href="#1-3-1、Java堆溢出" class="headerlink" title="1.3.1、Java堆溢出"></a>1.3.1、Java堆溢出</h3><p>​        一般情况下，如果想达到Java堆溢出，只需要不断地创建对象，并且保证GC Root到对象之间有可达路径来避免垃圾回收机制避免垃圾回收这些对象。就会在对象数量达到最大堆容量之后产生内存溢出。而我们可以设置Java堆的大小。-Xms是用于设置Java堆的最小值；-Xmx是用于设置Java堆的最大容量，避免Java堆的自动扩展。通过-XX:+HeapDumpOnOutOfMemoryError可以让虚拟机在出现内存溢出的时候Dump出当前的内存堆转储快照以便事后分析。上边说到的GC Roots可达是通过GC Roots对象来判断有没有引用到相对应对象实体，而这里所说的<strong><u>GC Roots对象具体指的就是类的静态变量和方法的局部变量</u></strong>。</p>
-<h3 id="1-3-2、虚拟机栈和本地方法栈溢出"><a href="#1-3-2、虚拟机栈和本地方法栈溢出" class="headerlink" title="1.3.2、虚拟机栈和本地方法栈溢出"></a>1.3.2、虚拟机栈和本地方法栈溢出</h3><p>​        一般情况下，我们可以通过设置-Xss来设置栈的大小。<u><strong>如果线程请求的栈深度大于虚拟机所允许的最大深度，则抛出StackOverflowError错误；如果虚拟机在扩展栈时无法申请到足够的内存空间，则抛出OutOfMemoryError错误。</strong></u>在单个线程之下，无论是因为栈帧太大还是虚拟机栈容量太小，当内存无法分配，抛出的都是StackOverflowError异常。一般情况下，关于栈会出现两种错误，第一种是StackOverflowError，出现的原因就是方法调用层次太高了，内存不够新建栈帧；第二种就是线程太多了，内存不够新建线程。</p>
-<h3 id="1-3-3、运行时常量池溢出"><a href="#1-3-3、运行时常量池溢出" class="headerlink" title="1.3.3、运行时常量池溢出"></a>1.3.3、运行时常量池溢出</h3><p>​        如果要向运行时常量池中添加内容，最简单就是String.intern( )这个Native方法。这个方法的作用就是：如果池中已经包含了一个等于此String对象的字符串，则返回代表池中这个字符串的String对象；否则，将此String对象包含的字符串添加到常量池当中，并且返回此String对象的引用。由于常量池分布在方法区当中，我们可以通过-XX:PermSize和-XX:MaxPermSize限制方法区的大小，从而限制常量池大小。一般情况下，如果运行时常量池溢出报的错误是：Exception in thread “main” java.lang.OutOf MemoryError: PermGen space，这里报错信息当中的PermGen说明运行时常量池是属于方法区的。</p>
-<h3 id="1-3-4、方法区溢出"><a href="#1-3-4、方法区溢出" class="headerlink" title="1.3.4、方法区溢出"></a>1.3.4、方法区溢出</h3><p>​        方法区用于存放Class的相关信息，如类名、访问修饰符、常量池、字段描述、方法描述等。对于这一块区域的测试，基本思路是运行时产生大量的类去填满方法区，直到溢出。方法区溢出是一种常见的内存溢出，一个类如果要被垃圾收集器回收掉，判定条件是非常苛刻的。在经常动态生成的Class的应用中，需要特别注意类的回收状况，这种场景包括使用了GCLib字节码增强、JSP、基于OSGi应用（即使是同一个类文件，被不同的加载器也会视为不同的类）。</p>
-<h3 id="1-3-5、本机直接内存溢出"><a href="#1-3-5、本机直接内存溢出" class="headerlink" title="1.3.5、本机直接内存溢出"></a>1.3.5、本机直接内存溢出</h3><p>​        直接内存的容量可以使用-XX:MaxDirectMemorySize指定，如果不指定则默认和Java堆的最大值一样。</p>
-<h1 id="2、垃圾收集器与内存分配策略"><a href="#2、垃圾收集器与内存分配策略" class="headerlink" title="2、垃圾收集器与内存分配策略"></a>2、垃圾收集器与内存分配策略</h1><h2 id="2-1、如何判断对象生存与死亡"><a href="#2-1、如何判断对象生存与死亡" class="headerlink" title="2.1、如何判断对象生存与死亡"></a>2.1、如何判断对象生存与死亡</h2><h3 id="2-1-1、引用计数算法（Reference-Counting）"><a href="#2-1-1、引用计数算法（Reference-Counting）" class="headerlink" title="2.1.1、引用计数算法（Reference Counting）"></a>2.1.1、引用计数算法（Reference Counting）</h3><p>​        很多教科书判断对象是否生存的方法是，给对象增加一个引用计数器，每当有一个地方引用他，那么计数值就会+1；当如果引用失效的话，那么计数值就会-1。任何时候，如果计数值为0那么就是对象不可能被再次使用了。但是Java语言中并没有使用引用计数算法来管理内存，其中最主要的原因是他很难解决对象之间的相互循环引用的问题。举个最简单的例子来说，有两个对象，分别是objectA和objectB，这两个对象中都是含有一个instance引用字段。如果他们之间有这样的关系：objectA.instance = objectB且objectB.instance = objectA，那么其实这两个对象其实本质上已经是不可能被访问的了，但是因为他们互相引用着对方，索引他们的引用计数都不为0，因而引用技术算法是无法通知GC收集器来回收他们的。</p>
-<h3 id="2-1-1、根搜索算法（GC-Roots-Tracing）"><a href="#2-1-1、根搜索算法（GC-Roots-Tracing）" class="headerlink" title="2.1.1、根搜索算法（GC Roots Tracing）"></a>2.1.1、根搜索算法（GC Roots Tracing）</h3><p>​        在主流的商用程序语言中（Java和C#）都是使用根搜索算法（GC Roots Tracing），这个算法的思路就是通过一系列的名为”GC Roots”的对象作为起始点，从这些节点开始向下搜索，搜索所走过的路径成为引用链（Reference Chain），当一个对象到GC Roots没有任何引用链相连（用图论的话来说就是从GC Roots到该对象不可达）时，则证明此对象是不可用的。在Java语言当中，可作为GC Roots的对象包括下面几种：①、虚拟机栈（栈帧中的本地变量表）中的引用的对象。②、方法区中的类静态属性引用的对象。③、方法区中的常量引用的对象。④、本地方法栈中JNI（即一般说的Native方法）的引用对象。</p>
-<h3 id="2-1-3、细分引用"><a href="#2-1-3、细分引用" class="headerlink" title="2.1.3、细分引用"></a>2.1.3、细分引用</h3><p>​        在JDK 1.2之后，Java对引用的概念进行了扩充，将引用分为了强引用（Strong Reference）、软引用（Soft Reference）、弱引用（Weak Reference）、虚引用（Phantom Reference）四种，并且引用强度依次减弱。①、强引用（Strong Reference）就是指在代码中类似”Object obj = new Object( )”这种类型引用，只要强引用还存在，垃圾收集器永远不会回收掉被引用的对象。②、软引用用来描述一些还有用，但并非必须的对象。对于软引用关联着的对象，在系统将要发生内存溢出异常之前，将会把这些对象列进回收范围之内并进行第二次回收。如果这次回收还是没有足够的内存，才会抛出内存溢出异常。在JDK 1.2之后，提供了SoftReference类来实现软引用。③、弱引用也是用来描述非必须对象的，但是他的强度会比软引用更弱一点，被弱引用关联的对象只能生存到下一次垃圾收集发生之前。当垃圾回收器工作时，无论当前内存是否足够，都会回收掉纸杯弱引用关联着得对象。在JDK 1.2之后，提供了Weak Reference类来实现虚引用。④、虚引用是最弱的一种引用关系，一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用取得一个对象实例，为一个对象设置虚引用关联的唯一目的就是希望能在这个对象呗收集器回收的时候收到一个系统通知，在JDK 1.2之后，提供了Phantom Reference类来实现虚引用。</p>
-<h3 id="2-1-4、判断对象状态"><a href="#2-1-4、判断对象状态" class="headerlink" title="2.1.4、判断对象状态"></a>2.1.4、判断对象状态</h3><p>​        在根搜索算法中的GC Roots不可达对象，也并不是“非死不可”的，这时候它们暂时处于“缓刑状态”，要真正宣告一个对象的死亡，至少需要经历两次标记过程：如果对象在进行根搜索后发现没有与GC Roots相连接的引用链，那他将会被第一次标记并且进行一次筛选，筛选的条件是此对象是否有必要执行 <strong><em>finalize( )</em></strong>方法。当对象没有覆盖 <strong><em>finalize( )</em></strong>方法，或者 <strong><em>finalize( )</em></strong>已经被虚拟机调用过了，虚拟机将这两种情况都视为“没有必要执行”。如果这个对象被判定有必要执行<strong><em>finalize( )</em></strong>方法，那么这个对象将会被放置在一个F-Queue的队列当中，并在稍后由一条虚拟机自动建立的、低优先级的Finalizer线程去执行。这里的执行就是说虚拟机会触发这个方法。但并不承诺等他执行结束，因为如果一个对象在<strong><em>finalize()</em></strong>方法执行很慢，或者说诗发生了死循环，将会导致队列中其他对象处于一个等待状态。<strong><em>finalize( )</em></strong>方法是对象逃过死亡的最后一次机会。稍后GC会对队列中的对象进行一次小规模的标记，如果对象在<strong><em>finalize( )</em></strong>成功拯救自己，譬如将自己赋给某个类变量或者是某个对象的成员变量。但是要注意的是，一个对象的<strong><em>finalize( )</em></strong>只能够被调用一次，如果该对象面对第二次的垃圾回收的话，第二次将无法自救。</p>
-<p>​        </p>
-
-          
+          1、Java内存区域与内存溢出异常1.1、运行时数据区​        Java虚拟机在执行Java程序的时候会将内存划分为若干个数据区域
+1.1.1、程序计数器​        程序计数器是一个较小的空间，他的作用是当前线程所所执行字节码的行号指示器，其实就是表明该线程执行该线程的字节码文件的哪一
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2020/04/12/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -416,7 +416,7 @@
             
               <div class="site-state-item site-state-posts">
               
-                <a href="/archives/%20%7C%7C%20archive">
+                <a href="/archives/%7C%7C%20archive">
               
                   <span class="site-state-item-count">1</span>
                   <span class="site-state-item-name">日志</span>
@@ -426,6 +426,15 @@
 
             
 
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
             
 
           </nav>

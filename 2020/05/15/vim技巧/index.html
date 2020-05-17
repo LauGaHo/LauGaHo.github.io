@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="1、简单的文本编辑1.1、光标的移动1.1.1、单一的移动​        h、j、k、l这4个位于键盘中心的键可以移动光标。其中h是向左移动一个字符；j是向下移动一个字符；k是向上移动一个字符；l是向右移动一个字符。移动光标的时候需要再命令模式之下进行。 1.1.2、数值参数​        还可以在移动命令的前边加上数字。例如单一的一个l是向右移动一个字符，我们可以使用4l，就可以实现向右移动">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vim技巧">
+<meta property="og:url" content="http://yoursite.com/2020/05/15/vim%E6%8A%80%E5%B7%A7/index.html">
+<meta property="og:site_name" content="Lau&#39;s Blog">
+<meta property="og:description" content="1、简单的文本编辑1.1、光标的移动1.1.1、单一的移动​        h、j、k、l这4个位于键盘中心的键可以移动光标。其中h是向左移动一个字符；j是向下移动一个字符；k是向上移动一个字符；l是向右移动一个字符。移动光标的时候需要再命令模式之下进行。 1.1.2、数值参数​        还可以在移动命令的前边加上数字。例如单一的一个l是向右移动一个字符，我们可以使用4l，就可以实现向右移动">
+<meta property="article:published_time" content="2020-05-15T08:59:40.427Z">
+<meta property="article:modified_time" content="2020-05-15T08:59:40.427Z">
+<meta property="article:author" content="Lau GaHo">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/05/15/vim技巧/"/>
+
+
+
+
+
+  <title>vim技巧 | Lau's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lau's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/15/vim%E6%8A%80%E5%B7%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Lau GaHo">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lau's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">vim技巧</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-05-15T16:59:40+08:00">
+                2020-05-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1、简单的文本编辑"><a href="#1、简单的文本编辑" class="headerlink" title="1、简单的文本编辑"></a>1、简单的文本编辑</h1><h2 id="1-1、光标的移动"><a href="#1-1、光标的移动" class="headerlink" title="1.1、光标的移动"></a>1.1、光标的移动</h2><h3 id="1-1-1、单一的移动"><a href="#1-1-1、单一的移动" class="headerlink" title="1.1.1、单一的移动"></a>1.1.1、单一的移动</h3><p>​        h、j、k、l这4个位于键盘中心的键可以移动光标。其中h是向左移动一个字符；j是向下移动一个字符；k是向上移动一个字符；l是向右移动一个字符。移动光标的时候需要再命令模式之下进行。</p>
+<h3 id="1-1-2、数值参数"><a href="#1-1-2、数值参数" class="headerlink" title="1.1.2、数值参数"></a>1.1.2、数值参数</h3><p>​        还可以在移动命令的前边加上数字。例如单一的一个l是向右移动一个字符，我们可以使用4l，就可以实现向右移动4个字符。</p>
+<h3 id="1-1-3、在一行中移动"><a href="#1-1-3、在一行中移动" class="headerlink" title="1.1.3、在一行中移动"></a>1.1.3、在一行中移动</h3><p>​        有两个在一行中移动光标常用的命令，分别是0和$。其中0是移动到一行当中的行首；$是移动到一行当中的行末。</p>
+<h3 id="1-1-4、按照文本块来移动"><a href="#1-1-4、按照文本块来移动" class="headerlink" title="1.1.4、按照文本块来移动"></a>1.1.4、按照文本块来移动</h3><p>​        我们可以依照文本块来进行移动光标，w代表向后移动一个单词的位置；b代表向前移动一个单词的位置。</p>
+<h2 id="1-2、简单的编辑"><a href="#1-2、简单的编辑" class="headerlink" title="1.2、简单的编辑"></a>1.2、简单的编辑</h2><h3 id="1-2-1、插入新文本"><a href="#1-2-1、插入新文本" class="headerlink" title="1.2.1、插入新文本"></a>1.2.1、插入新文本</h3><p>​        我们可以在命令模式下输入i代表进入插入模式，然后就可以输入文本了。<strong><u>插入的文本的位置是在光标的前边插入的。</u></strong></p>
+<h3 id="1-2-2、附加文本"><a href="#1-2-2、附加文本" class="headerlink" title="1.2.2、附加文本"></a>1.2.2、附加文本</h3><p>​        我们可以在命令模式下同样使用a进入附加模式，其中附加模式和插入模式大致上相同，有一个不同点就是，<strong><u>附件模式是在光标之后添加内容；插入模式是在光标之前添加内容的。</u></strong></p>
+<h3 id="1-2-3、更改文本"><a href="#1-2-3、更改文本" class="headerlink" title="1.2.3、更改文本"></a>1.2.3、更改文本</h3><p>​        需要替换文本中的文字时，可以使用更改命令c。为了告诉命令c有多少文本有多少文本需要更改，可以把c和光标移动命令结合使用。例如，cw代表从光标到这个单词结束的地方需要替换；c2b代表从光标往前的两个单词需要替换；c$代表从光标到本行的结尾需要替换；c0代表从光标到本行的开头需要替换；cc代表会将一整行直接换掉；C代表更改光标到此行结尾处的文本功能与成c$相当。</p>
+<h3 id="1-2-4、更改字符（替换单个字符）"><a href="#1-2-4、更改字符（替换单个字符）" class="headerlink" title="1.2.4、更改字符（替换单个字符）"></a>1.2.4、更改字符（替换单个字符）</h3><p>​        如果有的时候只需要更改单个字符，不想整个单词输入的话，那么就需要使用r命令，r命令就是将一个字符替换另一个，结束后不需要按ESC返回命令模式，直接就可以返回命令模式。</p>
+<h3 id="1-2-5、替换文本（替换数个字符）"><a href="#1-2-5、替换文本（替换数个字符）" class="headerlink" title="1.2.5、替换文本（替换数个字符）"></a>1.2.5、替换文本（替换数个字符）</h3><p>​        如果只是替换几个字符，而不是替换整个单词的话，可以使用s替换命令实现，可以在s命令前边加上数字，意为替换多个字符。</p>
+<h3 id="1-2-6、更改大小写"><a href="#1-2-6、更改大小写" class="headerlink" title="1.2.6、更改大小写"></a>1.2.6、更改大小写</h3><p>​        在vim中，我们可以简便更改大小写，把光标移动到需要更改大小写的地方，然后使用~号就可以直接更改大小写。</p>
+<h3 id="1-2-7、删除文本"><a href="#1-2-7、删除文本" class="headerlink" title="1.2.7、删除文本"></a>1.2.7、删除文本</h3><p>​        文件中的文本的删除可以使用d命令，就像更改命令，删除命令也是需要文本对象的，用于表示后边需要处理的文本量。dw代表删除单词；dd或D代表删除一行。注意：dw删除单词的时候，会将单词后边的空白都一并删除。de同样也是代表删除单词，但是de只删除单词的本身，并不会删除单词后边的空白，只是将单词单纯删掉；dE的删除范围则是包括标点在内的单词结尾；dd意味着是删除光标所在行的一整行内容，他并不会只删除部分行，他像cc一样是一个特殊的命令；d$(D是d$的简写)代表删除光标位置到一行的结尾。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/05/15/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="next" title="JVM虚拟机">
+                <i class="fa fa-chevron-left"></i> JVM虚拟机
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Lau GaHo</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1、简单的文本编辑"><span class="nav-number">1.</span> <span class="nav-text">1、简单的文本编辑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1、光标的移动"><span class="nav-number">1.1.</span> <span class="nav-text">1.1、光标的移动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-1、单一的移动"><span class="nav-number">1.1.1.</span> <span class="nav-text">1.1.1、单一的移动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-2、数值参数"><span class="nav-number">1.1.2.</span> <span class="nav-text">1.1.2、数值参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-3、在一行中移动"><span class="nav-number">1.1.3.</span> <span class="nav-text">1.1.3、在一行中移动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-4、按照文本块来移动"><span class="nav-number">1.1.4.</span> <span class="nav-text">1.1.4、按照文本块来移动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2、简单的编辑"><span class="nav-number">1.2.</span> <span class="nav-text">1.2、简单的编辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-1、插入新文本"><span class="nav-number">1.2.1.</span> <span class="nav-text">1.2.1、插入新文本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-2、附加文本"><span class="nav-number">1.2.2.</span> <span class="nav-text">1.2.2、附加文本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-3、更改文本"><span class="nav-number">1.2.3.</span> <span class="nav-text">1.2.3、更改文本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-4、更改字符（替换单个字符）"><span class="nav-number">1.2.4.</span> <span class="nav-text">1.2.4、更改字符（替换单个字符）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-5、替换文本（替换数个字符）"><span class="nav-number">1.2.5.</span> <span class="nav-text">1.2.5、替换文本（替换数个字符）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-6、更改大小写"><span class="nav-number">1.2.6.</span> <span class="nav-text">1.2.6、更改大小写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-7、删除文本"><span class="nav-number">1.2.7.</span> <span class="nav-text">1.2.7、删除文本</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lau GaHo</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。 首先先来看这一段代码： 123456789function bar() &amp;#123;    console.log(myName)&amp;#125;function foo() &amp;#123;    var myName &#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/2021/06/30/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。 首先先来看这一段代码： 123456789function bar() &amp;#123;    console.log(myName)&amp;#125;function foo() &amp;#123;    var myName &#x3D;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zRdlhw.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zcmf66.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/%E4%B8%8B%E8%BD%BD.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/uPznOY.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/20NJwJ.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/RxMYdM.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/cEAEuG.jpg">
+<meta property="article:published_time" content="2021-06-29T16:13:09.185Z">
+<meta property="article:modified_time" content="2021-06-30T08:42:52.266Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/30/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/" class="article-date">
+  <time class="dt-published" datetime="2021-06-29T16:13:09.185Z" itemprop="datePublished">2021-06-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"><a href="#JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择" class="headerlink" title="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"></a>JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择</h1><p>理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。</p>
+<p>首先先来看这一段代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(myName)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    bar()</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
+
+<p>你觉得这段代码中的 bar 函数和 foo 函数打印出来的是什么吗？</p>
+<p>分析代码，当代码执行到 bar 函数内部，调用栈的状态如图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg" alt="alt"></p>
+<p>从图中可以看出，全局执行上下文和 foo 函数的执行上下文中都包含变量 myName，那 bar 函数中的 myName应该选择哪一个呢？这里就需要了解作用域链了。</p>
+<h2 id="作用域链"><a href="#作用域链" class="headerlink" title="作用域链"></a>作用域链</h2><p>其实每一个执行上下文的变量环境中，都包含了一个外部引用，用来指向外部的执行上下文，我们把这个外部因你用哪个称为 outer。</p>
+<p>当一段代码使用了一个变量，JavaScript 引擎首先会在“当前执行上下文”中查找该变量，比如上面的那段代码在查找 myName 变量时，如果在当前的变量环境中没有查到，那么 JavaScript 引擎会继续在 outer 所指向的执行上下文中查找。为了直观理解，你可以直接看下图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zRdlhw.jpg" alt="alt"></p>
+<p>从图中可以看到，bar 函数和 foo 函数的 outer 都是指向全局上下文的，这也意味着如果在 bar 函数或者 foo 函数中使用了外部变量，那么 JavaScript 引擎就会去全局执行上下文中查找。我们把这个查找的链条就称作为作用域链。</p>
+<h2 id="词法作用域"><a href="#词法作用域" class="headerlink" title="词法作用域"></a>词法作用域</h2><p><em><strong>词法作用域就是指作用域是由代码中函数声明的位置来决定的，所以词法作用域是静态的作用域，通过它就能够预测代码在执行过程中如何查找标识符。</strong></em></p>
+<p>可以直接看下图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zcmf66.jpg" alt="alt"></p>
+<p>从图中可以看出，词法作用域就是根据代码的位置来决定的，其中 main 函数包含了 bar 函数，bar 函数包含了 foo 函数，因为 JavaScript 作用域链是由词法作用域决定的，所以整个词法作用域链的顺序是：foo 函数作用域 -&gt; bar 函数作用域 -&gt; main 函数作用域 -&gt; 全局作用域。</p>
+<p>回过头看上边的代码，foo 函数调用了 bar 函数，但是 bar 函数的外部引用是全局执行上下文。</p>
+<p>因为词法作用域，foo 和 bar 的上级作用域都是全局作用域，所以如果 foo 或者 bar 函数使用了一个没有定义的变量，那么它们就会到全局作用域中寻找，故，词法作用域是代码阶段就决定好的，和函数的调用没有关系。</p>
+<h2 id="块级作用域中的变量查找"><a href="#块级作用域中的变量查找" class="headerlink" title="块级作用域中的变量查找"></a>块级作用域中的变量查找</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> myName = <span class="string">&quot; 极客世界 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">100</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> myName = <span class="string">&quot;Chrome 浏览器 &quot;</span></span><br><span class="line">        <span class="built_in">console</span>.log(test)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test = <span class="number">2</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> test = <span class="number">3</span></span><br><span class="line">        bar()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line"><span class="keyword">let</span> myAge = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> test = <span class="number">1</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
+
+<p>ES6 是支持块级作用域的，当执行到代码块时，如果代码块中有 let 或者 const 声明的变量，那么变量就会存放到该函数的词法环境中，对于上面这段代码，当执行到 bar 函数内部的 if 语句块时，调用栈的情况如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/%E4%B8%8B%E8%BD%BD.png" alt="alt"></p>
+<p>现在是执行到 bar 函数的 if 语句块之内，需要打印出来的变量 test，那么久需要查找到 test 变量的值，其查找过程我已经在上图中使用了序号1、2、3、4、5标记出来了。</p>
+<p>下面我就来解释一下这个过程。首先是在 bar 函数的执行上下文中查找，但因为 bar 函数的执行上下文中没有 定义 test 变量，所以根据词法作用域的规则，下一步就在 bar 函数的外部作用域中查找，也就是全局作用域。</p>
+<h2 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h2><p>了解了作用域链，接着就可以了解闭包了。关于闭包，理解起来稍微有一点难度。结合以下代码就可以理解什么是闭包了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">1</span></span><br><span class="line">    <span class="keyword">const</span> test2 = <span class="number">2</span></span><br><span class="line">    <span class="keyword">var</span> innerBar = &#123;</span><br><span class="line">        <span class="attr">getName</span>:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(test1)</span><br><span class="line">            <span class="keyword">return</span> myName</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">setName</span>:<span class="function"><span class="keyword">function</span>(<span class="params">newName</span>)</span>&#123;</span><br><span class="line">            myName = newName</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> innerBar</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> bar = foo()</span><br><span class="line">bar.setName(<span class="string">&quot; 极客邦 &quot;</span>)</span><br><span class="line">bar.getName()</span><br><span class="line"><span class="built_in">console</span>.log(bar.getName())</span><br></pre></td></tr></table></figure>
+
+<p>首先我们看看当执行到 foo 函数内部的 return innerBar 这行代码时，调用栈的情况你可以参考此图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/uPznOY.jpg" alt="alt"></p>
+<p>从上面的代码可以看出，innerBar 是一个对象，包含了 getName 和 setName 的两个方法（通常我们把对象内部的函数称为方法）。你可以看到，这两个方法都是在 foo 函数内部定义的，并且这两个方法内部都使用了 myName 和 test1 两个变量。</p>
+<p>根据词法作用域的规则，内部函数 getName 和 setName 总是可以访问它们的外部函数 foo 中的变量，所以当 innerBar 对象返回给全局变量 bar 时，虽然 foo 函数结束了，但是 getName 和 setName 函数依然可以使用 foo 函数中的变量 myName 和 test1。所以当 foo 函数执行完成之后，其整个调用栈的状态如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/20NJwJ.jpg" alt="alt"></p>
+<p>从上图可以看出，foo 函数执行完成之后，其执行上下文从栈顶弹出了，但是由于返回的 setName 和 getName 方法中使用了 foo 函数内部的变量 myName 和 test1，所以这两个变量依然存在在内存当中。这像极了 setName 和 getName 方法背的一个专属背包，无论在哪里调用 setName 和 getName 方法，它们都会背着这个 foo 函数的专属背包。</p>
+<p>之所以时专属背包，是因为除了 setName 和 getName 函数之外，其他任何地方都是无法访问该背包的，我们就可以把这个背包称为 foo 函数的闭包。</p>
+<p>最后给闭包完整的定义，在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合统称为闭包。比如外部函数 foo，那么这些变量的集合就称为 foo 函数的闭包。</p>
+<p>闭包的使用。当执行到 bar.setName 方法中的 myName = “极客邦” 这句代码时，JavaScript 引擎会沿着 “当前执行上下文 -&gt; foo 函数闭包 -&gt; 全局执行上下文” 的顺序来查找 myName 变量，你可以参考下面调用栈状态图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/RxMYdM.jpg" alt="alt"></p>
+<p>从图中可以看出，setName 的执行上下文中没有 myName 变量，foo 函数的闭包中包含了变量 myName，所以当调用 setName 时，会修改 foo 闭包中的 myName 变量的值。</p>
+<p>同样的流程，当调用 bar.getName 的时候，所访问的变量 myName 也是位于 foo 函数闭包中的。</p>
+<p>可以通过 “开发者工具” 来看看闭包的情况，打开 Chrome 的 “开发者工具”，在 bar 函数任意地方打上断点，然后刷新页面，可以看到如下内容：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/cEAEuG.jpg" alt="alt"></p>
+<p>从图中可以看出来，当调用 bar.getName 的时候，右边 Scope 就体现了作用域链的情况：Local 就是当前的 getName 函数的作用域，Closure( foo )是指 foo 函数的闭包，最下面的 Global 就是指全局作用域，从 “Local -&gt; Closure( foo ) -&gt; Global” 就是一个完整的作用域链。</p>
+<p>所以，可以通过 Scope 来查看实际代码作用域链的情况。</p>
+<h2 id="闭包的回收"><a href="#闭包的回收" class="headerlink" title="闭包的回收"></a>闭包的回收</h2><p>通常如果引用闭包的函数是一个全局变量，那么闭包会一直存在直到页面关闭；但是如果这个闭包以后不再使用就会导致内存泄漏。</p>
+<p>所以在使用闭包的时候，尽量注意一个原则：如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存比较大的话，那就尽量让它成为一个局部变量。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/30/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/" data-id="ckqk8rdmn0002yg5u26oxf8up" data-title="" class="article-share-link">Share</a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/06/30/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          (no title)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/06/25/JS%EF%BC%9A%E5%9D%97%E7%BA%A7%E4%BD%9C%E7%94%A8%E5%9F%9F%EF%BC%8Cvar%E7%BC%BA%E9%99%B7%E4%BB%A5%E5%8F%8A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BC%95%E5%85%A5let%E3%80%81const/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title"></div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/07/01/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%20JavaScript%20%E7%BB%A7%E6%89%BF%E5%8E%9F%E7%90%86/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2021/06/30/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/">(no title)</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

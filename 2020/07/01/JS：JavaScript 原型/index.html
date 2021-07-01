@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="JS：JavaScript 原型引入：普通对象与函数对象在 JavaScript 中，一直有一个说法，万物皆对象，事实上，对象也是有区别的，我们可以将其划分为 普通对象 和 函数对象。Object 和 Function 便是 JavaScript 自带的两个典型的函数对象，而函数对象就是一个纯函数，所谓的函数对象，其实就是使用 JavaScript 在模拟类。 那么究竟什么是普通对象，什么是函数对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JS：原型">
+<meta property="og:url" content="http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="JS：JavaScript 原型引入：普通对象与函数对象在 JavaScript 中，一直有一个说法，万物皆对象，事实上，对象也是有区别的，我们可以将其划分为 普通对象 和 函数对象。Object 和 Function 便是 JavaScript 自带的两个典型的函数对象，而函数对象就是一个纯函数，所谓的函数对象，其实就是使用 JavaScript 在模拟类。 那么究竟什么是普通对象，什么是函数对">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/S7IhPO.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/MbRe8T.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/dsJdGM.jpg">
+<meta property="article:published_time" content="2020-07-01T02:19:00.000Z">
+<meta property="article:modified_time" content="2021-07-01T02:27:01.365Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="深入理解JS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/S7IhPO.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>JS：原型</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" "Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post " href="/2020/07/01/JS%EF%BC%9AMap%20%E5%92%8C%20Set/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top " href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post " href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&text=JS：原型"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&is_video=false&description=JS：原型"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JS：原型&body=Check out this article: http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&name=JS：原型&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&t=JS：原型"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9AJavaScript-%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">JS：JavaScript 原型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%EF%BC%9A%E6%99%AE%E9%80%9A%E5%AF%B9%E8%B1%A1%E4%B8%8E%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">引入：普通对象与函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%EF%BC%9Aprototype-%E5%92%8C-proto"><span class="toc-number">1.2.</span> <span class="toc-text">进阶：prototype 和 proto</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%82%B9%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-number">1.3.</span> <span class="toc-text">重点：原型链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%88%E6%9E%81%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">终极：原型链图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E6%96%99%EF%BC%9AConstructor"><span class="toc-number">1.5.</span> <span class="toc-text">调料：Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AJavaScript-%E4%B8%AD%E7%9A%84-6-%E5%A4%A7%E5%86%85%E7%BD%AE%EF%BC%88%E5%87%BD%E6%95%B0%EF%BC%89%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8E%9F%E5%9E%8B%E7%BB%A7%E6%89%BF"><span class="toc-number">1.6.</span> <span class="toc-text">补充：JavaScript 中的 6 大内置（函数）对象的原型继承</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        JS：原型
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-07-01T02:19:00.000Z" itemprop="datePublished">2020-07-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JS/" rel="tag">深入理解JS</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="JS：JavaScript-原型"><a href="#JS：JavaScript-原型" class="headerlink" title="JS：JavaScript 原型"></a>JS：JavaScript 原型</h1><h2 id="引入：普通对象与函数对象"><a href="#引入：普通对象与函数对象" class="headerlink" title="引入：普通对象与函数对象"></a>引入：普通对象与函数对象</h2><p>在 JavaScript 中，一直有一个说法，万物皆对象，事实上，对象也是有区别的，我们可以将其划分为 <em><strong>普通对象</strong></em> 和 <em><strong>函数对象</strong></em>。Object 和 Function 便是 JavaScript 自带的两个典型的函数对象，而函数对象就是一个纯函数，所谓的函数对象，其实就是使用 JavaScript 在模拟类。</p>
+<p>那么究竟什么是普通对象，什么是函数对象，请看下方例子：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="keyword">const</span> fn2 = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="keyword">const</span> fn3 = <span class="keyword">new</span> <span class="built_in">Function</span>(<span class="string">&#x27;language&#x27;</span>, <span class="string">&#x27;console.log(language)&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ob1 = &#123;&#125;</span><br><span class="line"><span class="keyword">const</span> ob2 = <span class="keyword">new</span> <span class="built_in">Object</span>()</span><br><span class="line"><span class="keyword">const</span> ob3 = <span class="keyword">new</span> fn1()</span><br></pre></td></tr></table></figure>
+
+<p>打印以下结果，可以得到：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> <span class="built_in">Object</span>); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> <span class="built_in">Function</span>); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob1); <span class="comment">// object</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob2); <span class="comment">// object</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob3); <span class="comment">// object</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn1); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn2); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn3); <span class="comment">// function</span></span><br></pre></td></tr></table></figure>
+
+<p>在上述例子中，ob1、ob2、ob3为普通对象（均为 Object 的实例），而 fn1、fn2、fn3 均是 Function 的实例，称之为 函数对象。</p>
+<p>如何区分，记住这句话就可以了：</p>
+<p>所有的 Function 的实例都是函数对象，而其他的都是普通对象。</p>
+<p>上面提到，Object 和 Function 均是函数对象，我们也说到了，所有的 Function 的实例都是函数对象，难道 Function 也是 Function 的实例？</p>
+<p>保留这个疑问，我们做一个总结：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/S7IhPO.jpg" alt="alt"></p>
+<p>从图中可以看出，对象本身的实现还是要依靠构造函数。那原型链到底是用来干嘛的？</p>
+<p>众所周知，作为一门面向对象的语言，必定具有以下特征：</p>
+<ul>
+<li>对象唯一性</li>
+<li>抽象性</li>
+<li>继承性</li>
+<li>多态性</li>
+</ul>
+<p>而原型链最大的目的，就是为了<strong>实现继承</strong>。</p>
+<h2 id="进阶：prototype-和-proto"><a href="#进阶：prototype-和-proto" class="headerlink" title="进阶：prototype 和 proto"></a>进阶：prototype 和 proto</h2><p>原型链究竟是如何实现继承的？首先，先引入两兄弟：prototype 和 proto，这是在 JavaScript 中无处不在的两个变量（如果你经常调试的话），然而，这两个变量并不是在所有的对象上都存在，先看一张表：</p>
+<p>​                    prototype           proto</p>
+<p>普通对象            X                    V</p>
+<p>函数对象            V                    V</p>
+<p>首先，我们先给出结论：</p>
+<p>1、只有函数对象具有 prototype 这个属性；</p>
+<p>2、prototype 和 proto 都是 JavaScript 在定义一个函数对象时自动创建的预定义属性；</p>
+<p>接下来我们验证上述的两个结论：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn.__proto__); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn.prototype); <span class="comment">// object</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ob = &#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob.__proto__); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob.prototype); <span class="comment">// undefined，哇！果然普通对象没有 prototype</span></span><br></pre></td></tr></table></figure>
+
+<p>既然是语言层面的预置属性，那么两者究竟有什么区别？我们依然从结论出发，给出以下两个结论：</p>
+<p>1、prototype 被实例的 proto 所指向（被动）</p>
+<p>2、proto 指向构造函数的 prototype（主动）</p>
+<p>也就是说以下代码成立：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(fn.__proto__ === <span class="built_in">Function</span>.prototype); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(ob.__proto__ === <span class="built_in">Object</span>.prototype); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>那么问题来了，既然 fn 是一个函数对象，那么 fn.prototype.proto到底等于什么？</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(fn.prototype.__proto__ === <span class="built_in">Object</span>.prototype) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>创建一个函数时，JavaScript 对该函数原型的初始化代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实际代码</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// JavaScript 自动执行</span></span><br><span class="line">fn1.protptype = &#123;</span><br><span class="line">    <span class="attr">constructor</span>: fn1,</span><br><span class="line">    <span class="attr">__proto__</span>: <span class="built_in">Object</span>.prototype</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">fn1.__proto__ = <span class="built_in">Function</span>.prototype</span><br></pre></td></tr></table></figure>
+
+<p>普通对象就是通过函数对象实例化得到的，而一个实例不可能再次进行实例化，也就不会让另一个对象的 proto 指向它的 prototype，因此普通对象没有 prototype 属性这个结论就非常好理解了。而且我们也看出来了，fn1.prototype 就是一个普通对象，它也不存在 prototype 属性。</p>
+<p>我们在上面还留下了一个疑问</p>
+<ul>
+<li>难道 Function 也是 Function 的实例？</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Function</span>.__proto__ === <span class="built_in">Function</span>.prototype) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="重点：原型链"><a href="#重点：原型链" class="headerlink" title="重点：原型链"></a>重点：原型链</h2><p>上面我们了解了 prototype 和 proto，实际上，这两兄弟主要就是为了构造原型链而存在的。</p>
+<p>先看一段代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Person = <span class="function"><span class="keyword">function</span>(<span class="params">name, age</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name</span><br><span class="line">    <span class="built_in">this</span>.age = age</span><br><span class="line">&#125; <span class="comment">/* 1 */</span></span><br><span class="line"></span><br><span class="line">Person.prototype.getName = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.name</span><br><span class="line">&#125; <span class="comment">/* 2 */</span></span><br><span class="line"></span><br><span class="line">Person.prototype.getAge = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.age</span><br><span class="line">&#125; <span class="comment">/* 3 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ulivz = <span class="keyword">new</span> Person(<span class="string">&#x27;ulivz&#x27;</span>, <span class="number">24</span>); <span class="comment">/* 4 */</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(ulivz) <span class="comment">/* 5 */</span></span><br><span class="line"><span class="built_in">console</span>.log(ulivz.getName(), ulivz.getAge()) <span class="comment">/* 6 */</span></span><br></pre></td></tr></table></figure>
+
+<p>解释一下执行细节：</p>
+<ul>
+<li>执行 1，创建了一个构造函数 Person，要注意，前面已经提到，此时 Person.prototype 已经被自动创建，它包含 constructor 和 proto这两个属性；</li>
+<li>执行2，给对象 Person.prototype 增加了一个方法 getName()；</li>
+<li>执行3，给对象 Person.prototype 增加了一个方法 getAge()；</li>
+<li>执行4, 由构造函数 Person 创建了一个实例 ulivz，值得注意的是，一个构造函数在实例化时，一定会自动执行该构造函数。</li>
+<li>在浏览器得到 5 的输出，即 ulivz 应该是：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">     <span class="attr">name</span>: <span class="string">&#x27;ulivz&#x27;</span>,</span><br><span class="line">     <span class="attr">age</span>: <span class="number">24</span></span><br><span class="line">     <span class="attr">__proto__</span>: <span class="built_in">Object</span> <span class="comment">// 实际上就是 `Person.prototype`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合上面的结论，以下等式成立：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(ulivz.__proto__ == Person.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>执行6的时候，由于在 ulivz 中找不到 getName() 和 getAge() 这两个方法，就会继续朝着原型链向上查找，也就是通过 proto 向上查找，于是，很快在 ulviz.proto 中，即 Person.prototype 中找到了这两个方法，于是停止查找并执行得到结果。</li>
+</ul>
+<p><em><strong>这便是 JavaScript 的原型继承。准确的说，JavaScript 的原型继承时通过 proto 并借助 prototype 来实现的。</strong></em></p>
+<p>于是便有以下总结：</p>
+<p>1、函数对象的 proto 指向 Function.prototype；</p>
+<p>2、instance.proto 指向函数对象的 prototype；</p>
+<p>3、普通对象的 proto 指向 Object.prototype；</p>
+<p>4、普通对象没有 prototype 属性；</p>
+<p>5、在访问一个对象的某个属性 / 方法的时候，如果在当前对象上没有找到，则会尝试 ob.proto，也就是访问该对象的构造函数的原型 obCtr.prototype，如果还是找不到，会继续查找 obCtr.prototype.proto，依次查找下去，若在某一刻，找到了该属性，则会立刻返回值并停止对原型链的搜索，若找不到，则返回 undefined。</p>
+<p>为了加深理解，参考以下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(ulivz.proto == <span class="built_in">Function</span>.prototype);	<span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.proto == <span class="built_in">Function</span>.prototype);	<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.proto == <span class="built_in">Object</span>.prototype);	<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.proto == <span class="built_in">Object</span>.prototype);	<span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.proto == <span class="built_in">Function</span>.prototype);	<span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="终极：原型链图"><a href="#终极：原型链图" class="headerlink" title="终极：原型链图"></a>终极：原型链图</h2><p>上面我们还遗留了一个问题：</p>
+<ul>
+<li>如果原型链一直找不到的话，那么什么时候停止，原型链的尽头在哪？</li>
+</ul>
+<p>我们可以用代码验证一下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Person</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="keyword">const</span> ulivz = <span class="keyword">new</span> Person();</span><br><span class="line"><span class="built_in">console</span>.log(ulivz.name);</span><br></pre></td></tr></table></figure>
+
+<p>很明显，会输出 undefined。简述查找过程：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ulivz                <span class="comment">// 是一个对象，可以继续 </span></span><br><span class="line">ulivz[<span class="string">&#x27;name&#x27;</span>]           <span class="comment">// 不存在，继续查找 </span></span><br><span class="line">ulivz.__proto__            <span class="comment">// 是一个对象，可以继续</span></span><br><span class="line">ulivz.__proto__[<span class="string">&#x27;name&#x27;</span>]        <span class="comment">// 不存在，继续查找</span></span><br><span class="line">ulivz.__proto__.__proto__          <span class="comment">// 是一个对象，可以继续</span></span><br><span class="line">ulivz.__proto__.__proto__[<span class="string">&#x27;name&#x27;</span>]     <span class="comment">// 不存在, 继续查找</span></span><br><span class="line">ulivz.__proto__.__proto__.__proto__       <span class="comment">// null !!!! 停止查找，返回 undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>最后来看一下上一节的代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Person = <span class="function"><span class="keyword">function</span>(<span class="params">name, age</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name</span><br><span class="line">    <span class="built_in">this</span>.age = age</span><br><span class="line">&#125; <span class="comment">/* 1 */</span></span><br><span class="line"></span><br><span class="line">Person.prototype.getName = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.name</span><br><span class="line">&#125; <span class="comment">/* 2 */</span></span><br><span class="line"></span><br><span class="line">Person.prototype.getAge = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.age</span><br><span class="line">&#125; <span class="comment">/* 3 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ulivz = <span class="keyword">new</span> Person(<span class="string">&#x27;ulivz&#x27;</span>, <span class="number">24</span>); <span class="comment">/* 4 */</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(ulivz) <span class="comment">/* 5 */</span></span><br><span class="line"><span class="built_in">console</span>.log(ulivz.getName(), ulivz.getAge()) <span class="comment">/* 6 */</span></span><br></pre></td></tr></table></figure>
+
+<p>我们来画一个原型链图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/MbRe8T.jpg" alt="alt"></p>
+<p>画完这张图，所有疑问都已经得到了解答了。</p>
+<h2 id="调料：Constructor"><a href="#调料：Constructor" class="headerlink" title="调料：Constructor"></a>调料：Constructor</h2><p>前面已经有所提及了，只有原型对象才具有 constructor 这个属性，constructor 用来指向引用它的函数对象。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Person.prototype.constructor === Person <span class="comment">//true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.constructor.prototype.constructor === Person) <span class="comment">//true</span></span><br></pre></td></tr></table></figure>
+
+<p>这是一种循环引用。</p>
+<h2 id="补充：JavaScript-中的-6-大内置（函数）对象的原型继承"><a href="#补充：JavaScript-中的-6-大内置（函数）对象的原型继承" class="headerlink" title="补充：JavaScript 中的 6 大内置（函数）对象的原型继承"></a>补充：JavaScript 中的 6 大内置（函数）对象的原型继承</h2><p>通过前文的论述，结合相应的代码验证，整理出以下原型链图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/dsJdGM.jpg" alt="alt"></p>
+<p>由此可见，我们更加强化了这两个观点；</p>
+<p>1、任何内置函数对象（类）本身的 proto 都指向 Function 的原型对象；</p>
+<p>2、除了 Object 的原型对象的 proto 指向 null，其他所有内置函数对象的原型对象的 proto 都指向 Object.prototype；</p>
+<p>请看以下代码：</p>
+<p><em><strong>Array</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [];		</span><br><span class="line">		<span class="built_in">console</span>.log(arr.__proto__)</span><br><span class="line">		<span class="built_in">console</span>.log(arr.__proto__ == <span class="built_in">Array</span>.prototype)   <span class="comment">// true </span></span><br><span class="line">		<span class="built_in">console</span>.log(<span class="built_in">Array</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">		<span class="built_in">console</span>.log(<span class="built_in">Object</span>.prototype.__proto__== <span class="literal">null</span>)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p><em><strong>RegExp</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> reg = <span class="keyword">new</span> <span class="built_in">RegExp</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(reg.__proto__)</span><br><span class="line">    <span class="built_in">console</span>.log(reg.__proto__ == <span class="built_in">RegExp</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">RegExp</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p><em><strong>Date</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> date = <span class="keyword">new</span> <span class="built_in">Date</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(date.__proto__)</span><br><span class="line">    <span class="built_in">console</span>.log(date.__proto__ == <span class="built_in">Date</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">Date</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p><em><strong>Boolean</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> boo = <span class="keyword">new</span> <span class="built_in">Boolean</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(boo.__proto__)</span><br><span class="line">    <span class="built_in">console</span>.log(boo.__proto__ == <span class="built_in">Boolean</span>.prototype) <span class="comment">// true </span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">Boolean</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p><em><strong>Number</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> num = <span class="keyword">new</span> <span class="built_in">Number</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(num.__proto__)</span><br><span class="line">    <span class="built_in">console</span>.log(num.__proto__ == <span class="built_in">Number</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">Number</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p><em><strong>String</strong></em></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> str = <span class="keyword">new</span> <span class="built_in">String</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(str.__proto__)</span><br><span class="line">    <span class="built_in">console</span>.log(str.__proto__ == <span class="built_in">String</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">String</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>若 A 通过 new 创建了 B，那么 B.proto == A.prototype；</li>
+<li>proto 是原型链查找的起点；</li>
+<li>执行 B.a，若在 B 中找不到 a，则会在 B.proto 中，也就是 A.prototype 中查找，若 A.prototype 中仍然没有，则会继续向上查找，最终，一定会找到 Object.prototype，倘若还找不到，因为 Object.prototype.proto 指向 null，因此一定会返回 undefined。</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9AJavaScript-%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">JS：JavaScript 原型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%EF%BC%9A%E6%99%AE%E9%80%9A%E5%AF%B9%E8%B1%A1%E4%B8%8E%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">引入：普通对象与函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%EF%BC%9Aprototype-%E5%92%8C-proto"><span class="toc-number">1.2.</span> <span class="toc-text">进阶：prototype 和 proto</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%82%B9%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-number">1.3.</span> <span class="toc-text">重点：原型链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%88%E6%9E%81%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">终极：原型链图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E6%96%99%EF%BC%9AConstructor"><span class="toc-number">1.5.</span> <span class="toc-text">调料：Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AJavaScript-%E4%B8%AD%E7%9A%84-6-%E5%A4%A7%E5%86%85%E7%BD%AE%EF%BC%88%E5%87%BD%E6%95%B0%EF%BC%89%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8E%9F%E5%9E%8B%E7%BB%A7%E6%89%BF"><span class="toc-number">1.6.</span> <span class="toc-text">补充：JavaScript 中的 6 大内置（函数）对象的原型继承</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&text=JS：原型"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&is_video=false&description=JS：原型"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JS：原型&body=Check out this article: http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&title=JS：原型"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&name=JS：原型&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/&t=JS：原型"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2021
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>

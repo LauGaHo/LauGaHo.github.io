@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="JS：从执行上下文视角讲 this观察以下代码 1234567891011121314var bar &#x3D; &amp;#123;    myName:&quot;time.geekbang.com&quot;,    printName: function () &amp;#123;        console.log(myName)    &amp;#125;    &amp;#125;function foo() &amp;#123">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JS：从执行上下文视角讲解 this">
+<meta property="og:url" content="http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="JS：从执行上下文视角讲 this观察以下代码 1234567891011121314var bar &#x3D; &amp;#123;    myName:&quot;time.geekbang.com&quot;,    printName: function () &amp;#123;        console.log(myName)    &amp;#125;    &amp;#125;function foo() &amp;#123">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/VZ8Dym.jpg">
+<meta property="article:published_time" content="2020-07-01T02:19:00.000Z">
+<meta property="article:modified_time" content="2021-07-01T02:24:31.948Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="深入理解JS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/VZ8Dym.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>JS：从执行上下文视角讲解 this</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" "Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post " href="/2020/07/01/JS%EF%BC%9A%E5%B1%95%E5%BC%80%E8%BF%90%E7%AE%97%E7%AC%A6/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post " href="/2020/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%20JavaScript%20%E7%BB%A7%E6%89%BF%E5%8E%9F%E7%90%86/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top " href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post " href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&text=JS：从执行上下文视角讲解 this"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&is_video=false&description=JS：从执行上下文视角讲解 this"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JS：从执行上下文视角讲解 this&body=Check out this article: http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&name=JS：从执行上下文视角讲解 this&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&t=JS：从执行上下文视角讲解 this"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2-this"><span class="toc-number">1.</span> <span class="toc-text">JS：从执行上下文视角讲 this</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#JavaScript-%E4%B8%AD%E7%9A%84-this"><span class="toc-number">1.1.</span> <span class="toc-text">JavaScript 中的 this</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%AD%E7%9A%84-this"><span class="toc-number">1.2.</span> <span class="toc-text">全局执行上下文中的 this</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%AD%E7%9A%84-this"><span class="toc-number">1.3.</span> <span class="toc-text">函数执行上下文中的 this</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E9%80%9A%E8%BF%87%E5%87%BD%E6%95%B0%E7%9A%84-call-%E6%96%B9%E6%B3%95%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.1.</span> <span class="toc-text">1、通过函数的 call 方法设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E9%80%9A%E8%BF%87%E5%AF%B9%E8%B1%A1%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.2.</span> <span class="toc-text">2、通过对象调用方法设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E9%80%9A%E8%BF%87%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E4%B8%AD%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.3.</span> <span class="toc-text">3、通过构造函数中设置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#this-%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%BC%BA%E9%99%B7%E4%BB%A5%E5%8F%8A%E5%BA%94%E5%AF%B9%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.</span> <span class="toc-text">this 的设计缺陷以及应对方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%B5%8C%E5%A5%97%E5%87%BD%E6%95%B0%E4%B8%AD%E7%9A%84-this-%E4%B8%8D%E4%BC%9A%E4%BB%8E%E5%A4%96%E5%B1%82%E5%87%BD%E6%95%B0%E4%B8%AD%E7%BB%A7%E6%89%BF"><span class="toc-number">1.4.1.</span> <span class="toc-text">1、嵌套函数中的 this 不会从外层函数中继承</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E6%99%AE%E9%80%9A%E5%87%BD%E6%95%B0%E4%B8%AD%E7%9A%84-this-%E9%BB%98%E8%AE%A4%E6%8C%87%E5%90%91%E5%85%A8%E5%B1%80%E5%AF%B9%E8%B1%A1-window"><span class="toc-number">1.4.2.</span> <span class="toc-text">2、普通函数中的 this 默认指向全局对象 window</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        JS：从执行上下文视角讲解 this
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-07-01T02:19:00.000Z" itemprop="datePublished">2020-07-01</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JS/" rel="tag">深入理解JS</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="JS：从执行上下文视角讲-this"><a href="#JS：从执行上下文视角讲-this" class="headerlink" title="JS：从执行上下文视角讲 this"></a>JS：从执行上下文视角讲 this</h1><p>观察以下代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> bar = &#123;</span><br><span class="line">    <span class="attr">myName</span>:<span class="string">&quot;time.geekbang.com&quot;</span>,</span><br><span class="line">    <span class="attr">printName</span>: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(myName)</span><br><span class="line">    &#125;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">    <span class="keyword">return</span> bar.printName</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line"><span class="keyword">let</span> _printName = foo()</span><br><span class="line">_printName()</span><br><span class="line">bar.printName()</span><br></pre></td></tr></table></figure>
+
+<p>这里其实是个障眼法，只需要确定好函数调用栈就可以轻松地回答，调用了 foo( ) 后，返回的是 bar.printName，后续就跟 foo 函数没有关系了，所以结果就是调用了两次 bar.printName( ) 函数，根据词法作用域，结果都是 “极客邦”。这是因为 JavaScript 语言的作用域链是由词法作用域决定的，而词法作用域是由代码结构确定的。</p>
+<p>不过按照常理来说，调用 bar.printName 方法时，该方法内部的变量 myName 应该使用 bar 对象中的，因为它们是一个整体，大多数面向对象语言都是这样设计的。所以在对象内部的方法中使用对象内部的属性是一种非常普遍的的需求，但是 JavaScript 的作用域机制并不支持这一点，基于这个需求，JavaScript 又搞出了另外一套 this 机制。</p>
+<p>所以在 JavaScript 中可以使用 this 实现在 printName 函数中访问到 bar 对象中的 myName 属性了。具体的代码，如下显示：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">printName: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="built_in">this</span>.myName)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="JavaScript-中的-this"><a href="#JavaScript-中的-this" class="headerlink" title="JavaScript 中的 this"></a>JavaScript 中的 this</h2><p>关于 this，我们还是得从执行上下文说起，其实执行上下文中包含了变量环境、词法环境、外部环境，但其实还有一个 this 没有提及，具体可以参考下图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/VZ8Dym.jpg" alt="alt"></p>
+<p>从图中可以看出，this 是和执行上下文绑定的，也就是说每个执行上下文都有一个 this。执行上下文包含了：全局执行上下文、函数执行上下文、eval执行上下文。</p>
+<h2 id="全局执行上下文中的-this"><a href="#全局执行上下文中的-this" class="headerlink" title="全局执行上下文中的 this"></a>全局执行上下文中的 this</h2><p>全局执行上下文中输入 console.log( this )，最终输出的是 window 对象，这也是 this 和作用域链的唯一交点，作用域链的最底端包含了 window 对象，全局执行上下文中的 this 也是指向 window 对象。</p>
+<h2 id="函数执行上下文中的-this"><a href="#函数执行上下文中的-this" class="headerlink" title="函数执行上下文中的 this"></a>函数执行上下文中的 this</h2><p>重点分析函数执行上下文，先看代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="built_in">this</span>);</span><br><span class="line">&#125;</span><br><span class="line">foo();</span><br></pre></td></tr></table></figure>
+
+<p>这段代码打印出来的也是 window 对象，这说明在默认情况下调用一个函数，其执行上下文也是指向 window 对象的。但是我们可以设置执行上下文中的 this 来指向其他对象，通常有三种方式来设置函数执行上下文中的 this 值。</p>
+<h3 id="1、通过函数的-call-方法设置"><a href="#1、通过函数的-call-方法设置" class="headerlink" title="1、通过函数的 call 方法设置"></a>1、通过函数的 call 方法设置</h3><p>可以通过函数的 call 方法来设置函数执行上下文的 this 指向，比如下面的这段代码，我们就并没有直接调用 foo 函数，而是调用了 foo 的call 函数，并将 bar 对象作为 call 方法的参数。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> bar = &#123;</span><br><span class="line">  <span class="attr">myName</span> : <span class="string">&quot; 极客邦 &quot;</span>,</span><br><span class="line">  <span class="attr">test1</span> : <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="built_in">this</span>.myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">&#125;</span><br><span class="line">foo.call(bar)</span><br><span class="line"><span class="built_in">console</span>.log(bar)</span><br><span class="line"><span class="built_in">console</span>.log(myName)</span><br></pre></td></tr></table></figure>
+
+<p>执行这段代码，观察输出，就可以发现 foo 函数内部的 this 已经指向了 bar 对象，因为通过打印 bar 对象，可以看出 bar 的 myName 属性已经由 “极客邦” 变为 “极客时间” 了，同时在全局执行上下文中打印 myName，JavaScript 引擎提示该变量未定义。</p>
+<p>其实除了 call 方法，还可以使用 bind 和 apply 方法来设置函数执行上下文的 this，它们在使用上还是有一些区别的。</p>
+<h3 id="2、通过对象调用方法设置"><a href="#2、通过对象调用方法设置" class="headerlink" title="2、通过对象调用方法设置"></a>2、通过对象调用方法设置</h3><p>要改变函数执行上下文中的 this 指向，除了通过函数的 call 方法来实现以外，还可以通过对象调用的方式，比如下面这段代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myObj = &#123;</span><br><span class="line">  <span class="attr">name</span> : <span class="string">&quot; 极客时间 &quot;</span>, </span><br><span class="line">  <span class="attr">showThis</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">myObj.showThis()</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，我们定义了一个 myObj 对象，该对象是由一个 name 属性和一个 showThis 方法组成的，然后再通过 myObj 对象来调用 showThis 方法。执行这段代码，你可以看到，最终输出的 this 值是指向 myObj 的。</p>
+<p>所以，你可以得出这样的结论：使用对象来调用其内部的方法，该方法的 this 是指向对象本身的。</p>
+<p>也可以这样认为 JavaScript 引擎在执行 myObject.showThis( ) 时，将其转化为了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">myObject.showThis.call(myObj)</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们稍微改变下调用方式，把 showThis 赋给一个全局对象，然后再调用该对象，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myObj = &#123;</span><br><span class="line">  <span class="attr">name</span> : <span class="string">&quot; 极客时间 &quot;</span>,</span><br><span class="line">  <span class="attr">showThis</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">this</span>.name = <span class="string">&quot; 极客邦 &quot;</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> foo = myObj;</span><br><span class="line">foo();</span><br></pre></td></tr></table></figure>
+
+<p>执行这段代码，你会发现 this 指向又是全局 window 对象。</p>
+<p>所以通过以上两个例子的对比，你可以得出下面这样的结论：</p>
+<p>在全局环境中调用一个函数，函数内部的 this 指向的是全局变量 window。</p>
+<p>通过一个对象来调用其内部的一个方法，该方法的执行上下文中的 this 指向对象本身。</p>
+<h3 id="3、通过构造函数中设置"><a href="#3、通过构造函数中设置" class="headerlink" title="3、通过构造函数中设置"></a>3、通过构造函数中设置</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">CreateObj</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">this</span>.name = <span class="string">&quot;极客时间&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myObje = <span class="keyword">new</span> CreateObj();</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，使用了 new 创建了对象 myObj。</p>
+<p>其实，当执行 new CreateObj( ) 的时候，JavaScript 引擎做了如下四件事：</p>
+<ul>
+<li>首先创建了一个空对象 tempObj；</li>
+<li>接着调用 CreateObj.call 方法，并将 tempObj 作为 call 方法的参数，这样当 CreateObj 的执行上下文创建时，它的 this 就指向 tempObj 对象；</li>
+<li>然后执行 CreateObj 函数，此时的 CreateObj 函数执行上下文中的 this 指向了 tempObj 对象；</li>
+<li>最后返回 tempObj 对象；</li>
+</ul>
+<p>为了直观理解，我们用代码来演示一下</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tempObj = &#123;&#125;</span><br><span class="line">CreateObj.call(tempObj)</span><br><span class="line"><span class="keyword">return</span> tempObj</span><br></pre></td></tr></table></figure>
+
+<p>这样，我们就通过 new 关键字构建好了一个新对象，并且构造函数中的 this 其实就是新对象本身。</p>
+<h2 id="this-的设计缺陷以及应对方案"><a href="#this-的设计缺陷以及应对方案" class="headerlink" title="this 的设计缺陷以及应对方案"></a>this 的设计缺陷以及应对方案</h2><p>this 并不是一个很好的设计，因为它很多使用方法都冲击人的直觉，在使用过程中比较多坑，下面来看看 this 的设计缺陷</p>
+<h3 id="1、嵌套函数中的-this-不会从外层函数中继承"><a href="#1、嵌套函数中的-this-不会从外层函数中继承" class="headerlink" title="1、嵌套函数中的 this 不会从外层函数中继承"></a>1、嵌套函数中的 this 不会从外层函数中继承</h3><p>分析一段代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myObj = &#123;</span><br><span class="line">  <span class="attr">name</span> : <span class="string">&quot; 极客时间 &quot;</span>, </span><br><span class="line">  <span class="attr">showThis</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">this</span>)</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>)</span>&#123;<span class="built_in">console</span>.log(<span class="built_in">this</span>)&#125;</span><br><span class="line">    bar()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">myObj.showThis()</span><br></pre></td></tr></table></figure>
+
+<p>我们在这段代码的 showThis 方法中添加了一个 bar 方法，然后接着在 showThis 函数中调用了 bar 函数，那么现在的问题是：bar 函数中的 this 是什么？</p>
+<p>如果是刚刚接触 JavaScript，那么会很自然地觉得，bar 中的 this 应该和其外层 showThis 函数中的 this 是一致的都是指向 myObj 对象，这很符合人的直觉。但是实际情况却并非如此，执行这段代码后，发现函数 bar 中的 this 指向的是全局 window 对象，而函数 showThis 中的 this 指向的是 myObj 对象，这就是 JavaScript 中容易让人迷惑的地方之一，也是很多问题的源头。</p>
+<p>可以通过一个小技巧来解决这一个问题，比如在 showThis 函数中声明一个变量 self 用来保存 this，然后在 bar 函数中使用 self，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myObj = &#123;</span><br><span class="line">  <span class="attr">name</span> : <span class="string">&quot; 极客时间 &quot;</span>, </span><br><span class="line">  <span class="attr">showThis</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">this</span>)</span><br><span class="line">    <span class="keyword">var</span> self = <span class="built_in">this</span></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">      self.name = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    bar()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">myObj.showThis()</span><br><span class="line"><span class="built_in">console</span>.log(myObj.name)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.name)</span><br></pre></td></tr></table></figure>
+
+<p>执行这段代码，你会发现它也输出了我们想要的结果，最终 myObj 中的 name 属性值变成了 “极客邦”。其实这个方法的本质就是把 this 体系转换成了作用域体系。</p>
+<p>同样的也可以使用 ES6 中的箭头函数来解决这个问题，结合一下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myObj = &#123;</span><br><span class="line">  <span class="attr">name</span> : <span class="string">&quot; 极客时间 &quot;</span>, </span><br><span class="line">  <span class="attr">showThis</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">this</span>)</span><br><span class="line">    <span class="keyword">var</span> bar = <span class="function">()=&gt;</span>&#123;</span><br><span class="line">      <span class="built_in">this</span>.name = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">      <span class="built_in">console</span>.log(<span class="built_in">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    bar()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">myObj.showThis()</span><br><span class="line"><span class="built_in">console</span>.log(myObj.name)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.name)</span><br></pre></td></tr></table></figure>
+
+<p>执行这段代码，会发现它也输出了我们想要的结果，也就是说箭头函数 bar 里面的 this 是指向 myObj 对象的。这是因为 ES6 中的箭头函数并不会创建其自身的执行上下文，所以箭头函数中的 this 取决于它的外部函数。</p>
+<p>通过上面的讲解，你应该知道了 this 没有作用域的限制，这点和变量不一样，所以嵌套函数不会从调用它的函数中继承 this，这样会造成很多不符合直觉的代码。解决这个问题，有两种思路：</p>
+<ul>
+<li>把 this 保存为一个 self 变量，再利用变量的作用域机制传递给嵌套函数。</li>
+<li>继续使用 this，但是需要把嵌套函数改为箭头函数，因为箭头函数没有自己的执行上下文，所以它会继承调用函数中的 this。</li>
+</ul>
+<h3 id="2、普通函数中的-this-默认指向全局对象-window"><a href="#2、普通函数中的-this-默认指向全局对象-window" class="headerlink" title="2、普通函数中的 this 默认指向全局对象 window"></a>2、普通函数中的 this 默认指向全局对象 window</h3><p>在默认情况下，调用一个函数，其执行上下文中的 this 是默认指向全局对象 window 的。</p>
+<p>不过这个设计也是一种缺陷，因为在实际工作中，我们并不希望函数执行上下文中的 this 默认指向全局对象，因为这样会打破数据边界，造成一些误操作。如果要让函数执行上下文中的 this 指向某个对象，最好的方式就是说通过 call 方法来实现调用。</p>
+<p>这个问题可以通过设置 JavaScript 的 “严格模式” 来解决。在严格模式下，默认执行一个函数，其函数的执行上下文中的 this 值是undefined，这就解决上面的问题了。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2-this"><span class="toc-number">1.</span> <span class="toc-text">JS：从执行上下文视角讲 this</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#JavaScript-%E4%B8%AD%E7%9A%84-this"><span class="toc-number">1.1.</span> <span class="toc-text">JavaScript 中的 this</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%AD%E7%9A%84-this"><span class="toc-number">1.2.</span> <span class="toc-text">全局执行上下文中的 this</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%AD%E7%9A%84-this"><span class="toc-number">1.3.</span> <span class="toc-text">函数执行上下文中的 this</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E9%80%9A%E8%BF%87%E5%87%BD%E6%95%B0%E7%9A%84-call-%E6%96%B9%E6%B3%95%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.1.</span> <span class="toc-text">1、通过函数的 call 方法设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E9%80%9A%E8%BF%87%E5%AF%B9%E8%B1%A1%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.2.</span> <span class="toc-text">2、通过对象调用方法设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E9%80%9A%E8%BF%87%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E4%B8%AD%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.3.3.</span> <span class="toc-text">3、通过构造函数中设置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#this-%E7%9A%84%E8%AE%BE%E8%AE%A1%E7%BC%BA%E9%99%B7%E4%BB%A5%E5%8F%8A%E5%BA%94%E5%AF%B9%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.</span> <span class="toc-text">this 的设计缺陷以及应对方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%B5%8C%E5%A5%97%E5%87%BD%E6%95%B0%E4%B8%AD%E7%9A%84-this-%E4%B8%8D%E4%BC%9A%E4%BB%8E%E5%A4%96%E5%B1%82%E5%87%BD%E6%95%B0%E4%B8%AD%E7%BB%A7%E6%89%BF"><span class="toc-number">1.4.1.</span> <span class="toc-text">1、嵌套函数中的 this 不会从外层函数中继承</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E6%99%AE%E9%80%9A%E5%87%BD%E6%95%B0%E4%B8%AD%E7%9A%84-this-%E9%BB%98%E8%AE%A4%E6%8C%87%E5%90%91%E5%85%A8%E5%B1%80%E5%AF%B9%E8%B1%A1-window"><span class="toc-number">1.4.2.</span> <span class="toc-text">2、普通函数中的 this 默认指向全局对象 window</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&text=JS：从执行上下文视角讲解 this"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&is_video=false&description=JS：从执行上下文视角讲解 this"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JS：从执行上下文视角讲解 this&body=Check out this article: http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&title=JS：从执行上下文视角讲解 this"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&name=JS：从执行上下文视角讲解 this&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2020/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/&t=JS：从执行上下文视角讲解 this"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2021
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/projects_url">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>

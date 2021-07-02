@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/MbRe8T.jpg">
 <meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/dsJdGM.jpg">
 <meta property="article:published_time" content="2020-07-01T02:19:00.000Z">
-<meta property="article:modified_time" content="2021-07-01T02:27:01.365Z">
+<meta property="article:modified_time" content="2021-07-02T03:20:50.882Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="深入理解JS">
 <meta name="twitter:card" content="summary">
@@ -79,6 +79,8 @@
     <span id="actions">
       <ul>
         
+        <li><a class="icon" aria-label="Previous post " href="/2020/07/02/JS%EF%BC%9AJavaScript%20%E4%B8%AD%E6%9C%89%E5%8F%AF%E8%83%BD%E6%A8%A1%E6%8B%9F%E5%87%BA%E7%A7%81%E6%9C%89%E5%8F%98%E9%87%8F%E5%90%97%EF%BC%9F/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
         
         <li><a class="icon" aria-label="Next post " href="/2020/07/01/JS%EF%BC%9AMap%20%E5%92%8C%20Set/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
@@ -108,7 +110,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9AJavaScript-%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">JS：JavaScript 原型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%EF%BC%9A%E6%99%AE%E9%80%9A%E5%AF%B9%E8%B1%A1%E4%B8%8E%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">引入：普通对象与函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%EF%BC%9Aprototype-%E5%92%8C-proto"><span class="toc-number">1.2.</span> <span class="toc-text">进阶：prototype 和 proto</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%82%B9%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-number">1.3.</span> <span class="toc-text">重点：原型链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%88%E6%9E%81%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">终极：原型链图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E6%96%99%EF%BC%9AConstructor"><span class="toc-number">1.5.</span> <span class="toc-text">调料：Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AJavaScript-%E4%B8%AD%E7%9A%84-6-%E5%A4%A7%E5%86%85%E7%BD%AE%EF%BC%88%E5%87%BD%E6%95%B0%EF%BC%89%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8E%9F%E5%9E%8B%E7%BB%A7%E6%89%BF"><span class="toc-number">1.6.</span> <span class="toc-text">补充：JavaScript 中的 6 大内置（函数）对象的原型继承</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9AJavaScript-%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">JS：JavaScript 原型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%EF%BC%9A%E6%99%AE%E9%80%9A%E5%AF%B9%E8%B1%A1%E4%B8%8E%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">引入：普通对象与函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%EF%BC%9Aprototype-%E5%92%8C-proto"><span class="toc-number">1.2.</span> <span class="toc-text">进阶：prototype 和 __proto__</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%82%B9%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-number">1.3.</span> <span class="toc-text">重点：原型链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%88%E6%9E%81%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">终极：原型链图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E6%96%99%EF%BC%9AConstructor"><span class="toc-number">1.5.</span> <span class="toc-text">调料：Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AJavaScript-%E4%B8%AD%E7%9A%84-6-%E5%A4%A7%E5%86%85%E7%BD%AE%EF%BC%88%E5%87%BD%E6%95%B0%EF%BC%89%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8E%9F%E5%9E%8B%E7%BB%A7%E6%89%BF"><span class="toc-number">1.6.</span> <span class="toc-text">补充：JavaScript 中的 6 大内置（函数）对象的原型继承</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -174,42 +176,42 @@
 <li>多态性</li>
 </ul>
 <p>而原型链最大的目的，就是为了<strong>实现继承</strong>。</p>
-<h2 id="进阶：prototype-和-proto"><a href="#进阶：prototype-和-proto" class="headerlink" title="进阶：prototype 和 proto"></a>进阶：prototype 和 proto</h2><p>原型链究竟是如何实现继承的？首先，先引入两兄弟：prototype 和 proto，这是在 JavaScript 中无处不在的两个变量（如果你经常调试的话），然而，这两个变量并不是在所有的对象上都存在，先看一张表：</p>
-<p>​                    prototype           proto</p>
+<h2 id="进阶：prototype-和-proto"><a href="#进阶：prototype-和-proto" class="headerlink" title="进阶：prototype 和 __proto__"></a>进阶：prototype 和 __proto__</h2><p>原型链究竟是如何实现继承的？首先，先引入两兄弟：prototype 和 __proto__，这是在 JavaScript 中无处不在的两个变量（如果你经常调试的话），然而，这两个变量并不是在所有的对象上都存在，先看一张表：</p>
+<p>​                    prototype           __proto__</p>
 <p>普通对象            X                    V</p>
 <p>函数对象            V                    V</p>
 <p>首先，我们先给出结论：</p>
 <p>1、只有函数对象具有 prototype 这个属性；</p>
-<p>2、prototype 和 proto 都是 JavaScript 在定义一个函数对象时自动创建的预定义属性；</p>
+<p>2、prototype 和 __proto__ 都是 JavaScript 在定义一个函数对象时自动创建的预定义属性；</p>
 <p>接下来我们验证上述的两个结论：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn.__proto__); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> fn.prototype); <span class="comment">// object</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ob = &#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob.__proto__); <span class="comment">// function</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> ob.prototype); <span class="comment">// undefined，哇！果然普通对象没有 prototype</span></span><br></pre></td></tr></table></figure>
 
 <p>既然是语言层面的预置属性，那么两者究竟有什么区别？我们依然从结论出发，给出以下两个结论：</p>
-<p>1、prototype 被实例的 proto 所指向（被动）</p>
-<p>2、proto 指向构造函数的 prototype（主动）</p>
+<p>1、prototype 被实例的 __proto__ 所指向（被动）</p>
+<p>2、__proto__ 指向构造函数的 prototype（主动）</p>
 <p>也就是说以下代码成立：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(fn.__proto__ === <span class="built_in">Function</span>.prototype); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(ob.__proto__ === <span class="built_in">Object</span>.prototype); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 
-<p>那么问题来了，既然 fn 是一个函数对象，那么 fn.prototype.proto到底等于什么？</p>
+<p>那么问题来了，既然 fn 是一个函数对象，那么 fn.prototype.__proto__到底等于什么？</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(fn.prototype.__proto__ === <span class="built_in">Object</span>.prototype) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 
 <p>创建一个函数时，JavaScript 对该函数原型的初始化代码如下：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实际代码</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// JavaScript 自动执行</span></span><br><span class="line">fn1.protptype = &#123;</span><br><span class="line">    <span class="attr">constructor</span>: fn1,</span><br><span class="line">    <span class="attr">__proto__</span>: <span class="built_in">Object</span>.prototype</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">fn1.__proto__ = <span class="built_in">Function</span>.prototype</span><br></pre></td></tr></table></figure>
 
-<p>普通对象就是通过函数对象实例化得到的，而一个实例不可能再次进行实例化，也就不会让另一个对象的 proto 指向它的 prototype，因此普通对象没有 prototype 属性这个结论就非常好理解了。而且我们也看出来了，fn1.prototype 就是一个普通对象，它也不存在 prototype 属性。</p>
+<p>普通对象就是通过函数对象实例化得到的，而一个实例不可能再次进行实例化，也就不会让另一个对象的 __proto__ 指向它的 prototype，因此普通对象没有 prototype 属性这个结论就非常好理解了。而且我们也看出来了，fn1.prototype 就是一个普通对象，它也不存在 prototype 属性。</p>
 <p>我们在上面还留下了一个疑问</p>
 <ul>
 <li>难道 Function 也是 Function 的实例？</li>
 </ul>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Function</span>.__proto__ === <span class="built_in">Function</span>.prototype) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="重点：原型链"><a href="#重点：原型链" class="headerlink" title="重点：原型链"></a>重点：原型链</h2><p>上面我们了解了 prototype 和 proto，实际上，这两兄弟主要就是为了构造原型链而存在的。</p>
+<h2 id="重点：原型链"><a href="#重点：原型链" class="headerlink" title="重点：原型链"></a>重点：原型链</h2><p>上面我们了解了 prototype 和 __proto__，实际上，这两兄弟主要就是为了构造原型链而存在的。</p>
 <p>先看一段代码</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Person = <span class="function"><span class="keyword">function</span>(<span class="params">name, age</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">this</span>.name = name</span><br><span class="line">    <span class="built_in">this</span>.age = age</span><br><span class="line">&#125; <span class="comment">/* 1 */</span></span><br><span class="line"></span><br><span class="line">Person.prototype.getName = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.name</span><br><span class="line">&#125; <span class="comment">/* 2 */</span></span><br><span class="line"></span><br><span class="line">Person.prototype.getAge = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.age</span><br><span class="line">&#125; <span class="comment">/* 3 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ulivz = <span class="keyword">new</span> Person(<span class="string">&#x27;ulivz&#x27;</span>, <span class="number">24</span>); <span class="comment">/* 4 */</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(ulivz) <span class="comment">/* 5 */</span></span><br><span class="line"><span class="built_in">console</span>.log(ulivz.getName(), ulivz.getAge()) <span class="comment">/* 6 */</span></span><br></pre></td></tr></table></figure>
 
 <p>解释一下执行细节：</p>
 <ul>
-<li>执行 1，创建了一个构造函数 Person，要注意，前面已经提到，此时 Person.prototype 已经被自动创建，它包含 constructor 和 proto这两个属性；</li>
+<li>执行 1，创建了一个构造函数 Person，要注意，前面已经提到，此时 Person.prototype 已经被自动创建，它包含 constructor 和 __proto__这两个属性；</li>
 <li>执行2，给对象 Person.prototype 增加了一个方法 getName()；</li>
 <li>执行3，给对象 Person.prototype 增加了一个方法 getAge()；</li>
 <li>执行4, 由构造函数 Person 创建了一个实例 ulivz，值得注意的是，一个构造函数在实例化时，一定会自动执行该构造函数。</li>
@@ -221,17 +223,17 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(ulivz.__proto__ == Person.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>执行6的时候，由于在 ulivz 中找不到 getName() 和 getAge() 这两个方法，就会继续朝着原型链向上查找，也就是通过 proto 向上查找，于是，很快在 ulviz.proto 中，即 Person.prototype 中找到了这两个方法，于是停止查找并执行得到结果。</li>
+<li>执行6的时候，由于在 ulivz 中找不到 getName() 和 getAge() 这两个方法，就会继续朝着原型链向上查找，也就是通过 __proto__ 向上查找，于是，很快在 ulviz.__proto__ 中，即 Person.prototype 中找到了这两个方法，于是停止查找并执行得到结果。</li>
 </ul>
-<p><em><strong>这便是 JavaScript 的原型继承。准确的说，JavaScript 的原型继承时通过 proto 并借助 prototype 来实现的。</strong></em></p>
+<p><em><strong>这便是 JavaScript 的原型继承。准确的说，JavaScript 的原型继承时通过 __proto__ 并借助 prototype 来实现的。</strong></em></p>
 <p>于是便有以下总结：</p>
-<p>1、函数对象的 proto 指向 Function.prototype；</p>
-<p>2、instance.proto 指向函数对象的 prototype；</p>
-<p>3、普通对象的 proto 指向 Object.prototype；</p>
+<p>1、函数对象的 __proto__ 指向 Function.prototype；</p>
+<p>2、instance.__proto__ 指向函数对象的 prototype；</p>
+<p>3、普通对象的 __proto__ 指向 Object.prototype；</p>
 <p>4、普通对象没有 prototype 属性；</p>
-<p>5、在访问一个对象的某个属性 / 方法的时候，如果在当前对象上没有找到，则会尝试 ob.proto，也就是访问该对象的构造函数的原型 obCtr.prototype，如果还是找不到，会继续查找 obCtr.prototype.proto，依次查找下去，若在某一刻，找到了该属性，则会立刻返回值并停止对原型链的搜索，若找不到，则返回 undefined。</p>
+<p>5、在访问一个对象的某个属性 / 方法的时候，如果在当前对象上没有找到，则会尝试 ob.__proto__，也就是访问该对象的构造函数的原型 obCtr.prototype，如果还是找不到，会继续查找 obCtr.prototype.__proto__，依次查找下去，若在某一刻，找到了该属性，则会立刻返回值并停止对原型链的搜索，若找不到，则返回 undefined。</p>
 <p>为了加深理解，参考以下代码：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(ulivz.proto == <span class="built_in">Function</span>.prototype);	<span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.proto == <span class="built_in">Function</span>.prototype);	<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.proto == <span class="built_in">Object</span>.prototype);	<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.proto == <span class="built_in">Object</span>.prototype);	<span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.proto == <span class="built_in">Function</span>.prototype);	<span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(ulivz.__proto__ == <span class="built_in">Function</span>.prototype);	<span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.__proto__ == <span class="built_in">Function</span>.prototype);	<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.__proto__ == <span class="built_in">Object</span>.prototype);	<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.__proto__ == <span class="built_in">Object</span>.prototype);	<span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Person.prototype.__proto__ == <span class="built_in">Function</span>.prototype);	<span class="comment">// false</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="终极：原型链图"><a href="#终极：原型链图" class="headerlink" title="终极：原型链图"></a>终极：原型链图</h2><p>上面我们还遗留了一个问题：</p>
 <ul>
@@ -256,8 +258,8 @@
 <h2 id="补充：JavaScript-中的-6-大内置（函数）对象的原型继承"><a href="#补充：JavaScript-中的-6-大内置（函数）对象的原型继承" class="headerlink" title="补充：JavaScript 中的 6 大内置（函数）对象的原型继承"></a>补充：JavaScript 中的 6 大内置（函数）对象的原型继承</h2><p>通过前文的论述，结合相应的代码验证，整理出以下原型链图：</p>
 <p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/dsJdGM.jpg" alt="alt"></p>
 <p>由此可见，我们更加强化了这两个观点；</p>
-<p>1、任何内置函数对象（类）本身的 proto 都指向 Function 的原型对象；</p>
-<p>2、除了 Object 的原型对象的 proto 指向 null，其他所有内置函数对象的原型对象的 proto 都指向 Object.prototype；</p>
+<p>1、任何内置函数对象（类）本身的 __proto__ 都指向 Function 的原型对象；</p>
+<p>2、除了 Object 的原型对象的 __proto__ 指向 null，其他所有内置函数对象的原型对象的 __proto__ 都指向 Object.prototype；</p>
 <p>请看以下代码：</p>
 <p><em><strong>Array</strong></em></p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [];		</span><br><span class="line">		<span class="built_in">console</span>.log(arr.__proto__)</span><br><span class="line">		<span class="built_in">console</span>.log(arr.__proto__ == <span class="built_in">Array</span>.prototype)   <span class="comment">// true </span></span><br><span class="line">		<span class="built_in">console</span>.log(<span class="built_in">Array</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">		<span class="built_in">console</span>.log(<span class="built_in">Object</span>.prototype.__proto__== <span class="literal">null</span>)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
@@ -278,9 +280,9 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> str = <span class="keyword">new</span> <span class="built_in">String</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(str.__proto__)</span><br><span class="line">    <span class="built_in">console</span>.log(str.__proto__ == <span class="built_in">String</span>.prototype)  <span class="comment">// true </span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">String</span>.prototype.__proto__== <span class="built_in">Object</span>.prototype)  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>若 A 通过 new 创建了 B，那么 B.proto == A.prototype；</li>
-<li>proto 是原型链查找的起点；</li>
-<li>执行 B.a，若在 B 中找不到 a，则会在 B.proto 中，也就是 A.prototype 中查找，若 A.prototype 中仍然没有，则会继续向上查找，最终，一定会找到 Object.prototype，倘若还找不到，因为 Object.prototype.proto 指向 null，因此一定会返回 undefined。</li>
+<li>若 A 通过 new 创建了 B，那么 B.__proto__ == A.prototype；</li>
+<li>__proto__ 是原型链查找的起点；</li>
+<li>执行 B.a，若在 B 中找不到 a，则会在 B.__proto__ 中，也就是 A.prototype 中查找，若 A.prototype 中仍然没有，则会继续向上查找，最终，一定会找到 Object.prototype，倘若还找不到，因为 Object.prototype.__proto__ 指向 null，因此一定会返回 undefined。</li>
 </ul>
 
   </div>
@@ -307,7 +309,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9AJavaScript-%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">JS：JavaScript 原型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%EF%BC%9A%E6%99%AE%E9%80%9A%E5%AF%B9%E8%B1%A1%E4%B8%8E%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">引入：普通对象与函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%EF%BC%9Aprototype-%E5%92%8C-proto"><span class="toc-number">1.2.</span> <span class="toc-text">进阶：prototype 和 proto</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%82%B9%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-number">1.3.</span> <span class="toc-text">重点：原型链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%88%E6%9E%81%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">终极：原型链图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E6%96%99%EF%BC%9AConstructor"><span class="toc-number">1.5.</span> <span class="toc-text">调料：Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AJavaScript-%E4%B8%AD%E7%9A%84-6-%E5%A4%A7%E5%86%85%E7%BD%AE%EF%BC%88%E5%87%BD%E6%95%B0%EF%BC%89%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8E%9F%E5%9E%8B%E7%BB%A7%E6%89%BF"><span class="toc-number">1.6.</span> <span class="toc-text">补充：JavaScript 中的 6 大内置（函数）对象的原型继承</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JS%EF%BC%9AJavaScript-%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">JS：JavaScript 原型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5%EF%BC%9A%E6%99%AE%E9%80%9A%E5%AF%B9%E8%B1%A1%E4%B8%8E%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">引入：普通对象与函数对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%EF%BC%9Aprototype-%E5%92%8C-proto"><span class="toc-number">1.2.</span> <span class="toc-text">进阶：prototype 和 __proto__</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E7%82%B9%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-number">1.3.</span> <span class="toc-text">重点：原型链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%88%E6%9E%81%EF%BC%9A%E5%8E%9F%E5%9E%8B%E9%93%BE%E5%9B%BE"><span class="toc-number">1.4.</span> <span class="toc-text">终极：原型链图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E6%96%99%EF%BC%9AConstructor"><span class="toc-number">1.5.</span> <span class="toc-text">调料：Constructor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9AJavaScript-%E4%B8%AD%E7%9A%84-6-%E5%A4%A7%E5%86%85%E7%BD%AE%EF%BC%88%E5%87%BD%E6%95%B0%EF%BC%89%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8E%9F%E5%9E%8B%E7%BB%A7%E6%89%BF"><span class="toc-number">1.6.</span> <span class="toc-text">补充：JavaScript 中的 6 大内置（函数）对象的原型继承</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">

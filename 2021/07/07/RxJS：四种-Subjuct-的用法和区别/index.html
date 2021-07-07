@@ -69,7 +69,7 @@
 
 
 
-  <meta name="keywords" content="深入理解JS," />
+  <meta name="keywords" content="RxJS," />
 
 
 
@@ -80,21 +80,18 @@
 
 
 
-<meta name="description" content="JS：深入理解 JavaScript - 执行上下文JS 每次执行回调函数，会把方法以 执行上下文 的方式压入 执行栈 ，执行完会被弹出执行栈。 执行上下文而 执行上下文 的结构如下图所示：  从上图可以了解到，执行上下文分为了两个环境，一个是 变量环境（VariableEnvironment），另一个是 词法环境（LexicalEnvironment），其中这两个环境之间的差别就在于，变量环境">
+<meta name="description" content="RxJS：四种 Subject 的用法和区别在 RxJS 中有四种 Subject 分别是：Subject、BehaviorSubject、AsyncSubject、ReplaySubject；这四种 Subject 都是特殊的 Observable。 四种 Subject 与普通 Observable 的区别：    Observable Subject BehaviorSubject Asyn">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JS：执行上下文">
-<meta property="og:url" content="http://example.com/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20JavaScript%20-%20%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87/index.html">
+<meta property="og:title" content="RxJS：四种 Subjuct 的用法和区别">
+<meta property="og:url" content="http://example.com/2021/07/07/RxJS%EF%BC%9A%E5%9B%9B%E7%A7%8D-Subjuct-%E7%9A%84%E7%94%A8%E6%B3%95%E5%92%8C%E5%8C%BA%E5%88%AB/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="JS：深入理解 JavaScript - 执行上下文JS 每次执行回调函数，会把方法以 执行上下文 的方式压入 执行栈 ，执行完会被弹出执行栈。 执行上下文而 执行上下文 的结构如下图所示：  从上图可以了解到，执行上下文分为了两个环境，一个是 变量环境（VariableEnvironment），另一个是 词法环境（LexicalEnvironment），其中这两个环境之间的差别就在于，变量环境">
+<meta property="og:description" content="RxJS：四种 Subject 的用法和区别在 RxJS 中有四种 Subject 分别是：Subject、BehaviorSubject、AsyncSubject、ReplaySubject；这四种 Subject 都是特殊的 Observable。 四种 Subject 与普通 Observable 的区别：    Observable Subject BehaviorSubject Asyn">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Wm3r0E.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/vNRkwQ.jpg">
-<meta property="article:published_time" content="2021-07-01T02:19:00.000Z">
-<meta property="article:modified_time" content="2021-07-06T08:07:13.361Z">
+<meta property="article:published_time" content="2021-07-07T03:54:00.000Z">
+<meta property="article:modified_time" content="2021-07-07T07:00:57.984Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="深入理解JS">
+<meta property="article:tag" content="RxJS">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Wm3r0E.jpg">
 
 
 
@@ -124,13 +121,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/07/01/JS：深入理解 JavaScript - 执行上下文/"/>
+  <link rel="canonical" href="http://example.com/2021/07/07/RxJS：四种-Subjuct-的用法和区别/"/>
 
 
 
 
 
-  <title>JS：执行上下文 | Hexo</title>
+  <title>RxJS：四种 Subjuct 的用法和区别 | Hexo</title>
   
 
 
@@ -301,7 +298,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20JavaScript%20-%20%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/07/RxJS%EF%BC%9A%E5%9B%9B%E7%A7%8D-Subjuct-%E7%9A%84%E7%94%A8%E6%B3%95%E5%92%8C%E5%8C%BA%E5%88%AB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -318,7 +315,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JS：执行上下文</h1>
+          <h1 class="post-title" itemprop="name headline">RxJS：四种 Subjuct 的用法和区别</h1>
         
 
         <div class="post-meta">
@@ -330,8 +327,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-01T10:19:00+08:00">
-                2021-07-01
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-07T11:54:00+08:00">
+                2021-07-07
               </time>
             
 
@@ -348,7 +345,7 @@
 
           
           
-             <span id="/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20JavaScript%20-%20%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87/" class="leancloud_visitors" data-flag-title="JS：执行上下文">
+             <span id="/2021/07/07/RxJS%EF%BC%9A%E5%9B%9B%E7%A7%8D-Subjuct-%E7%9A%84%E7%94%A8%E6%B3%95%E5%92%8C%E5%8C%BA%E5%88%AB/" class="leancloud_visitors" data-flag-title="RxJS：四种 Subjuct 的用法和区别">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -373,7 +370,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  905
+                  1.5k
                 </span>
               
 
@@ -398,40 +395,111 @@
       
 
       
-        <h1 id="JS：深入理解-JavaScript-执行上下文"><a href="#JS：深入理解-JavaScript-执行上下文" class="headerlink" title="JS：深入理解 JavaScript - 执行上下文"></a>JS：深入理解 JavaScript - 执行上下文</h1><p>JS 每次执行回调函数，会把方法以 <strong>执行上下文</strong> 的方式压入 <strong>执行栈</strong> ，执行完会被弹出执行栈。</p>
-<h2 id="执行上下文"><a href="#执行上下文" class="headerlink" title="执行上下文"></a>执行上下文</h2><p>而 <strong>执行上下文</strong> 的结构如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Wm3r0E.jpg" alt="alt"></p>
-<p>从上图可以了解到，执行上下文分为了两个环境，一个是 <strong>变量环境（VariableEnvironment）</strong>，另一个是 <strong>词法环境（LexicalEnvironment）</strong>，其中这两个环境之间的差别就在于，<strong>变量环境</strong> 是登记对应的 <strong>var、function</strong> 的声明。而另外的 <strong>词法环境</strong> 是用来登记对应的 <strong>let、const、class</strong> 等变量声明。<strong>词法环境</strong> 的出现是为了实现块级作用域的同时不影响 <strong>var、function</strong> 声明。</p>
-<h2 id="变量提升"><a href="#变量提升" class="headerlink" title="变量提升"></a>变量提升</h2><p>先看一段代码，观察其输出结果是什么</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">showName();</span><br><span class="line"><span class="built_in">console</span>.log(myname);</span><br><span class="line"><span class="keyword">var</span> myname = <span class="string">&quot;极客时间&quot;</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">showName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;函数showName被执行&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 函数showName被执行</span></span><br><span class="line"><span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
-
-<p>按照顺序执行的逻辑来看，这段代码是无法执行的，但是结果这段代码不但没有报错，并且能够正常输出。</p>
-<p>出现这个非正常的现象的原因就在于一段 JavaScript 代码在执行之前需要被 JavaScript 引擎编译，编译完成后，才会进入执行阶段。</p>
-<h2 id="编译阶段"><a href="#编译阶段" class="headerlink" title="编译阶段"></a>编译阶段</h2><h3 id="第一部分：变量提升的代码。"><a href="#第一部分：变量提升的代码。" class="headerlink" title="第一部分：变量提升的代码。"></a>第一部分：变量提升的代码。</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myname = <span class="literal">undefined</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">showName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;函数showName被执行&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="第二部分：执行部分代码。"><a href="#第二部分：执行部分代码。" class="headerlink" title="第二部分：执行部分代码。"></a>第二部分：执行部分代码。</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">showName();</span><br><span class="line"><span class="built_in">console</span>.log(myname);</span><br><span class="line">myname = <span class="string">&quot;极客时间&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>下图就是把 Javascript 的执行流程细化，如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/vNRkwQ.jpg" alt="alt"></p>
-<p>你可以简单认为变量环境对象是如下结构：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">VariableEnvironment:</span><br><span class="line">     myname -&gt; <span class="literal">undefined</span>, </span><br><span class="line">     showName -&gt;<span class="function"><span class="keyword">function</span> : </span>&#123;<span class="built_in">console</span>.log(myname)</span><br></pre></td></tr></table></figure>
-
-<p>我们详细分析一下代码是如何生成变量环境对象的。</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">showName()</span><br><span class="line"><span class="built_in">console</span>.log(myname)</span><br><span class="line"><span class="keyword">var</span> myname = <span class="string">&#x27;极客时间&#x27;</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">showName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;函数showName被执行&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>第1行和第2行，由于这两行代码不是声明操作，所以JavaScript引擎不会做任何处理；</li>
-<li>第3行，由于这行是经过var声明的，因此JavaScript引擎将在环境对象中创建一个名为myname的属性，并使用undefined对其初始化；</li>
-<li>第4行，JavaScript引擎发现了一个通过function定义的函数，所以它将函数定义存储到堆(HEAP）中，并在环境对象中创建一个showName的属性，然后将该属性值指向堆中函数的位置（不了解堆也没关系，JavaScript的执行堆和执行栈我会在后续文章中介绍）。 这样就生成了变量环境对象。接下来JavaScript引擎会把声明以外的代码编译为字节码，至于字节码的细节，我也会在后面文章中做详细介绍，你可以类比如下的模拟代码</li>
+        <h1 id="RxJS：四种-Subject-的用法和区别"><a href="#RxJS：四种-Subject-的用法和区别" class="headerlink" title="RxJS：四种 Subject 的用法和区别"></a>RxJS：四种 Subject 的用法和区别</h1><p>在 RxJS 中有四种 Subject 分别是：Subject、BehaviorSubject、AsyncSubject、ReplaySubject；这四种 Subject 都是特殊的 Observable。</p>
+<p>四种 Subject 与普通 Observable 的区别：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Observable</th>
+<th align="center">Subject</th>
+<th align="center">BehaviorSubject</th>
+<th align="center">AsyncSubject</th>
+<th align="center">ReplaySubject</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Cold</td>
+<td align="center">Hot</td>
+<td align="center">Hot</td>
+<td align="center">Hot</td>
+<td align="center">Hot</td>
+</tr>
+<tr>
+<td align="center">数据生成者</td>
+<td align="center">数据生成者和消费者</td>
+<td align="center">数据生成者和消费者</td>
+<td align="center">数据生成者和消费者</td>
+<td align="center">数据生成者和消费者</td>
+</tr>
+<tr>
+<td align="center">单播</td>
+<td align="center">多播</td>
+<td align="center">多播</td>
+<td align="center">多播</td>
+<td align="center">多播</td>
+</tr>
+<tr>
+<td align="center">每次从头开始把值发给观察者</td>
+<td align="center">将值多播给已注册监听该 Subject 的观察者</td>
+<td align="center">把最后一个值 (当前值) 发送给观察者 (需要初始值)</td>
+<td align="center">执行的最后一个值发送给观察者，相当于 last( )</td>
+<td align="center">可以把之前的值发送给观察者 (错过的值)</td>
+</tr>
+</tbody></table>
+<h2 id="Cold-vs-Hot"><a href="#Cold-vs-Hot" class="headerlink" title="Cold vs Hot"></a>Cold vs Hot</h2><p>前面介绍了 Cold Observables 与 Hot Observables 的区别，除了 Observable 之外，这四种 Subject 都是 Hot Observables。</p>
+<h2 id="数据生产者-vs-数据消费者"><a href="#数据生产者-vs-数据消费者" class="headerlink" title="数据生产者 vs 数据消费者"></a>数据生产者 vs 数据消费者</h2><ul>
+<li><em><strong>数据生产者</strong></em> 是指 Observable (可观察对象)，产生数据的一方</li>
+<li><em><strong>数据消费者</strong></em> 是指 Observer (观察者)，接收数据的一方</li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">showName()</span><br><span class="line"><span class="built_in">console</span>.log(myname)</span><br><span class="line">myname = <span class="string">&#x27;极客时间&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>普通的 Observable 只是数据生产者，发送数据。而 Subject、BehaviorSubject、AsyncSubject 和 ReplaySubject 即是生产者有时消费者。比如在 Angular 项目中，我们经常是哟 Subject 在多个 component 中共享数据：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// messageService.ts</span></span><br><span class="line">private shareData: Subject&lt;string&gt; = <span class="keyword">new</span> Subject&lt;string&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">sendData</span>(<span class="params">value: string</span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.shareData.next(value);</span><br><span class="line">&#125;</span><br><span class="line">getData(): Observable&lt;string&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.shareData.asObservable();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="执行阶段"><a href="#执行阶段" class="headerlink" title="执行阶段"></a>执行阶段</h2><ul>
-<li>当执行到showName函数时，JavaScript引擎便开始在变量环境对象中查找该函数，由于变量环境对象中存在该函数的引用，所以JavaScript引擎便开始执行该函数，并输出“函数showName被执行”结果。</li>
-<li>接下来打印“myname”信息，JavaScript引擎继续在变量环境对象中查找该对象，由于变量环境存在myname变量，并且其值为undefined，所以这时候就输出undefined。</li>
-<li>接下来执行第3行，把“极客时间”赋给myname变量，赋值后变量环境中的myname属性值改变为“极客时间”，变量环境如下所示：</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">VariableEnvironment:</span><br><span class="line">     myname -&gt; <span class="string">&quot;极客时间&quot;</span>, </span><br><span class="line">     showName -&gt;<span class="function"><span class="keyword">function</span> : </span>&#123;<span class="built_in">console</span>.log(myname)</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RxjsSubjectBComponent</span></span><br><span class="line"><span class="comment">// send data from RxjsSubjectBComponent</span></span><br><span class="line">  <span class="built_in">this</span>.messageService.sendData(<span class="string">&quot;this message from subject b&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RxjsSubjectCComponent</span></span><br><span class="line"><span class="comment">// get data in RxjsSubjectCComponent</span></span><br><span class="line"><span class="built_in">this</span>.subscription = <span class="built_in">this</span>.messageService.getData()</span><br><span class="line">    .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.message = val;</span><br><span class="line">        <span class="built_in">console</span>.log(val);</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在这两个 component 中通过定义在 messageService 的 Subject 共享数据，通过 next( ) 方法使得 Subject 是数据生产者 (可观察对象) ，通过 asObservable( ) 使得 Subject 是数据消费者 (Observers)。</p>
+<h2 id="单播-vs-多播"><a href="#单播-vs-多播" class="headerlink" title="单播 vs 多播"></a>单播 vs 多播</h2><p>在上面的代码例子中，不仅是 component c 可以订阅拿到数据，其他 component 中也可以订阅拿到数据。比如在 RxjsSubjectAComponent 中定义如下代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RxjsSubjectAComponent</span></span><br><span class="line"><span class="comment">// get data in RxjsSubjectAComponent</span></span><br><span class="line"><span class="built_in">this</span>.subscription = <span class="built_in">this</span>.messageService.getData()</span><br><span class="line">    .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&quot;this is in componet A and &quot;</span> + val);</span><br><span class="line">    &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>从 RxjsSubjectComponent 发出值，在 RxJSSubjectCComponent 和 RxjsSubjectAComponent 能拿到同样的值，这个就是多播。</p>
+<p>普通的 Observables 是 Cold Observables 并且是单播的，其他四种 Subject 是 Hot Observables 并且是多播的。</p>
+<p>单播的意思是，每个普通的 Observables 实例都只能被一个观察者订阅，当它被其他观察者订阅的时候，会产生一个新的实例。也就是普通的 Observables 被不同的观察者订阅的时候，会有多个实例，不管观察者是从何时开始订阅，每个实例都是从头开始把值发给对应的观察者。</p>
+<h2 id="BehaviorSubject"><a href="#BehaviorSubject" class="headerlink" title="BehaviorSubject"></a>BehaviorSubject</h2><p>Subject 其中的一个变体就是 BehaviorSubject，它有一个“当前值”的概念。它保存了发送给消费者的最新值，当有新的观察者订阅时，会立即从 BehaviorSubject 那接收到“当前值”，在定义一个 BehaviorSubject 时需要有初始值。</p>
+<p>在 messageService 定义一个 BehaviorSubject，初始值是 1，updateBehaviorSubject 方法把值更新为 2，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//messageService.ts</span></span><br><span class="line">private behaviorSubject: BehaviorSubject&lt;number&gt; = <span class="keyword">new</span> BehaviorSubject&lt;number&gt;(<span class="number">1</span>);</span><br><span class="line">currentBehaviorSubject = <span class="built_in">this</span>.behaviorSubject.asObservable();</span><br><span class="line"><span class="function"><span class="title">updateBehaviorSubject</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.behaviorSubject.next(<span class="number">2</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>并在 RxjsSubjectBComponent 中调用执行了 updateBehaviorSubject 方法，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//RxjsSubjectBComponent</span></span><br><span class="line"><span class="built_in">this</span>.messageService.updateBehaviorSubject();</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectAComponent 中订阅 BehaviorSubject 的值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> subscription1 = <span class="built_in">this</span>.messageService.currentBehaviorSubject</span><br><span class="line">    .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&quot;this is in RxjsSubjectAComponent and Current behavior subject value is  &quot;</span> + val)</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">this</span>.subscription.add(subscription1);</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectCComponent 中，等 5 秒以后再订阅 BehaviorSubject 的值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> subscription1 = <span class="built_in">this</span>.messageService.currentBehaviorSubject</span><br><span class="line">        .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">             <span class="built_in">console</span>.log(<span class="string">&quot;this is in RxjsSubjectCComponent and Current behavior subject value is  &quot;</span> + val)</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">5000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>运行效果：在 RxJSSubjectAComponent 中会拿到 1 和 2 两个值，在RxJSSubjectCComponent中会拿到 2 这个值。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span> is <span class="keyword">in</span> RxjsSubjectAComponent and Current behavior subject value is  <span class="number">1</span></span><br><span class="line"><span class="built_in">this</span> is <span class="keyword">in</span> RxjsSubjectAComponent and Current behavior subject value is  <span class="number">2</span></span><br><span class="line"><span class="built_in">this</span> is <span class="keyword">in</span> RxjsSubjectCComponent and Current behavior subject value is  <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>如果是正常的 Hot Observable 在 5 秒之后，拿不到任何值，因为在 5 秒内已经将所有值发送出去了，5 秒之后观察者再订阅，没有任何值可以发送了。但是用 BehaviorSubject 保存了发送给消费者的最新值，当有新的观察者订阅时，会立即从 BehaviorSubject 那接收到“当前值”，所以 RxJSSubjectCComponent 的订阅者会拿到 2 这个值。</p>
+<h2 id="ReplaySubject"><a href="#ReplaySubject" class="headerlink" title="ReplaySubject"></a>ReplaySubject</h2><p>类似于 BehaviorSubject，可以发送旧值给新的订阅者，但是不仅是“当前值”，还可以是之前的旧值。</p>
+<p>在 messageService 定义一个 ReplaySubject，<u>为新的订阅者缓冲 3 个值</u>，sendReplaySubject 方法把 1、2、3、4、5 五个值发送给订阅者，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//messageService.ts</span></span><br><span class="line">private replaySubject: ReplaySubject&lt;number&gt; = <span class="keyword">new</span> ReplaySubject&lt;number&gt;(<span class="number">3</span>);</span><br><span class="line"><span class="function"><span class="title">sendReplaySubject</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.replaySubject.next(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">this</span>.replaySubject.next(<span class="number">2</span>);</span><br><span class="line">    <span class="built_in">this</span>.replaySubject.next(<span class="number">3</span>);</span><br><span class="line">    <span class="built_in">this</span>.replaySubject.next(<span class="number">4</span>);</span><br><span class="line">    <span class="built_in">this</span>.replaySubject.next(<span class="number">5</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">getReplaySubject(): Observable&lt;any&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.replaySubject.asObservable();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectBComponent 中，调用 sendReplaySubject 方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.messageService.sendReplaySubject();</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectAComponent 中，订阅 ReplaySubject 的值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> subscription2 = <span class="built_in">this</span>.messageService.getReplaySubject()</span><br><span class="line">    .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&quot;this is in RxjsSubjectAComponent and Current Replay subject value is  &quot;</span> + val)</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">this</span>.subscription.add(subscription2);</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectCComponent 中，等5秒以后在订阅 replaySubject 的值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> subscription2 = <span class="built_in">this</span>.messageService.getReplaySubject()</span><br><span class="line">        .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">&quot;this is in RxjsSubjectCComponent and Current repaly subject value is  &quot;</span> + val)</span><br><span class="line">        &#125;);</span><br><span class="line">    <span class="built_in">this</span>.subscription.add(subscription2);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">5000</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="AsyncSubject"><a href="#AsyncSubject" class="headerlink" title="AsyncSubject"></a>AsyncSubject</h2><p>只有当 Observable 执行完成之后 (执行 complete ( ))，它才会将执行的最后一个值发送给观察者。</p>
+<p>在 messageService 定义一个 AsyncSubject，sendAsyncSubject 方法把 10001 10002 10003 三个值发给订阅者，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">private asyncSubject: AsyncSubject&lt;number&gt; = <span class="keyword">new</span> AsyncSubject&lt;number&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">sendAsyncSubject</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.asyncSubject.next(<span class="number">10001</span>);</span><br><span class="line">    <span class="built_in">this</span>.asyncSubject.next(<span class="number">10002</span>);</span><br><span class="line">    <span class="built_in">this</span>.asyncSubject.next(<span class="number">10003</span>);</span><br><span class="line">    <span class="built_in">this</span>.asyncSubject.complete();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="title">getAsyncSubject</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>.asyncSubject.asObservable();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectBComponent 中，调用 sendAsyncSubject 方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span>.messageService.sendAsyncSubject();</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectAComponent 中，订阅 asyncSubject 的值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> subscription3 = <span class="built_in">this</span>.messageService.getAsyncSubject()</span><br><span class="line">    .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">&quot;this is in RxjsSubjectAComponent and Current Async subject value is  &quot;</span> + val)</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">this</span>.subscription.add(subscription3);</span><br></pre></td></tr></table></figure>
+
+<p>在 RxjsSubjectCComponent 中，等5秒以后在订阅 asyncSubject 的值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> subscription3 = <span class="built_in">this</span>.messageService.getAsyncSubject()</span><br><span class="line">        .subscribe(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">&quot;this is in RxjsSubjectCComponent and Current async subject value is  &quot;</span> + val)</span><br><span class="line">        &#125;);</span><br><span class="line">    <span class="built_in">this</span>.subscription.add(subscription3);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">5000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">this</span> is <span class="keyword">in</span> RxjsSubjectAComponent and Current Async subject value is  <span class="number">10003</span></span><br><span class="line"><span class="built_in">this</span> is <span class="keyword">in</span> RxjsSubjectCComponent and Current <span class="keyword">async</span> subject value is  <span class="number">10003</span></span><br></pre></td></tr></table></figure>
 
 
       
@@ -460,7 +528,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JS/" rel="tag"># 深入理解JS</a>
+            <a href="/tags/RxJS/" rel="tag"># RxJS</a>
           
         </div>
       
@@ -473,8 +541,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JavaScript%20-%20%E8%AF%8D%E6%B3%95%E7%8E%AF%E5%A2%83/" rel="next" title="JS：词法环境">
-                <i class="fa fa-chevron-left"></i> JS：词法环境
+              <a href="/2021/07/07/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/" rel="next" title="RxJS：Cold vs Hot Observables">
+                <i class="fa fa-chevron-left"></i> RxJS：Cold vs Hot Observables
               </a>
             
           </div>
@@ -482,10 +550,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%20JavaScript%20%E7%BB%A7%E6%89%BF%E5%8E%9F%E7%90%86/" rel="prev" title="JS：JavaScript 继承原理">
-                JS：JavaScript 继承原理 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -628,7 +692,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3-JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-text">JS：深入理解 JavaScript - 执行上下文</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-text">执行上下文</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E6%8F%90%E5%8D%87"><span class="nav-text">变量提升</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E9%98%B6%E6%AE%B5"><span class="nav-text">编译阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E5%8F%98%E9%87%8F%E6%8F%90%E5%8D%87%E7%9A%84%E4%BB%A3%E7%A0%81%E3%80%82"><span class="nav-text">第一部分：变量提升的代码。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E6%89%A7%E8%A1%8C%E9%83%A8%E5%88%86%E4%BB%A3%E7%A0%81%E3%80%82"><span class="nav-text">第二部分：执行部分代码。</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E9%98%B6%E6%AE%B5"><span class="nav-text">执行阶段</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJS%EF%BC%9A%E5%9B%9B%E7%A7%8D-Subject-%E7%9A%84%E7%94%A8%E6%B3%95%E5%92%8C%E5%8C%BA%E5%88%AB"><span class="nav-text">RxJS：四种 Subject 的用法和区别</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cold-vs-Hot"><span class="nav-text">Cold vs Hot</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%94%9F%E4%BA%A7%E8%80%85-vs-%E6%95%B0%E6%8D%AE%E6%B6%88%E8%B4%B9%E8%80%85"><span class="nav-text">数据生产者 vs 数据消费者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E6%92%AD-vs-%E5%A4%9A%E6%92%AD"><span class="nav-text">单播 vs 多播</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BehaviorSubject"><span class="nav-text">BehaviorSubject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReplaySubject"><span class="nav-text">ReplaySubject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AsyncSubject"><span class="nav-text">AsyncSubject</span></a></li></ol></li></ol></div>
             
 
           </div>

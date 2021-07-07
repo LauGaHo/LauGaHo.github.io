@@ -69,7 +69,7 @@
 
 
 
-  <meta name="keywords" content="深入理解JS," />
+  <meta name="keywords" content="RxJS," />
 
 
 
@@ -80,21 +80,20 @@
 
 
 
-<meta name="description" content="JS：深入理解 JavaScript - 执行上下文JS 每次执行回调函数，会把方法以 执行上下文 的方式压入 执行栈 ，执行完会被弹出执行栈。 执行上下文而 执行上下文 的结构如下图所示：  从上图可以了解到，执行上下文分为了两个环境，一个是 变量环境（VariableEnvironment），另一个是 词法环境（LexicalEnvironment），其中这两个环境之间的差别就在于，变量环境">
+<meta name="description" content="RXJS：入门和概览RxJS 是 Reactive Extensions For JavaScript 的简写，它是一个强大的 JavaScript Reactive 编程库。Reactive 是指响应式编程。 什么是响应式编程任何异步事件（比如页面鼠标 click 事件），在响应式编程都是异步事件流。不仅仅是 click、hover 这种事件，任何变量、用户输入、属性、缓存、数据结构等，响应式编">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JS：执行上下文">
-<meta property="og:url" content="http://example.com/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20JavaScript%20-%20%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87/index.html">
+<meta property="og:title" content="RxJS：入门和概览">
+<meta property="og:url" content="http://example.com/2021/07/07/RXJS%EF%BC%9A%E5%85%A5%E9%97%A8%E5%92%8C%E6%A6%82%E8%A7%88/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="JS：深入理解 JavaScript - 执行上下文JS 每次执行回调函数，会把方法以 执行上下文 的方式压入 执行栈 ，执行完会被弹出执行栈。 执行上下文而 执行上下文 的结构如下图所示：  从上图可以了解到，执行上下文分为了两个环境，一个是 变量环境（VariableEnvironment），另一个是 词法环境（LexicalEnvironment），其中这两个环境之间的差别就在于，变量环境">
+<meta property="og:description" content="RXJS：入门和概览RxJS 是 Reactive Extensions For JavaScript 的简写，它是一个强大的 JavaScript Reactive 编程库。Reactive 是指响应式编程。 什么是响应式编程任何异步事件（比如页面鼠标 click 事件），在响应式编程都是异步事件流。不仅仅是 click、hover 这种事件，任何变量、用户输入、属性、缓存、数据结构等，响应式编">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Wm3r0E.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/vNRkwQ.jpg">
-<meta property="article:published_time" content="2021-07-01T02:19:00.000Z">
-<meta property="article:modified_time" content="2021-07-06T08:07:13.361Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/GIT04l.jpg">
+<meta property="article:published_time" content="2021-07-07T03:51:00.000Z">
+<meta property="article:modified_time" content="2021-07-07T07:00:53.385Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="深入理解JS">
+<meta property="article:tag" content="RxJS">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Wm3r0E.jpg">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/GIT04l.jpg">
 
 
 
@@ -124,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/07/01/JS：深入理解 JavaScript - 执行上下文/"/>
+  <link rel="canonical" href="http://example.com/2021/07/07/RXJS：入门和概览/"/>
 
 
 
 
 
-  <title>JS：执行上下文 | Hexo</title>
+  <title>RxJS：入门和概览 | Hexo</title>
   
 
 
@@ -301,7 +300,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20JavaScript%20-%20%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/07/RXJS%EF%BC%9A%E5%85%A5%E9%97%A8%E5%92%8C%E6%A6%82%E8%A7%88/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -318,7 +317,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JS：执行上下文</h1>
+          <h1 class="post-title" itemprop="name headline">RxJS：入门和概览</h1>
         
 
         <div class="post-meta">
@@ -330,8 +329,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-01T10:19:00+08:00">
-                2021-07-01
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-07T11:51:00+08:00">
+                2021-07-07
               </time>
             
 
@@ -348,7 +347,7 @@
 
           
           
-             <span id="/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20JavaScript%20-%20%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87/" class="leancloud_visitors" data-flag-title="JS：执行上下文">
+             <span id="/2021/07/07/RXJS%EF%BC%9A%E5%85%A5%E9%97%A8%E5%92%8C%E6%A6%82%E8%A7%88/" class="leancloud_visitors" data-flag-title="RxJS：入门和概览">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -373,7 +372,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  905
+                  1.3k
                 </span>
               
 
@@ -398,41 +397,71 @@
       
 
       
-        <h1 id="JS：深入理解-JavaScript-执行上下文"><a href="#JS：深入理解-JavaScript-执行上下文" class="headerlink" title="JS：深入理解 JavaScript - 执行上下文"></a>JS：深入理解 JavaScript - 执行上下文</h1><p>JS 每次执行回调函数，会把方法以 <strong>执行上下文</strong> 的方式压入 <strong>执行栈</strong> ，执行完会被弹出执行栈。</p>
-<h2 id="执行上下文"><a href="#执行上下文" class="headerlink" title="执行上下文"></a>执行上下文</h2><p>而 <strong>执行上下文</strong> 的结构如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Wm3r0E.jpg" alt="alt"></p>
-<p>从上图可以了解到，执行上下文分为了两个环境，一个是 <strong>变量环境（VariableEnvironment）</strong>，另一个是 <strong>词法环境（LexicalEnvironment）</strong>，其中这两个环境之间的差别就在于，<strong>变量环境</strong> 是登记对应的 <strong>var、function</strong> 的声明。而另外的 <strong>词法环境</strong> 是用来登记对应的 <strong>let、const、class</strong> 等变量声明。<strong>词法环境</strong> 的出现是为了实现块级作用域的同时不影响 <strong>var、function</strong> 声明。</p>
-<h2 id="变量提升"><a href="#变量提升" class="headerlink" title="变量提升"></a>变量提升</h2><p>先看一段代码，观察其输出结果是什么</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">showName();</span><br><span class="line"><span class="built_in">console</span>.log(myname);</span><br><span class="line"><span class="keyword">var</span> myname = <span class="string">&quot;极客时间&quot;</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">showName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;函数showName被执行&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 函数showName被执行</span></span><br><span class="line"><span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
-
-<p>按照顺序执行的逻辑来看，这段代码是无法执行的，但是结果这段代码不但没有报错，并且能够正常输出。</p>
-<p>出现这个非正常的现象的原因就在于一段 JavaScript 代码在执行之前需要被 JavaScript 引擎编译，编译完成后，才会进入执行阶段。</p>
-<h2 id="编译阶段"><a href="#编译阶段" class="headerlink" title="编译阶段"></a>编译阶段</h2><h3 id="第一部分：变量提升的代码。"><a href="#第一部分：变量提升的代码。" class="headerlink" title="第一部分：变量提升的代码。"></a>第一部分：变量提升的代码。</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> myname = <span class="literal">undefined</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">showName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;函数showName被执行&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="第二部分：执行部分代码。"><a href="#第二部分：执行部分代码。" class="headerlink" title="第二部分：执行部分代码。"></a>第二部分：执行部分代码。</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">showName();</span><br><span class="line"><span class="built_in">console</span>.log(myname);</span><br><span class="line">myname = <span class="string">&quot;极客时间&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>下图就是把 Javascript 的执行流程细化，如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/vNRkwQ.jpg" alt="alt"></p>
-<p>你可以简单认为变量环境对象是如下结构：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">VariableEnvironment:</span><br><span class="line">     myname -&gt; <span class="literal">undefined</span>, </span><br><span class="line">     showName -&gt;<span class="function"><span class="keyword">function</span> : </span>&#123;<span class="built_in">console</span>.log(myname)</span><br></pre></td></tr></table></figure>
-
-<p>我们详细分析一下代码是如何生成变量环境对象的。</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">showName()</span><br><span class="line"><span class="built_in">console</span>.log(myname)</span><br><span class="line"><span class="keyword">var</span> myname = <span class="string">&#x27;极客时间&#x27;</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">showName</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;函数showName被执行&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+        <h1 id="RXJS：入门和概览"><a href="#RXJS：入门和概览" class="headerlink" title="RXJS：入门和概览"></a>RXJS：入门和概览</h1><p>RxJS 是 Reactive Extensions For JavaScript 的简写，它是一个强大的 JavaScript Reactive 编程库。Reactive 是指响应式编程。</p>
+<h2 id="什么是响应式编程"><a href="#什么是响应式编程" class="headerlink" title="什么是响应式编程"></a><strong>什么是响应式编程</strong></h2><p>任何异步事件（比如页面鼠标 click 事件），在响应式编程都是异步事件流。不仅仅是 click、hover 这种事件，任何变量、用户输入、属性、缓存、数据结构等，响应式编程把所有事物都看成是数据流。数据流是类似数组一样的序列，可以像一样，用 merge、map、concat 等方法操作。简单来说就是：把所有事物都事件流化，然后把这些事件流像数组一样去操作，就是响应式编程。</p>
+<p>RxJS 提供了各种 API 来创建数据流：</p>
 <ul>
-<li>第1行和第2行，由于这两行代码不是声明操作，所以JavaScript引擎不会做任何处理；</li>
-<li>第3行，由于这行是经过var声明的，因此JavaScript引擎将在环境对象中创建一个名为myname的属性，并使用undefined对其初始化；</li>
-<li>第4行，JavaScript引擎发现了一个通过function定义的函数，所以它将函数定义存储到堆(HEAP）中，并在环境对象中创建一个showName的属性，然后将该属性值指向堆中函数的位置（不了解堆也没关系，JavaScript的执行堆和执行栈我会在后续文章中介绍）。 这样就生成了变量环境对象。接下来JavaScript引擎会把声明以外的代码编译为字节码，至于字节码的细节，我也会在后面文章中做详细介绍，你可以类比如下的模拟代码</li>
+<li>单值：of、empty、never</li>
+<li>多值：from</li>
+<li>定时：interval、timer</li>
+<li>从事件创建：fromEvent</li>
+<li>从 Promise 创建：fromPromise</li>
+<li>自定义创建：create</li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">showName()</span><br><span class="line"><span class="built_in">console</span>.log(myname)</span><br><span class="line">myname = <span class="string">&#x27;极客时间&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="执行阶段"><a href="#执行阶段" class="headerlink" title="执行阶段"></a>执行阶段</h2><ul>
-<li>当执行到showName函数时，JavaScript引擎便开始在变量环境对象中查找该函数，由于变量环境对象中存在该函数的引用，所以JavaScript引擎便开始执行该函数，并输出“函数showName被执行”结果。</li>
-<li>接下来打印“myname”信息，JavaScript引擎继续在变量环境对象中查找该对象，由于变量环境存在myname变量，并且其值为undefined，所以这时候就输出undefined。</li>
-<li>接下来执行第3行，把“极客时间”赋给myname变量，赋值后变量环境中的myname属性值改变为“极客时间”，变量环境如下所示：</li>
+<p>创建出来的数据流，是一种类似数组一样的序列，可以被订阅，也可以用如下 API 操作控制：</p>
+<ul>
+<li>改变数据形态：map、mapTo、pluck</li>
+<li>过滤一些值：filter、skip、first、last、take</li>
+<li>时间轴上的操作：delay、timeout、throttle、debounce、audit、bufferTime</li>
+<li>累加：reduce、scan</li>
+<li>异常处理：throw、catch、retry、finally</li>
+<li>条件执行：takeUntil、delayWhen、retryWhen、subscribeOn、ObserveOn</li>
+<li>转接：switch</li>
+<li>concat，保持原来的序列顺序连接两个数据流</li>
+<li>merge，合并序列</li>
+<li>race，预设条件为其中一个数据流完成</li>
+<li>forkJoin，预设条件为所有数据流都完成</li>
+<li>zip，取各来源数据流最后一个值合并为对象</li>
+<li>combineLatest，取各来源数据流最后一个值合并为数组</li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">VariableEnvironment:</span><br><span class="line">     myname -&gt; <span class="string">&quot;极客时间&quot;</span>, </span><br><span class="line">     showName -&gt;<span class="function"><span class="keyword">function</span> : </span>&#123;<span class="built_in">console</span>.log(myname)</span><br></pre></td></tr></table></figure>
+<h2 id="异步事件流"><a href="#异步事件流" class="headerlink" title="异步事件流"></a>异步事件流</h2><p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/GIT04l.jpg" alt="alt"></p>
+<p>在上图中有如下几种东西：</p>
+<ul>
+<li>click 事件流</li>
+<li>事件流产生的值</li>
+<li>错误‘</li>
+<li>事件流结束</li>
+<li>时间轴</li>
+</ul>
+<p>点击一个按钮事件，随着时间推移，这个点击事件会产生三个不同的结果：值，发生错误，事件完成。我们可以定义方法用来：捕获值，捕获错误，捕获点击事件结束。在这个过程中，涉及以下几个 RxJS 的基本概念：</p>
+<ul>
+<li>Observable (可观察对象)：就是点击事件流</li>
+<li>Observers (观察者)：就是捕获值 / 错误 / 事件结束的方法 (其实就是回调函数的集合)</li>
+<li>Subscription (订阅)：Observable 产生的值都需要经过经过一个 ‘监听’ 传给 Observers，这个就是 Subscription</li>
+<li>生产者 (Producer)：就是点击事件，是事件的生产者</li>
+</ul>
+<p>我们也可以用 ASCII 来描述这个事件流：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">--a---b-c---d---X---|-&gt;</span><br><span class="line"></span><br><span class="line">a b c d 是产生的值</span><br><span class="line">X 是错误</span><br><span class="line">| 是事件结束标志</span><br><span class="line">---&gt; 是时间线</span><br></pre></td></tr></table></figure>
 
+<h2 id="响应式编程的必要性"><a href="#响应式编程的必要性" class="headerlink" title="响应式编程的必要性"></a>响应式编程的必要性</h2><p>例子：页面上有一个按钮，现在需要统计按钮点击次数。</p>
+<p>没有 RxJS，代码是这样子的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> counter = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">document</span>.getElementById(<span class="string">&quot;myBtn&quot;</span>).addEventListener(<span class="string">&quot;click&quot;</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    counter = counter + <span class="number">1</span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>用 RxJS，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> button = <span class="built_in">document</span>.getElementById(<span class="string">&quot;myBtn&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> clickStream$ = fromEvent(button, <span class="string">&quot;click&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> counterStream$ = clickStream$.pipe(</span><br><span class="line">    map(<span class="function">(<span class="params">data</span>) =&gt;</span> &#123; <span class="keyword">return</span> <span class="number">1</span> &#125;),</span><br><span class="line">    scan(<span class="function">(<span class="params">acc, curr</span>) =&gt;</span> acc + curr, <span class="number">0</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">counterStream$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;this is the click counter: &quot;</span> + data);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>整个事件流可以用 ASCII 描述如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">clickStream: ---c----c--c----c------c--&gt;</span><br><span class="line">                   map(c becomes <span class="number">1</span>) </span><br><span class="line">               ---<span class="number">1</span>----<span class="number">1</span>--<span class="number">1</span>----<span class="number">1</span>------<span class="number">1</span>--&gt;</span><br><span class="line">                   scan(+) </span><br><span class="line"><span class="attr">counterStream</span>: ---<span class="number">1</span>----<span class="number">2</span>--<span class="number">3</span>----<span class="number">4</span>------<span class="number">5</span>--&gt;</span><br></pre></td></tr></table></figure>
+
+<p>点击事件可以看成数据流 (clickStream)，在 clickStream 事件流基础上用方法 map 把每次点击事件转化成 1，然后用 scan 把所有的点击次数加起来，当我们执行 map 或者 scan 的时候都会在原来的数据流基础上生产一个新的数据流，原来的数据流不变。</p>
+<p>从上面的这个例子还不能看出 RxJS 的强大和优势，我们现在再来看下：统计出双击事件次数，或者多次点击 (两次或两次以上) 都统计为双击次数。如果要用传统代码实现这个需求，肯定要很多变量来声明各种状态而且还要用到 intervals，代码逻辑复杂且容易出错，但是在响应式编程里十分简单，实际只需要四行代码。</p>
+<p>我们先用 ASCII 把流程画一下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">   clickStream: ----c----c-c---c-cc---ccc---c----|-&gt;</span><br><span class="line">                buff(clickStream.throttleTime(250ms))</span><br><span class="line">                ----c----cc-----ccc---ccc---c----|-&gt;</span><br><span class="line">                    map(<span class="string">&#x27;get length of lists&#x27;</span>)</span><br><span class="line">                ----<span class="number">1</span>-----<span class="number">2</span>------<span class="number">3</span>-----<span class="number">3</span>----<span class="number">1</span>----|-&gt;</span><br><span class="line">                    filter(x&gt;=<span class="number">2</span>)                  </span><br><span class="line"><span class="attr">mulClickStream</span>: ----------<span class="number">2</span>------<span class="number">3</span>-----<span class="number">3</span>---------|-&gt;</span><br></pre></td></tr></table></figure>
+
+<p>具体代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> button = <span class="built_in">document</span>.getElementById(<span class="string">&quot;myBtn&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> clickStream$ = fromEvent(button, <span class="string">&quot;click&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> doubleClickStream$ = clickStream$</span><br><span class="line">    .pipe(</span><br><span class="line">        buffer(clickStream$.pipe(throttleTime(<span class="number">250</span>))),</span><br><span class="line">        map(<span class="function"><span class="params">click</span> =&gt;</span> &#123; <span class="keyword">return</span> click.length &#125;),</span><br><span class="line">        filter(<span class="function"><span class="params">num</span> =&gt;</span> num &gt;= <span class="number">2</span>)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">doubleClickStream$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;the number of double click is: &quot;</span> + data);;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>从上面这个简单的例子，我们可以看到 RxJS 提供大量的操作符，处理不同的业务需求，短短几行就可以涵盖很复杂的代码逻辑，在前端交互非常复杂的系统中，客户端都是基于事件编程的，对事件处理非常多，用 RxJS 比较有优势。当然响应式编程也是支持各种语言的，包括：RxJava、Rx.NET、RxPY、RxGO等。</p>
 
       
     </div>
@@ -460,7 +489,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JS/" rel="tag"># 深入理解JS</a>
+            <a href="/tags/RxJS/" rel="tag"># RxJS</a>
           
         </div>
       
@@ -473,8 +502,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JavaScript%20-%20%E8%AF%8D%E6%B3%95%E7%8E%AF%E5%A2%83/" rel="next" title="JS：词法环境">
-                <i class="fa fa-chevron-left"></i> JS：词法环境
+              <a href="/2021/07/06/JS%EF%BC%9A%E6%B7%B1%E6%B5%85%E6%8B%B7%E8%B4%9D/" rel="next" title="JS：深浅拷贝">
+                <i class="fa fa-chevron-left"></i> JS：深浅拷贝
               </a>
             
           </div>
@@ -483,8 +512,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/07/01/JS%EF%BC%9A%E6%B7%B1%E5%85%A5%20JavaScript%20%E7%BB%A7%E6%89%BF%E5%8E%9F%E7%90%86/" rel="prev" title="JS：JavaScript 继承原理">
-                JS：JavaScript 继承原理 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/07/07/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/" rel="prev" title="RxJS：Cold vs Hot Observables">
+                RxJS：Cold vs Hot Observables <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -628,7 +657,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JS%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3-JavaScript-%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-text">JS：深入理解 JavaScript - 执行上下文</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-text">执行上下文</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E6%8F%90%E5%8D%87"><span class="nav-text">变量提升</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E9%98%B6%E6%AE%B5"><span class="nav-text">编译阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86%EF%BC%9A%E5%8F%98%E9%87%8F%E6%8F%90%E5%8D%87%E7%9A%84%E4%BB%A3%E7%A0%81%E3%80%82"><span class="nav-text">第一部分：变量提升的代码。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86%EF%BC%9A%E6%89%A7%E8%A1%8C%E9%83%A8%E5%88%86%E4%BB%A3%E7%A0%81%E3%80%82"><span class="nav-text">第二部分：执行部分代码。</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E9%98%B6%E6%AE%B5"><span class="nav-text">执行阶段</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RXJS%EF%BC%9A%E5%85%A5%E9%97%A8%E5%92%8C%E6%A6%82%E8%A7%88"><span class="nav-text">RXJS：入门和概览</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B"><span class="nav-text">什么是响应式编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E4%BA%8B%E4%BB%B6%E6%B5%81"><span class="nav-text">异步事件流</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="nav-text">响应式编程的必要性</span></a></li></ol></li></ol></div>
             
 
           </div>

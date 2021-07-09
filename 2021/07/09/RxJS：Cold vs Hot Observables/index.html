@@ -69,7 +69,7 @@
 
 
 
-  <meta name="keywords" content="深入理解JS," />
+  <meta name="keywords" content="RxJS," />
 
 
 
@@ -80,27 +80,18 @@
 
 
 
-<meta name="description" content="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。 首先先来看这一段代码： 123456789function bar() &amp;#123;    console.log(myName)&amp;#125;function foo() &amp;#123;    var myName &#x3D;">
+<meta name="description" content="RxJS：Cold vs Hot ObservablesRxJS 中 Observables 分为两种：Cold Observables 和 Hot Observables，这两个的区别：  Cold Observables：只有被 observers 订阅的时候，才会开始产生值。是单播的，有多少个订阅就会生成多少个订阅实例，每个订阅都是从第一个产生的值开始接受值，所以每个订阅收到的值都是一样的。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JS：作用域链和闭包">
-<meta property="og:url" content="http://example.com/2021/07/01/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/index.html">
+<meta property="og:title" content="RxJS：Cold vs Hot Observables">
+<meta property="og:url" content="http://example.com/2021/07/09/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。 首先先来看这一段代码： 123456789function bar() &amp;#123;    console.log(myName)&amp;#125;function foo() &amp;#123;    var myName &#x3D;">
+<meta property="og:description" content="RxJS：Cold vs Hot ObservablesRxJS 中 Observables 分为两种：Cold Observables 和 Hot Observables，这两个的区别：  Cold Observables：只有被 observers 订阅的时候，才会开始产生值。是单播的，有多少个订阅就会生成多少个订阅实例，每个订阅都是从第一个产生的值开始接受值，所以每个订阅收到的值都是一样的。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zRdlhw.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zcmf66.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/%E4%B8%8B%E8%BD%BD.png">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/uPznOY.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/20NJwJ.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/RxMYdM.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/cEAEuG.jpg">
-<meta property="article:published_time" content="2021-07-01T02:19:00.000Z">
-<meta property="article:modified_time" content="2021-07-06T08:07:38.153Z">
+<meta property="article:published_time" content="2021-07-09T06:35:00.000Z">
+<meta property="article:modified_time" content="2021-07-09T06:37:05.540Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="深入理解JS">
+<meta property="article:tag" content="RxJS">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg">
 
 
 
@@ -130,13 +121,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/07/01/JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择/"/>
+  <link rel="canonical" href="http://example.com/2021/07/09/RxJS：Cold vs Hot Observables/"/>
 
 
 
 
 
-  <title>JS：作用域链和闭包 | Hexo</title>
+  <title>RxJS：Cold vs Hot Observables | Hexo</title>
   
 
 
@@ -307,7 +298,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/01/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/09/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -324,7 +315,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">JS：作用域链和闭包</h1>
+          <h1 class="post-title" itemprop="name headline">RxJS：Cold vs Hot Observables</h1>
         
 
         <div class="post-meta">
@@ -336,8 +327,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-01T10:19:00+08:00">
-                2021-07-01
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-09T14:35:00+08:00">
+                2021-07-09
               </time>
             
 
@@ -354,7 +345,7 @@
 
           
           
-             <span id="/2021/07/01/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/" class="leancloud_visitors" data-flag-title="JS：作用域链和闭包">
+             <span id="/2021/07/09/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/" class="leancloud_visitors" data-flag-title="RxJS：Cold vs Hot Observables">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -379,7 +370,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  2.2k
+                  2k
                 </span>
               
 
@@ -404,51 +395,64 @@
       
 
       
-        <h1 id="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"><a href="#JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择" class="headerlink" title="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"></a>JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择</h1><p>理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。</p>
-<p>首先先来看这一段代码：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(myName)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    bar()</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
+        <h1 id="RxJS：Cold-vs-Hot-Observables"><a href="#RxJS：Cold-vs-Hot-Observables" class="headerlink" title="RxJS：Cold vs Hot Observables"></a>RxJS：Cold vs Hot Observables</h1><p>RxJS 中 Observables 分为两种：Cold Observables 和 Hot Observables，这两个的区别：</p>
+<ul>
+<li>Cold Observables：只有被 observers 订阅的时候，才会开始产生值。是单播的，有多少个订阅就会生成多少个订阅实例，每个订阅都是从第一个产生的值开始接受值，所以每个订阅收到的值都是一样的。</li>
+<li>Hot Observables：不管有没有被订阅都会产生值。是多播的，多个订阅共享同一个，是从订阅开始接受到值，每个订阅接收到的值是不同的，取决于它们是从什么时候开始订阅的。</li>
+</ul>
+<h2 id="Cold-Observables"><a href="#Cold-Observables" class="headerlink" title="Cold Observables"></a>Cold Observables</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2nd subscriber:&quot;</span> + data) &#125;);</span><br></pre></td></tr></table></figure>
 
-<p>你觉得这段代码中的 bar 函数和 foo 函数打印出来的是什么吗？</p>
-<p>分析代码，当代码执行到 bar 函数内部，调用栈的状态如图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg" alt="alt"></p>
-<p>从图中可以看出，全局执行上下文和 foo 函数的执行上下文中都包含变量 myName，那 bar 函数中的 myName应该选择哪一个呢？这里就需要了解作用域链了。</p>
-<h2 id="作用域链"><a href="#作用域链" class="headerlink" title="作用域链"></a>作用域链</h2><p>其实每一个执行上下文的变量环境中，都包含了一个外部引用，用来指向外部的执行上下文，我们把这个外部因你用哪个称为 outer。</p>
-<p>当一段代码使用了一个变量，JavaScript 引擎首先会在“当前执行上下文”中查找该变量，比如上面的那段代码在查找 myName 变量时，如果在当前的变量环境中没有查到，那么 JavaScript 引擎会继续在 outer 所指向的执行上下文中查找。为了直观理解，你可以直接看下图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zRdlhw.jpg" alt="alt"></p>
-<p>从图中可以看到，bar 函数和 foo 函数的 outer 都是指向全局上下文的，这也意味着如果在 bar 函数或者 foo 函数中使用了外部变量，那么 JavaScript 引擎就会去全局执行上下文中查找。我们把这个查找的链条就称作为作用域链。</p>
-<h2 id="词法作用域"><a href="#词法作用域" class="headerlink" title="词法作用域"></a>词法作用域</h2><p><em><strong>词法作用域就是指作用域是由代码中函数声明的位置来决定的，所以词法作用域是静态的作用域，通过它就能够预测代码在执行过程中如何查找标识符。</strong></em></p>
-<p>可以直接看下图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zcmf66.jpg" alt="alt"></p>
-<p>从图中可以看出，词法作用域就是根据代码的位置来决定的，其中 main 函数包含了 bar 函数，bar 函数包含了 foo 函数，因为 JavaScript 作用域链是由词法作用域决定的，所以整个词法作用域链的顺序是：foo 函数作用域 -&gt; bar 函数作用域 -&gt; main 函数作用域 -&gt; 全局作用域。</p>
-<p>回过头看上边的代码，foo 函数调用了 bar 函数，但是 bar 函数的外部引用是全局执行上下文。</p>
-<p>因为词法作用域，foo 和 bar 的上级作用域都是全局作用域，所以如果 foo 或者 bar 函数使用了一个没有定义的变量，那么它们就会到全局作用域中寻找，故，词法作用域是代码阶段就决定好的，和函数的调用没有关系。</p>
-<h2 id="块级作用域中的变量查找"><a href="#块级作用域中的变量查找" class="headerlink" title="块级作用域中的变量查找"></a>块级作用域中的变量查找</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> myName = <span class="string">&quot; 极客世界 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">100</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> myName = <span class="string">&quot;Chrome 浏览器 &quot;</span></span><br><span class="line">        <span class="built_in">console</span>.log(test)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test = <span class="number">2</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> test = <span class="number">3</span></span><br><span class="line">        bar()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line"><span class="keyword">let</span> myAge = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> test = <span class="number">1</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
+<p>把一个数组转换成 Observables，然后分别用不同的 Subcription 订阅它，在 console.log 结果如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2nd subscriber:<span class="number">1</span></span><br><span class="line">2nd subscriber:<span class="number">2</span></span><br><span class="line">2nd subscriber:<span class="number">3</span></span><br><span class="line">2nd subscriber:<span class="number">4</span></span><br><span class="line">2nd subscriber:<span class="number">5</span></span><br></pre></td></tr></table></figure>
 
-<p>ES6 是支持块级作用域的，当执行到代码块时，如果代码块中有 let 或者 const 声明的变量，那么变量就会存放到该函数的词法环境中，对于上面这段代码，当执行到 bar 函数内部的 if 语句块时，调用栈的情况如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/%E4%B8%8B%E8%BD%BD.png" alt="alt"></p>
-<p>现在是执行到 bar 函数的 if 语句块之内，需要打印出来的变量 test，那么久需要查找到 test 变量的值，其查找过程我已经在上图中使用了序号1、2、3、4、5标记出来了。</p>
-<p>下面我就来解释一下这个过程。首先是在 bar 函数的执行上下文中查找，但因为 bar 函数的执行上下文中没有 定义 test 变量，所以根据词法作用域的规则，下一步就在 bar 函数的外部作用域中查找，也就是全局作用域。</p>
-<h2 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h2><p>了解了作用域链，接着就可以了解闭包了。关于闭包，理解起来稍微有一点难度。结合以下代码就可以理解什么是闭包了：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">1</span></span><br><span class="line">    <span class="keyword">const</span> test2 = <span class="number">2</span></span><br><span class="line">    <span class="keyword">var</span> innerBar = &#123;</span><br><span class="line">        <span class="attr">getName</span>:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(test1)</span><br><span class="line">            <span class="keyword">return</span> myName</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">setName</span>:<span class="function"><span class="keyword">function</span>(<span class="params">newName</span>)</span>&#123;</span><br><span class="line">            myName = newName</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> innerBar</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> bar = foo()</span><br><span class="line">bar.setName(<span class="string">&quot; 极客邦 &quot;</span>)</span><br><span class="line">bar.getName()</span><br><span class="line"><span class="built_in">console</span>.log(bar.getName())</span><br></pre></td></tr></table></figure>
+<p>我们把代码改一下，让第二个 Subscription 延迟一秒订阅：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2nd subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">&#125;, <span class="number">1100</span>);</span><br></pre></td></tr></table></figure>
 
-<p>首先我们看看当执行到 foo 函数内部的 return innerBar 这行代码时，调用栈的情况你可以参考此图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/uPznOY.jpg" alt="alt"></p>
-<p>从上面的代码可以看出，innerBar 是一个对象，包含了 getName 和 setName 的两个方法（通常我们把对象内部的函数称为方法）。你可以看到，这两个方法都是在 foo 函数内部定义的，并且这两个方法内部都使用了 myName 和 test1 两个变量。</p>
-<p>根据词法作用域的规则，内部函数 getName 和 setName 总是可以访问它们的外部函数 foo 中的变量，所以当 innerBar 对象返回给全局变量 bar 时，虽然 foo 函数结束了，但是 getName 和 setName 函数依然可以使用 foo 函数中的变量 myName 和 test1。所以当 foo 函数执行完成之后，其整个调用栈的状态如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/20NJwJ.jpg" alt="alt"></p>
-<p>从上图可以看出，foo 函数执行完成之后，其执行上下文从栈顶弹出了，但是由于返回的 setName 和 getName 方法中使用了 foo 函数内部的变量 myName 和 test1，所以这两个变量依然存在在内存当中。这像极了 setName 和 getName 方法背的一个专属背包，无论在哪里调用 setName 和 getName 方法，它们都会背着这个 foo 函数的专属背包。</p>
-<p>之所以时专属背包，是因为除了 setName 和 getName 函数之外，其他任何地方都是无法访问该背包的，我们就可以把这个背包称为 foo 函数的闭包。</p>
-<p>最后给闭包完整的定义，在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合统称为闭包。比如外部函数 foo，那么这些变量的集合就称为 foo 函数的闭包。</p>
-<p>闭包的使用。当执行到 bar.setName 方法中的 myName = “极客邦” 这句代码时，JavaScript 引擎会沿着 “当前执行上下文 -&gt; foo 函数闭包 -&gt; 全局执行上下文” 的顺序来查找 myName 变量，你可以参考下面调用栈状态图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/RxMYdM.jpg" alt="alt"></p>
-<p>从图中可以看出，setName 的执行上下文中没有 myName 变量，foo 函数的闭包中包含了变量 myName，所以当调用 setName 时，会修改 foo 闭包中的 myName 变量的值。</p>
-<p>同样的流程，当调用 bar.getName 的时候，所访问的变量 myName 也是位于 foo 函数闭包中的。</p>
-<p>可以通过 “开发者工具” 来看看闭包的情况，打开 Chrome 的 “开发者工具”，在 bar 函数任意地方打上断点，然后刷新页面，可以看到如下内容：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/cEAEuG.jpg" alt="alt"></p>
-<p>从图中可以看出来，当调用 bar.getName 的时候，右边 Scope 就体现了作用域链的情况：Local 就是当前的 getName 函数的作用域，Closure( foo )是指 foo 函数的闭包，最下面的 Global 就是指全局作用域，从 “Local -&gt; Closure( foo ) -&gt; Global” 就是一个完整的作用域链。</p>
-<p>所以，可以通过 Scope 来查看实际代码作用域链的情况。</p>
-<h2 id="闭包的回收"><a href="#闭包的回收" class="headerlink" title="闭包的回收"></a>闭包的回收</h2><p>通常如果引用闭包的函数是一个全局变量，那么闭包会一直存在直到页面关闭；但是如果这个闭包以后不再使用就会导致内存泄漏。</p>
-<p>所以在使用闭包的时候，尽量注意一个原则：如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存比较大的话，那就尽量让它成为一个局部变量。</p>
+<p>结果还是跟上面一样，没有任何区别。这个是 Cold Observables，代码如下，先忽略 publish，ConnectableObservable，connect，稍后再详细解释。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).pipe(</span><br><span class="line">    publish()</span><br><span class="line">) <span class="keyword">as</span> ConnectableObservable&lt;any&gt;;</span><br><span class="line">obs$.connect();</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">&#125;, <span class="number">2100</span>);</span><br></pre></td></tr></table></figure>
+
+<p>根据 Hot Observables 的定义，期待的效果是第一个订阅收到 1，2，3，4，5；第二个订阅收到 3，4，5。实际上两个订阅都没有接收任何值。因为 Hot Observables 是不管有没有被订阅，都会发送值，数组中有 5 个值，等到开始订阅的时候，这 5 个值已经发送完成了，所以在订阅中接收不到任何值了。</p>
+<p>为了看到效果，把数组替换成了 interval，每隔一秒钟就发送一个值，第一个订阅等了一秒开始接受值，第二订阅等了两秒开始接收值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    publish()</span><br><span class="line">) <span class="keyword">as</span> ConnectableObservable&lt;any&gt;;</span><br><span class="line">obs$.connect();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    &#125;, <span class="number">1100</span>);</span><br><span class="line">&#125;, <span class="number">2100</span>);	</span><br></pre></td></tr></table></figure>
+
+<p>效果是</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">2st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<h2 id="Cold-Observables-vs-Hot-Observables"><a href="#Cold-Observables-vs-Hot-Observables" class="headerlink" title="Cold Observables vs Hot Observables"></a>Cold Observables vs Hot Observables</h2><ul>
+<li>我们可以把 Cold Observables 理解为在手机网易云音乐 APP 上听歌：APP 里的歌曲资源是 Cold Observables，听歌的人是 observers。如果没有人打开 APP 去播放这首歌，这首歌不会自己播放。每个人从自己 APP 打开播放这首歌的时候，先把歌曲从网上下载到本地，每份都是单独的歌曲实例，都是从头开始听，互相不会影响。</li>
+<li>而 Hot Observables 可以理解为演唱会：比如我们去看一场演唱会，没有迟到的小伙伴（A）可以从第一首歌开始听，迟到的小伙伴就（B）只能从第二首或者更晚的歌开始听；演唱会就是 Hot Observables，小伙伴 A 和 B 就是 observers。小伙伴 A 和 B 共享同一个演唱会实例，是从订阅开始接受到值，每个订阅接收到的值是不同的，取决于它们是从什么时候开始订阅。</li>
+</ul>
+<h2 id="如何创建-Hot-Observables"><a href="#如何创建-Hot-Observables" class="headerlink" title="如何创建 Hot Observables"></a>如何创建 Hot Observables</h2><p>在上方的 Hot Observables 代码里，用到了 publish 操作符，ConnectableObservable，以及 connect( ) 方法创建 Hot Observables；看一下对应的方法是什么意思。</p>
+<ul>
+<li>publish：这个操作符把正常的 Observable (Cold Observables) 转换成 ConnectableObservable。</li>
+<li>ConnectableObservable：ConnectableObservable 是多播的共享 Observable，可以同时被多个 observers 共享订阅，是 Hot Observables。ConnectableObservable 是订阅者和真正源头 Observables (上面例子中的 interval，每隔一秒发送一个值，就是源头 Observable) 的中间人。ConnectableObservable 从源头 Observables 接收到值然后再把值转发给订阅者。</li>
+<li>connect( )：ConnectableObservable 并不会主动发送值，它有个 connect 方法，通过调用 connect 方法，可以启动共享 ConnectableObservable 发送值。当我们调用 ConnectableObservable.prototype.connect 方法，不管有没有被订阅，都会发送值。订阅者共享同一个实例，订阅者接收到的值取决于它们何时开始订阅。在我们的例子中，第一个订阅等了一秒从 2 开始接收值，第二个订阅等了两秒从 3 开始接收值。</li>
+</ul>
+<h2 id="connect-vs-refCount"><a href="#connect-vs-refCount" class="headerlink" title="connect vs refCount"></a>connect vs refCount</h2><p>除了 connect，还有一个 refCount 方法，在比较这两个区别之前，我们先看一下 refCount 的用法和效果：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    publish(),</span><br><span class="line">    refCount()</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">1100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>按之前对 publish 会生成一个 ConnectableObservable，它是一个 Hot Observables，那么预期结果是：第一个订阅者是从 2 开始接收值，第二个订阅者是从 3 开始接收值。</p>
+<p>实际的输出：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">2st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">2st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">2st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line"></span><br><span class="line">.....</span><br></pre></td></tr></table></figure>
+
+<p>跟预想的不一样，第一个订阅者从 0 开始接收值，第二个订阅者比第一个订阅者晚了一秒，从 1 开始接收值。</p>
+<p>当使用 refCount，是引用计数的 Observable。它表示当第一个订阅者开始订阅的时候，开始发送和产生值；第二个订阅者 (之后的订阅者) 共享第一个订阅者的 Observables 实例，没有订阅者的时候，会自动取消订阅；之后再重新订阅，又从头开始发送值。</p>
+<p>它不是 Hot Observables 也不是 Cold Observables，因为它是从有第一个订阅者的时候才开始发送值，没有订阅者的时候会自动取消订阅，而且之后的订阅者共享第一个订阅者的 Observables 实例。它是基于 Hot Observables 与 Cold Observables 之间的 Observables，可以理解为 Warm Observables。</p>
+<h2 id="share"><a href="#share" class="headerlink" title="share"></a>share</h2><p>publish 和 refCount 可以生成一个 Warm Observables，实际单独使用 share 操作符也可以达到同样的效果，share 实际上是 publish( ).refCount( ) 的简写，这次把第二个订阅比第一个订阅晚 5 秒再开始订阅，具体代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    share()</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">5100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line">1st subscriber:<span class="number">7</span></span><br><span class="line">2st subscriber:<span class="number">7</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>和使用 publish( ).refCount( ) 效果完全一样。</p>
+<h2 id="shareReplay"><a href="#shareReplay" class="headerlink" title="shareReplay"></a>shareReplay</h2><p>在用 share( ) 的时候，第二个或者更后面的订阅者开始订阅者，都是共享第一个订阅者的 Observables，比如上面的例子中，第二个订阅比第一个订阅晚 5 秒再开始订阅，那么第二个订阅者从 5 开始接收值。但是实际情况中，如果我想让第二个订阅者也能够拿得到前面的值，那怎么办？用 shareReplay( ) 可以实现。具体代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    shareReplay(<span class="number">1</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">5100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line">1st subscriber:<span class="number">7</span></span><br><span class="line">2st subscriber:<span class="number">7</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>shareReplay(1) 中的 1 表示拿到错过的前一个值，在我们的例子就是第二个订阅从 4 开始接收值。如果改成 shareReplay (2) 就表示从错过的前两个值开始接收值，也就是第二个订阅会从 3 开始接收值。</p>
+<p>shareReplay(1) 其实也是 publishReplay(1).refCount( ) 的缩写，用 publishReplay(1).refCount( ) 有同样的效果。</p>
 
       
     </div>
@@ -476,7 +480,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3JS/" rel="tag"># 深入理解JS</a>
+            <a href="/tags/RxJS/" rel="tag"># RxJS</a>
           
         </div>
       
@@ -489,8 +493,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/01/JS%EF%BC%9A%E5%9D%97%E7%BA%A7%E4%BD%9C%E7%94%A8%E5%9F%9F%EF%BC%8Cvar%E7%BC%BA%E9%99%B7%E4%BB%A5%E5%8F%8A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BC%95%E5%85%A5let%E3%80%81const/" rel="next" title="JS：块级作用域，let、const 的必要性">
-                <i class="fa fa-chevron-left"></i> JS：块级作用域，let、const 的必要性
+              <a href="/2021/07/09/RxJS%EF%BC%9A%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84%E6%B6%88%E6%81%AF%E9%80%9A%E7%9F%A5%E6%9C%BA%E5%88%B6/" rel="next" title="RxJS：通过 RxJS 实现简单的消息通知机制">
+                <i class="fa fa-chevron-left"></i> RxJS：通过 RxJS 实现简单的消息通知机制
               </a>
             
           </div>
@@ -499,8 +503,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/" rel="prev" title="JS：从执行上下文视角讲解 this">
-                JS：从执行上下文视角讲解 this <i class="fa fa-chevron-right"></i>
+              <a href="/2021/07/09/CSS%EF%BC%9A%E9%80%89%E6%8B%A9%E5%99%A8/" rel="prev" title="CSS：选择器">
+                CSS：选择器 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -644,7 +648,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9"><span class="nav-text">JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE"><span class="nav-text">作用域链</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%8D%E6%B3%95%E4%BD%9C%E7%94%A8%E5%9F%9F"><span class="nav-text">词法作用域</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9D%97%E7%BA%A7%E4%BD%9C%E7%94%A8%E5%9F%9F%E4%B8%AD%E7%9A%84%E5%8F%98%E9%87%8F%E6%9F%A5%E6%89%BE"><span class="nav-text">块级作用域中的变量查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AD%E5%8C%85"><span class="nav-text">闭包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AD%E5%8C%85%E7%9A%84%E5%9B%9E%E6%94%B6"><span class="nav-text">闭包的回收</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJS%EF%BC%9ACold-vs-Hot-Observables"><span class="nav-text">RxJS：Cold vs Hot Observables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cold-Observables"><span class="nav-text">Cold Observables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cold-Observables-vs-Hot-Observables"><span class="nav-text">Cold Observables vs Hot Observables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BA-Hot-Observables"><span class="nav-text">如何创建 Hot Observables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#connect-vs-refCount"><span class="nav-text">connect vs refCount</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#share"><span class="nav-text">share</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shareReplay"><span class="nav-text">shareReplay</span></a></li></ol></li></ol></div>
             
 
           </div>

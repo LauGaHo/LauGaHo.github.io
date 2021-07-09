@@ -69,7 +69,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="RxJS," />
 
 
 
@@ -80,12 +80,17 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://example.com/tags/Vim-%E6%94%BB%E7%95%A5/index.html">
+<meta name="description" content="RxJS：通过 RxJS 实现简单的消息通知机制在实际开发中，还有一种 API 返回的值随着时间会有变化，这个时候去更新 RxJS 缓存里的值，从用户体验的角度出发，先在页面显示一个消息通知用户数据有更新，让用户选择是否需要更新页面内容，而不是直接在每次缓存更新之后直接刷新页面数据。下面介绍如何基于 RxJS 实现简单的消息通知机制。  本文用到的 RxJS 缓存指 Angular 2+ 中结合">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RxJS：通过 RxJS 实现简单的消息通知机制">
+<meta property="og:url" content="http://example.com/2021/07/09/RxJS%EF%BC%9A%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84%E6%B6%88%E6%81%AF%E9%80%9A%E7%9F%A5%E6%9C%BA%E5%88%B6/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="RxJS：通过 RxJS 实现简单的消息通知机制在实际开发中，还有一种 API 返回的值随着时间会有变化，这个时候去更新 RxJS 缓存里的值，从用户体验的角度出发，先在页面显示一个消息通知用户数据有更新，让用户选择是否需要更新页面内容，而不是直接在每次缓存更新之后直接刷新页面数据。下面介绍如何基于 RxJS 实现简单的消息通知机制。  本文用到的 RxJS 缓存指 Angular 2+ 中结合">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-07-09T06:35:00.000Z">
+<meta property="article:modified_time" content="2021-07-09T06:36:38.340Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="RxJS">
 <meta name="twitter:card" content="summary">
 
 
@@ -116,13 +121,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/tags/Vim-攻略/"/>
+  <link rel="canonical" href="http://example.com/2021/07/09/RxJS：通过 RxJS 实现简单的消息通知机制/"/>
 
 
 
 
 
-  <title>Tag: Vim 攻略 | Hexo</title>
+  <title>RxJS：通过 RxJS 实现简单的消息通知机制 | Hexo</title>
   
 
 
@@ -141,7 +146,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -279,54 +284,202 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>Vim 攻略<small>Tag</small>
-        </h1>
-      </div>
+  
 
-      
-        
+  
+  
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/09/RxJS%EF%BC%9A%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84%E6%B6%88%E6%81%AF%E9%80%9A%E7%9F%A5%E6%9C%BA%E5%88%B6/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head_icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2021/07/06/Vim%20%E7%BC%96%E8%BE%91%E5%99%A8/" itemprop="url">
-              
-                <span itemprop="name">Vim：基础操作指南</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">RxJS：通过 RxJS 实现简单的消息通知机制</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2021-07-06T10:39:00+08:00"
-              content="2021-07-06" >
-          07-06
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-09T14:35:00+08:00">
+                2021-07-09
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/07/09/RxJS%EF%BC%9A%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84%E6%B6%88%E6%81%AF%E9%80%9A%E7%9F%A5%E6%9C%BA%E5%88%B6/" class="leancloud_visitors" data-flag-title="RxJS：通过 RxJS 实现简单的消息通知机制">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  552
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="RxJS：通过-RxJS-实现简单的消息通知机制"><a href="#RxJS：通过-RxJS-实现简单的消息通知机制" class="headerlink" title="RxJS：通过 RxJS 实现简单的消息通知机制"></a>RxJS：通过 RxJS 实现简单的消息通知机制</h1><p>在实际开发中，还有一种 API 返回的值随着时间会有变化，这个时候去更新 RxJS 缓存里的值，从用户体验的角度出发，先在页面显示一个消息通知用户数据有更新，让用户选择是否需要更新页面内容，而不是直接在每次缓存更新之后直接刷新页面数据。下面介绍如何基于 RxJS 实现简单的消息通知机制。</p>
+<ul>
+<li>本文用到的 RxJS 缓存指 Angular 2+ 中结合 HttpClient 和 ReplaySubject 缓存 API Response 数据，后续新的订阅者都可以直接从 ReplaySubject 拿 API Response 数据。</li>
+</ul>
+<h2 id="更新-RxJS-缓存"><a href="#更新-RxJS-缓存" class="headerlink" title="更新 RxJS 缓存"></a>更新 RxJS 缓存</h2><p>这里直接每隔 10 秒调用一次 API，把新拿到的值赋值给 RxJS 缓存。</p>
+<p>还是用 Github 的 get all users API：Github API，每 10 秒调用一次 API 拿到 30 个不同的 Github 用户信息。用 interval 可以实现每隔 10s 调用一次 API，但是会有一个问题，用户在第一次进到页面的时候需要等 10s 才能看到 30 位用户信息。我们希望用户第一次进到页面立马能看到 30 位用户信息，之后是每隔 10s 调用一次 API 更新 30 位 Git 用户信息，timer 操作符可以满足这个要求，timer(0, 10000) 表示首次不用等直接调用 API 拿到 30 位 Git 用户信息，之后每隔 10s 调用一次 API。Service 代码如下：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> CACHE_SIZE = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">const</span> REFRESH_INTERVAL = <span class="number">10000</span>;</span><br><span class="line"><span class="keyword">const</span> API_ENDPOINT = <span class="string">&quot;https://api.github.com/users?since=&quot;</span>;</span><br><span class="line"><span class="meta">@Injectable</span>()</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsNotificationService</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> cacheUsers$: Observable&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;;</span><br><span class="line">    <span class="keyword">private</span> userStartId: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> http: HttpClient</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">get</span> <span class="title">users</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">this</span>.cacheUsers$) &#123;</span><br><span class="line">            <span class="keyword">const</span> timer$ = timer(<span class="number">0</span>, REFRESH_INTERVAL);</span><br><span class="line">            <span class="built_in">this</span>.cacheUsers$ = timer$</span><br><span class="line">                .pipe(</span><br><span class="line">                    switchMap(<span class="function">() =&gt;</span> <span class="built_in">this</span>.requestUsers()),</span><br><span class="line">                    shareReplay(CACHE_SIZE)</span><br><span class="line">                );</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.cacheUsers$;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="title">requestUsers</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.userStartId = <span class="built_in">this</span>.userStartId + <span class="number">30</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.http.get&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;(API_ENDPOINT + <span class="built_in">this</span>.userStartId)</span><br><span class="line">            .pipe(</span><br><span class="line">                map(<span class="function"><span class="params">respone</span> =&gt;</span> respone),</span><br><span class="line">                catchError(<span class="function"><span class="params">error</span> =&gt;</span> &#123;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">&quot;something went wrong &quot;</span> + error)</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">of</span>([]);</span><br><span class="line">                &#125;)</span><br><span class="line">            )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义一个 RxjsNotificationComponent，具体代码如下：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">    <span class="attr">templateUrl</span>: <span class="string">&quot;./rxjs-notification.component.html&quot;</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsNotificationComponent</span> </span>&#123;</span><br><span class="line">    <span class="attr">users$</span>: Observable&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> rxjsNotificationService: RxjsNotificationService</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">ngOnInit</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.users$ = <span class="built_in">this</span>.rxjsNotificationService.users.pipe();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>rxjs-notification.component.html 代码如下：</p>
 
       
     </div>
+    
+    
+    
 
+    
+      <div>
+        
+    <div style="text-align:center;color: #ccc;font-size:14px;">
+        ------ 本文结束<i class="fa fa-paw"></i>感谢您的阅读 ------</div>
+    
+
+      </div>
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RxJS/" rel="tag"># RxJS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/07/RxJS%EF%BC%9A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%BC%93%E5%AD%98/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/07/09/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/" rel="prev" title="RxJS：Cold vs Hot Observables">
+                RxJS：Cold vs Hot Observables <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -334,6 +487,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -354,8 +511,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -374,7 +540,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -387,7 +553,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -427,6 +593,22 @@
       </section>
 
       
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJS%EF%BC%9A%E9%80%9A%E8%BF%87-RxJS-%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84%E6%B6%88%E6%81%AF%E9%80%9A%E7%9F%A5%E6%9C%BA%E5%88%B6"><span class="nav-text">RxJS：通过 RxJS 实现简单的消息通知机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0-RxJS-%E7%BC%93%E5%AD%98"><span class="nav-text">更新 RxJS 缓存</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
 
       
 
@@ -454,7 +636,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">26.5k</span>
+    <span title="Site words total count">32.1k</span>
   
 </div>
 
@@ -575,6 +757,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 

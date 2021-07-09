@@ -1,6 +1,201 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>CSS：Flex 布局</title>
+    <url>/2021/07/09/CSS%EF%BC%9AFlex%20%E5%B8%83%E5%B1%80/</url>
+    <content><![CDATA[<h1 id="CSS：Flex-布局"><a href="#CSS：Flex-布局" class="headerlink" title="CSS：Flex 布局"></a>CSS：Flex 布局</h1><h2 id="盒子模型"><a href="#盒子模型" class="headerlink" title="盒子模型"></a>盒子模型</h2><h3 id="盒模型"><a href="#盒模型" class="headerlink" title="盒模型"></a>盒模型</h3><p>盒模型由 <code>content</code>、<code>padding</code>、<code>border</code>、<code>margin</code> 组成</p>
+<h3 id="margin"><a href="#margin" class="headerlink" title="margin"></a>margin</h3><ul>
+<li><p>margin 可以让块状元素居中显示，注意是块状元素。实现方式是：<code>margin: 10px, auto</code></p>
+</li>
+<li><p>设置 margin 可能会导致上下的两个元素出现外间距合并的情况，类似的上边的 div (块级元素) 设置了 margin 为 100px，然后下边的 div 设置了 50px，那么就会导致这两个元素间的间距并不是 150px，而是变成了 100px，这个就是外间距合并，这种的解决方式就是在这两个 div 的外边的父元素触发成一个 BFC。这样就可以解决了。</p>
+</li>
+<li><p>行内元素实际上不占上下外边距。行内元素的左右外边距不合并</p>
+</li>
+<li><p>浮动元素的外边距也不会合并</p>
+</li>
+<li><p>允许指定负的外边距，不过使用的时候要小心</p>
+</li>
+</ul>
+<h3 id="border"><a href="#border" class="headerlink" title="border"></a>border</h3><p>padding 的宽高要是记录在盒子模型的宽高之内，与此同时的是 border 也要记录在盒子模型的宽高之内，但是 margin 并不算在宽高之内。所以各位在书写宽高时注意减掉内边距和边框。box-sizing 属性有两个值，一个是 content-box (标准)，此时 padding 和 border 不被包含在 width 和 height 内，元素的实际大小为宽高 + border + padding，此为标准模式下的盒模型。border-boxing (怪异) padding 和 border 被包含在定义的 width 和 height 中。元素实际的大小为你定义了多宽就是多宽。此属性为怪异模式下的盒模型。</p>
+<h2 id="Flex-布局"><a href="#Flex-布局" class="headerlink" title="Flex 布局"></a>Flex 布局</h2><h3 id="是什么"><a href="#是什么" class="headerlink" title="是什么"></a>是什么</h3><p>Flex是“弹性布局”，用来为盒状模型提供最大的灵活性，任何一个容器都可以指定为Flex布局。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">  <span class="attribute">display</span>: flex;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>行内元素也可以使用Flex布局</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">display</span>: inline-flex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意，设为Flex布局后，子元素的float、clear和vertical-align属性将失效。</p>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>采用了 Flex 布局的元素，称为 Flex 容器，简称“容器”。它的所有子元素自动称为容器成员，称为 Flex 项目，简称“项目”</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/4COzFw.jpg" alt="alt"></p>
+<p>容器默认存在两根轴：水平方向的主轴 (main axis) 和垂直方向的交叉轴 (cross axis)。主轴的开始位置 (与边框的交叉点) 叫 main start，结束位置叫做 main end；交叉轴的开始位置叫做 (cross end)。</p>
+<p>项目默认沿主轴排列。单个项目占据的主轴空间叫做 (main size)，占据的交叉轴空间叫做 (cross size)。</p>
+<h3 id="容器的属性"><a href="#容器的属性" class="headerlink" title="容器的属性"></a>容器的属性</h3><p>以下 6 个属性设置在容器上</p>
+<ul>
+<li>flex-direction</li>
+<li>flex-wrap</li>
+<li>flex-flow</li>
+<li>justify-content</li>
+<li>align-items</li>
+<li>align-content</li>
+</ul>
+<h4 id="flex-direction"><a href="#flex-direction" class="headerlink" title="flex-direction"></a>flex-direction</h4><p>flex-direction 属性决定主轴的方向 (即项目的排列方向)</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span> &#123;</span><br><span class="line">  <span class="attribute">flex-direction</span>: row | row-reverse | column | column-reverse</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7t8Gu5.jpg" alt="alt"></p>
+<p>它的取值有 4 种可能：</p>
+<ul>
+<li>row (默认值)：主轴为水平方向，起点在左端</li>
+<li>row-reverse：主轴为水平方向，起点在右边</li>
+<li>column：主轴为垂直方向，起点在上方</li>
+<li>column-reverse：主轴为垂直方向，起点在下方</li>
+</ul>
+<h4 id="flex-wrap"><a href="#flex-wrap" class="headerlink" title="flex-wrap"></a>flex-wrap</h4><p>默认情况下，项目都排在一条线 (又称“轴线”) 上。flex-wrap属性定义，如果一条轴线排不下，如何换行</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/2FW5XI.jpg" alt="alt"></p>
+<p>它的取值有三种可能：</p>
+<ul>
+<li>norwrap (默认值)：不换行</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/6d2FWW.jpg" alt="alt"></p>
+<ul>
+<li>wrap：换行，第一行在上方</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/JA3nNx.jpg" alt="alt"></p>
+<ul>
+<li>wrap-reverse：换行，第一行在下方</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/hOo7m9.jpg" alt="alt"></p>
+<h4 id="flex-flow"><a href="#flex-flow" class="headerlink" title="flex-flow"></a>flex-flow</h4><p>flex-flow 属性是 flex-direction 属性和 flex-wrap 属性的简写形式，默认值为 row norwrap</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span> &#123;</span><br><span class="line">  <span class="attribute">flex-flow</span>: &lt;flex-direction&gt; || &lt;flex-wrap&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="justify-content"><a href="#justify-content" class="headerlink" title="justify-content"></a>justify-content</h4><p>justify-content 属性定义了项目在主轴的对齐方式</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">justify-content</span>: flex-start | flex-end | center | space-between</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/NFWbgj.jpg" alt="alt"></p>
+<p>它的取值有 5 种可能，具体对齐方式跟轴的方向有关，下面假设主轴为从左到右</p>
+<ul>
+<li>flex-start (默认值)：左对齐</li>
+<li>flex-end：右对齐</li>
+<li>center：居中</li>
+<li>space-between：两端对齐，项目之间的间隔相等</li>
+<li>space-around：每个项目两侧的间隔相等，所以，项目之间的间隔比项目与边框的间隔大一倍</li>
+</ul>
+<h4 id="align-items"><a href="#align-items" class="headerlink" title="align-items"></a>align-items</h4><p>align-items 属性定义项目在交叉轴上如何对齐</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">align-items</span>: flex-start | flex-end | center | baseline | stretc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/rttbFb.jpg" alt="alt"></p>
+<p>它的取值有 5 种可能：</p>
+<ul>
+<li>flex-start：交叉轴起点对齐</li>
+<li>flex-end：交叉轴终点对齐</li>
+<li>center：交叉轴中点对齐</li>
+<li>baseline：项目的第一项文字的基线</li>
+<li>stretch (默认值)：如果项目未设置高度或设为 auto，将占满整个容器的高度</li>
+</ul>
+<h4 id="align-content"><a href="#align-content" class="headerlink" title="align-content"></a>align-content</h4><p>align-content 属性定义了多根轴线的对齐方式。如果项目只有一个轴线，该属性不起作用</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">align-content</span>: flex-start | flex-end | center | space-between;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/W8DGmG.jpg" alt="alt"></p>
+<ul>
+<li>flex-start：与交叉轴的起点对齐。</li>
+<li>flex-end：与交叉轴的终点对齐。</li>
+<li>center：与交叉轴的中点对齐。</li>
+<li>space-between：与交叉轴两端对齐，轴线之间的间隔平均分配</li>
+<li>space-around：每根轴线两侧的间隔都相等，所以，轴线之间的间隔比轴线与边框间隔大一倍</li>
+<li>stretch（默认值）：轴线占满整个交叉轴</li>
+</ul>
+<h3 id="项目的属性"><a href="#项目的属性" class="headerlink" title="项目的属性"></a>项目的属性</h3><p>以下 6 个属性设置在项目上</p>
+<ul>
+<li>order</li>
+<li>flex-grow</li>
+<li>flex-shrink</li>
+<li>flex</li>
+<li>align-self</li>
+</ul>
+<h4 id="order"><a href="#order" class="headerlink" title="order"></a>order</h4><p>order 属性定义项目的排列顺序。数值越小，排列越靠前，默认为 0。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">order</span>: &lt;integer&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/iTaKZ4.jpg" alt="alt"></p>
+<h4 id="flex-grow"><a href="#flex-grow" class="headerlink" title="flex-grow"></a>flex-grow</h4><p>flex-grow 属性定义项目的放大比例，默认为 0，即如果存在剩余空间，也不放大。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex-grow</span>: &lt;number&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果所有项目的 flex-grow 属性都为 1，则他们将等分剩余空间 (如果有的话)，如果一个项目的 flex-grow 属性为 2，其他项目都为 1，则前者占据的剩余空间将比其他项多一倍</p>
+<h4 id="flex-shrink"><a href="#flex-shrink" class="headerlink" title="flex-shrink"></a>flex-shrink</h4><p>flex-shrink 属性定义了项目的缩小比例，默认为 1，即如果空间不够，该项目会缩小</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex-shrink</span>: &lt;number&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/sn1tSc.jpg" alt="alt"></p>
+<p>如果所有项目 flex-shrink 属性为 1，那么当空间不够的时候，都将等比例缩小。如果一个项目的 flex-shrink 属性为 0，其他项目都为 1，则空间不足时，前者不缩小。负值对该属性无效。</p>
+<h4 id="flex-basis"><a href="#flex-basis" class="headerlink" title="flex-basis"></a>flex-basis</h4><p>flex-basis 属性定义了在分配多余空间之前，项目占据的主轴空间 (main size)。浏览器根据这个属性，计算主轴是否有多余空间。它的默认值为 auto，即项目本来大小。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex-basis</span>: &lt;length&gt; | auto;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它可以设为跟 width 或 height 属性一样的值，比如 350px，则项目将占据固定空间。</p>
+<h4 id="flex"><a href="#flex" class="headerlink" title="flex"></a>flex</h4><p>flex 属性是 flex-grow、flex-shrink、flex-basis 的简写，默认值为 0、1、auto。后两个属性可选。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex</span>: none | [ &lt;<span class="string">&#x27;flex-grow&#x27;</span>&gt; &lt;<span class="string">&#x27;flex-shrink&#x27;</span>&gt;? || &lt;<span class="string">&#x27;flex-basis&#x27;</span>&gt;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该属性有两个快捷键：auto(1 1 auto) 和 auto(0 0 auto)。</p>
+<p>建议优先使用这个属性，而不是单独写是哪个分离的属性，因为浏览器会推算相关值。</p>
+<h4 id="align-self"><a href="#align-self" class="headerlink" title="align-self"></a>align-self</h4><p>align-self 属性允许单个项目有与其他项目不一样的对齐方式，可覆盖 align-items 属性。默认值为 auto，表示继承父元素的 align-items，如果没有父元素，则等同 stretch。</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">align-self</span>: auto | flex-start | flex-end | center | baseline |</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/KeVUWJ.jpg" alt="alt"></p>
+<p>该属性可能取值为 6 个，除了 auto，其他都与 align-items 属性完全一致。</p>
+]]></content>
+      <tags>
+        <tag>CSS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CSS：定位</title>
+    <url>/2021/07/09/CSS%EF%BC%9A%E5%AE%9A%E4%BD%8D/</url>
+    <content><![CDATA[<h1 id="CSS：定位"><a href="#CSS：定位" class="headerlink" title="CSS：定位"></a>CSS：定位</h1><h2 id="浮动定位"><a href="#浮动定位" class="headerlink" title="浮动定位"></a>浮动定位</h2><h3 id="浮动属性"><a href="#浮动属性" class="headerlink" title="浮动属性"></a>浮动属性</h3><ul>
+<li>将元素排除在普通流之外</li>
+<li>元素将不在页面中占据位置</li>
+<li>将浮动元素放在包含框的左边或右边</li>
+<li>浮动元素依旧位于包含框内</li>
+<li>浮动的框可以向左或者向右移动，直到他的边缘碰到父元素边框或者另一个浮动框的边框为止</li>
+<li>浮动元素的外边缘不会超过其父元素的内边缘</li>
+<li>浮动元素不会互相重叠</li>
+<li>浮动元素不会上下浮动</li>
+<li>任何元素一旦浮动，display 属性将完全失效均可以设置宽高，并且不会独占一行</li>
+<li>语法：float: none / left / right</li>
+<li>div 作为父元素没有设置宽高属性的话，那么 div 的高度是由其子元素的高度撑开的。如果其子元素全部设置为浮动了，那么会导致父元素的高度坍塌。</li>
+</ul>
+<h3 id="清除浮动"><a href="#清除浮动" class="headerlink" title="清除浮动"></a>清除浮动</h3><ul>
+<li>结尾处加空 div 标签 clear: both (或在下一个元素上加 clear: both)</li>
+<li>浮动元素的父级 div 定义 overflow: hidden，设置了 overflow: hidden 之后相当于触发了 BFC 容器</li>
+<li>浮动元素的父元素定宽高</li>
+</ul>
+<h2 id="定位属性"><a href="#定位属性" class="headerlink" title="定位属性"></a>定位属性</h2><h3 id="Position-定位"><a href="#Position-定位" class="headerlink" title="Position 定位"></a>Position 定位</h3><ul>
+<li><p>absolute: 生成绝对定位的元素，相对于 static 定位以外的第一个父元素进行定位，元素的位置通过 left、top、right、bottom 进行规定，***<u>绝对定位的元素不会占据原有的物理位置</u>***，以其他元素作为参照物移动指定距离的定位方式。</p>
+<ul>
+<li>如果元素的外层元素是***<u>非 static</u>*** (有了除默认值之外的定位设置) 那么这个外层元素就成为该元素的定位参考点。</li>
+<li>如果元素的外层元素没有设置任何的 position 值，那么该元素将寻找距离自己最近的其他设置过 position 的外层元素作为参照物 (必须为嵌套层)。</li>
+<li>如果该元素的外层元素没有一个元素采用 position 定位，那么此时定位参考元素就变为 body 或者页面</li>
+</ul>
+</li>
+<li><p>fixed：生成固定定位的元素，相对于浏览器窗口进行定位。元素也是通过 left、top、right、bottom 进行定位。</p>
+</li>
+<li><p>relative：生成相对定位的元素，相对于其正常位置进行定位，因此，left: 20 会向元素的 left 位置添加 20 像素，以当前参照物移动指定的距离，被定位的元素会占据原有的物理位置。</p>
+</li>
+<li><p>static：默认值，没有定位，元素出现在正常的流中 (忽略 top、bottom、left、right 或者 z-Index 声明)。</p>
+</li>
+<li><p>z-Index 属性只支持定位元素</p>
+</li>
+</ul>
+<h2 id="Display-属性"><a href="#Display-属性" class="headerlink" title="Display 属性"></a>Display 属性</h2><p>每一个网页元素都有一个 display 属性，用于确认该元素的类型，每一个元素都有默认的 display 属性值，比如 div 元素，它的默认 display 属性值为 block，称为块元素，而 span 元素的默认 display 属性值为 inline，称为行内元素。块元素和行内元素可以转换。</p>
+<h3 id="常见属性值"><a href="#常见属性值" class="headerlink" title="常见属性值"></a>常见属性值</h3><ul>
+<li>none：隐藏对象，这里隐藏了对象之后，会导致对象不占据原有的位置</li>
+<li>inline：指定对象为内联对象 (即行内对象)，特点是没有宽高属性，不会独占一行</li>
+<li>block：指定对象为块元素，特点是具有宽高属性，并且独占一行</li>
+<li>inline-block：指定对象为内联块对象，特点是具有宽高，并且不会独占一行</li>
+<li>table-cell：指定对象为表格单元格</li>
+<li>flex：弹性盒</li>
+</ul>
+<p>注意：visibility: hidden 和 opacity: 0 会将元素隐藏，但是物理空间实际还存在；display: none 隐藏元素，不保留物理空间。</p>
+]]></content>
+      <tags>
+        <tag>CSS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JS：原型</title>
     <url>/2021/07/01/JS%EF%BC%9AJavaScript%20%E5%8E%9F%E5%9E%8B/</url>
     <content><![CDATA[<h1 id="JS：JavaScript-原型"><a href="#JS：JavaScript-原型" class="headerlink" title="JS：JavaScript 原型"></a>JS：JavaScript 原型</h1><h2 id="引入：普通对象与函数对象"><a href="#引入：普通对象与函数对象" class="headerlink" title="引入：普通对象与函数对象"></a>引入：普通对象与函数对象</h2><p>在 JavaScript 中，一直有一个说法，万物皆对象，事实上，对象也是有区别的，我们可以将其划分为 <em><strong>普通对象</strong></em> 和 <em><strong>函数对象</strong></em>。Object 和 Function 便是 JavaScript 自带的两个典型的函数对象，而函数对象就是一个纯函数，所谓的函数对象，其实就是使用 JavaScript 在模拟类。</p>
@@ -192,6 +387,50 @@
       </tags>
   </entry>
   <entry>
+    <title>CSS：选择器</title>
+    <url>/2021/07/09/CSS%EF%BC%9A%E9%80%89%E6%8B%A9%E5%99%A8/</url>
+    <content><![CDATA[<h1 id="CSS：选择器"><a href="#CSS：选择器" class="headerlink" title="CSS：选择器"></a>CSS：选择器</h1><h2 id="基本选择器"><a href="#基本选择器" class="headerlink" title="基本选择器"></a>基本选择器</h2><p>1、标签选择器</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">p</span> &#123;</span><br><span class="line">	<span class="attribute">color</span>: red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、类选择器 class</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.active</span> &#123;</span><br><span class="line">	<span class="attribute">color</span>: red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>3、Id 选择器</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-id">#id1</span> &#123;</span><br><span class="line">	<span class="attribute">color</span>: red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><u><em><strong>总结：Id 选择器 &gt; class 选择 &gt; 标签选择器</strong></em></u></p>
+<h2 id="层次选择器"><a href="#层次选择器" class="headerlink" title="层次选择器"></a>层次选择器</h2><p>1、后代选择器：body 中的所有子孙 p 标签都被设置为红色</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">body</span> <span class="selector-tag">p</span>&#123;</span><br><span class="line">	<span class="attribute">color</span>: red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、子选择器：body 中的子 p 标签才被设置为红色，孙 p 标签不被设置为红色</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">body</span> &gt; <span class="selector-tag">p</span>&#123;</span><br><span class="line">	<span class="attribute">color</span>:red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>3、相邻兄弟选择器：只使用类别为 active 并且是他下边一个相邻的 p 标签才被设置为红色</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.active</span> + <span class="selector-tag">p</span>&#123;</span><br><span class="line">	<span class="attribute">color</span>:red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>4、通用选择器：通用兄弟选择器，当前选中元素的向下的所有兄弟元素</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.active</span> ~ <span class="selector-tag">p</span>&#123;</span><br><span class="line">	<span class="attribute">color</span>:red</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="结构伪类选择器"><a href="#结构伪类选择器" class="headerlink" title="结构伪类选择器"></a>结构伪类选择器</h2><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>p1<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>p2<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>p3<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">li</span>&gt;</span>li1<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">li</span>&gt;</span>li2<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">li</span>&gt;</span>li3<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*选择ul中的子孙li元素，选中最后一个li*/</span></span><br><span class="line"><span class="selector-tag">ul</span> <span class="selector-tag">li</span><span class="selector-pseudo">:last-child</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: red;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*选择ul中的子孙li元素，选中第一个li*/</span></span><br><span class="line"><span class="selector-tag">ul</span> <span class="selector-tag">li</span><span class="selector-pseudo">:first</span>-child &#123;</span><br><span class="line">  <span class="attribute">background</span>: blue;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*选择当前p标签的父标签，选中父级元素的第一个，并且是当前元素才生效*/</span></span><br><span class="line"><span class="selector-tag">p</span><span class="selector-pseudo">:nth-child</span>(<span class="number">1</span>) &#123;</span><br><span class="line">  <span class="attribute">background</span>: yellow</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*定位到当前元素的父元素，并且将父元素中为p标签类型第二个设置为黄色*/</span></span><br><span class="line"><span class="selector-tag">p</span><span class="selector-pseudo">:nth-of-type</span>(<span class="number">2</span>) &#123;</span><br><span class="line">  <span class="attribute">background</span>: yellow</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="属性选择器"><a href="#属性选择器" class="headerlink" title="属性选择器"></a>属性选择器</h2><p>HTML 内容如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span> <span class="attr">class</span>=<span class="string">&quot;demo&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;http://www.baidu.com&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item first&quot;</span> <span class="attr">id</span>=<span class="string">&quot;first&quot;</span>&gt;</span>1<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item active&quot;</span> <span class="attr">target</span>=<span class="string">&quot;_blank&quot;</span> <span class="attr">title</span>=<span class="string">&quot;test&quot;</span>&gt;</span>2<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;images/123.html&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>3<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;images/123.png&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>4<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;images/123.jpg&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>5<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;abc&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>6<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;/a.pdf&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>7<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;/abc.pdf&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>8<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;abc.doc&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item&quot;</span>&gt;</span>9<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;abcd.doc&quot;</span> <span class="attr">class</span>=<span class="string">&quot;links item last&quot;</span>&gt;</span>10<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>CSS：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*存在id属性的元素*/</span></span><br><span class="line"><span class="selector-tag">a</span><span class="selector-attr">[id]</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: yellow;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*选中id为first的元素*/</span></span><br><span class="line"><span class="selector-tag">a</span><span class="selector-attr">[id=first]</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: black;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*选中class中含有links的元素*/</span></span><br><span class="line"><span class="selector-tag">a</span><span class="selector-attr">[class*=<span class="string">&quot;links&quot;</span>]</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: blue;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*选中href属性中以http开头的元素*/</span></span><br><span class="line"><span class="selector-tag">a</span><span class="selector-attr">[href^=http]</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: yellow;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*选中href属性中以pdf结尾的元素*/</span></span><br><span class="line"><span class="selector-tag">a</span><span class="selector-attr">[href$=pdf]</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: blue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>=：绝对等于</p>
+<p>*=：包含这个元素</p>
+<p>^=：以这个开头</p>
+<p>$=：以这个结尾</p>
+]]></content>
+      <tags>
+        <tag>CSS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JS：Map 和 Set</title>
     <url>/2021/07/01/JS%EF%BC%9AMap%20%E5%92%8C%20Set/</url>
     <content><![CDATA[<h1 id="JS：Map-和-Set"><a href="#JS：Map-和-Set" class="headerlink" title="JS：Map 和 Set"></a>JS：Map 和 Set</h1><h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><p>Map是JS(ES6)的一种字典数据结构，key值不重复，如果有重复，就会覆盖前面的，任何值都可以作为Map的key，包括对象，字符，数字，NaN，symbol。</p>
@@ -327,59 +566,6 @@
       </tags>
   </entry>
   <entry>
-    <title>JS：作用域链和闭包</title>
-    <url>/2021/07/01/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/</url>
-    <content><![CDATA[<h1 id="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"><a href="#JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择" class="headerlink" title="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"></a>JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择</h1><p>理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。</p>
-<p>首先先来看这一段代码：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(myName)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    bar()</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
-
-<p>你觉得这段代码中的 bar 函数和 foo 函数打印出来的是什么吗？</p>
-<p>分析代码，当代码执行到 bar 函数内部，调用栈的状态如图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg" alt="alt"></p>
-<p>从图中可以看出，全局执行上下文和 foo 函数的执行上下文中都包含变量 myName，那 bar 函数中的 myName应该选择哪一个呢？这里就需要了解作用域链了。</p>
-<h2 id="作用域链"><a href="#作用域链" class="headerlink" title="作用域链"></a>作用域链</h2><p>其实每一个执行上下文的变量环境中，都包含了一个外部引用，用来指向外部的执行上下文，我们把这个外部因你用哪个称为 outer。</p>
-<p>当一段代码使用了一个变量，JavaScript 引擎首先会在“当前执行上下文”中查找该变量，比如上面的那段代码在查找 myName 变量时，如果在当前的变量环境中没有查到，那么 JavaScript 引擎会继续在 outer 所指向的执行上下文中查找。为了直观理解，你可以直接看下图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zRdlhw.jpg" alt="alt"></p>
-<p>从图中可以看到，bar 函数和 foo 函数的 outer 都是指向全局上下文的，这也意味着如果在 bar 函数或者 foo 函数中使用了外部变量，那么 JavaScript 引擎就会去全局执行上下文中查找。我们把这个查找的链条就称作为作用域链。</p>
-<h2 id="词法作用域"><a href="#词法作用域" class="headerlink" title="词法作用域"></a>词法作用域</h2><p><em><strong>词法作用域就是指作用域是由代码中函数声明的位置来决定的，所以词法作用域是静态的作用域，通过它就能够预测代码在执行过程中如何查找标识符。</strong></em></p>
-<p>可以直接看下图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zcmf66.jpg" alt="alt"></p>
-<p>从图中可以看出，词法作用域就是根据代码的位置来决定的，其中 main 函数包含了 bar 函数，bar 函数包含了 foo 函数，因为 JavaScript 作用域链是由词法作用域决定的，所以整个词法作用域链的顺序是：foo 函数作用域 -&gt; bar 函数作用域 -&gt; main 函数作用域 -&gt; 全局作用域。</p>
-<p>回过头看上边的代码，foo 函数调用了 bar 函数，但是 bar 函数的外部引用是全局执行上下文。</p>
-<p>因为词法作用域，foo 和 bar 的上级作用域都是全局作用域，所以如果 foo 或者 bar 函数使用了一个没有定义的变量，那么它们就会到全局作用域中寻找，故，词法作用域是代码阶段就决定好的，和函数的调用没有关系。</p>
-<h2 id="块级作用域中的变量查找"><a href="#块级作用域中的变量查找" class="headerlink" title="块级作用域中的变量查找"></a>块级作用域中的变量查找</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> myName = <span class="string">&quot; 极客世界 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">100</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> myName = <span class="string">&quot;Chrome 浏览器 &quot;</span></span><br><span class="line">        <span class="built_in">console</span>.log(test)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test = <span class="number">2</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> test = <span class="number">3</span></span><br><span class="line">        bar()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line"><span class="keyword">let</span> myAge = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> test = <span class="number">1</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
-
-<p>ES6 是支持块级作用域的，当执行到代码块时，如果代码块中有 let 或者 const 声明的变量，那么变量就会存放到该函数的词法环境中，对于上面这段代码，当执行到 bar 函数内部的 if 语句块时，调用栈的情况如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/%E4%B8%8B%E8%BD%BD.png" alt="alt"></p>
-<p>现在是执行到 bar 函数的 if 语句块之内，需要打印出来的变量 test，那么久需要查找到 test 变量的值，其查找过程我已经在上图中使用了序号1、2、3、4、5标记出来了。</p>
-<p>下面我就来解释一下这个过程。首先是在 bar 函数的执行上下文中查找，但因为 bar 函数的执行上下文中没有 定义 test 变量，所以根据词法作用域的规则，下一步就在 bar 函数的外部作用域中查找，也就是全局作用域。</p>
-<h2 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h2><p>了解了作用域链，接着就可以了解闭包了。关于闭包，理解起来稍微有一点难度。结合以下代码就可以理解什么是闭包了：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">1</span></span><br><span class="line">    <span class="keyword">const</span> test2 = <span class="number">2</span></span><br><span class="line">    <span class="keyword">var</span> innerBar = &#123;</span><br><span class="line">        <span class="attr">getName</span>:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(test1)</span><br><span class="line">            <span class="keyword">return</span> myName</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">setName</span>:<span class="function"><span class="keyword">function</span>(<span class="params">newName</span>)</span>&#123;</span><br><span class="line">            myName = newName</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> innerBar</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> bar = foo()</span><br><span class="line">bar.setName(<span class="string">&quot; 极客邦 &quot;</span>)</span><br><span class="line">bar.getName()</span><br><span class="line"><span class="built_in">console</span>.log(bar.getName())</span><br></pre></td></tr></table></figure>
-
-<p>首先我们看看当执行到 foo 函数内部的 return innerBar 这行代码时，调用栈的情况你可以参考此图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/uPznOY.jpg" alt="alt"></p>
-<p>从上面的代码可以看出，innerBar 是一个对象，包含了 getName 和 setName 的两个方法（通常我们把对象内部的函数称为方法）。你可以看到，这两个方法都是在 foo 函数内部定义的，并且这两个方法内部都使用了 myName 和 test1 两个变量。</p>
-<p>根据词法作用域的规则，内部函数 getName 和 setName 总是可以访问它们的外部函数 foo 中的变量，所以当 innerBar 对象返回给全局变量 bar 时，虽然 foo 函数结束了，但是 getName 和 setName 函数依然可以使用 foo 函数中的变量 myName 和 test1。所以当 foo 函数执行完成之后，其整个调用栈的状态如下图所示：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/20NJwJ.jpg" alt="alt"></p>
-<p>从上图可以看出，foo 函数执行完成之后，其执行上下文从栈顶弹出了，但是由于返回的 setName 和 getName 方法中使用了 foo 函数内部的变量 myName 和 test1，所以这两个变量依然存在在内存当中。这像极了 setName 和 getName 方法背的一个专属背包，无论在哪里调用 setName 和 getName 方法，它们都会背着这个 foo 函数的专属背包。</p>
-<p>之所以时专属背包，是因为除了 setName 和 getName 函数之外，其他任何地方都是无法访问该背包的，我们就可以把这个背包称为 foo 函数的闭包。</p>
-<p>最后给闭包完整的定义，在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合统称为闭包。比如外部函数 foo，那么这些变量的集合就称为 foo 函数的闭包。</p>
-<p>闭包的使用。当执行到 bar.setName 方法中的 myName = “极客邦” 这句代码时，JavaScript 引擎会沿着 “当前执行上下文 -&gt; foo 函数闭包 -&gt; 全局执行上下文” 的顺序来查找 myName 变量，你可以参考下面调用栈状态图：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/RxMYdM.jpg" alt="alt"></p>
-<p>从图中可以看出，setName 的执行上下文中没有 myName 变量，foo 函数的闭包中包含了变量 myName，所以当调用 setName 时，会修改 foo 闭包中的 myName 变量的值。</p>
-<p>同样的流程，当调用 bar.getName 的时候，所访问的变量 myName 也是位于 foo 函数闭包中的。</p>
-<p>可以通过 “开发者工具” 来看看闭包的情况，打开 Chrome 的 “开发者工具”，在 bar 函数任意地方打上断点，然后刷新页面，可以看到如下内容：</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/cEAEuG.jpg" alt="alt"></p>
-<p>从图中可以看出来，当调用 bar.getName 的时候，右边 Scope 就体现了作用域链的情况：Local 就是当前的 getName 函数的作用域，Closure( foo )是指 foo 函数的闭包，最下面的 Global 就是指全局作用域，从 “Local -&gt; Closure( foo ) -&gt; Global” 就是一个完整的作用域链。</p>
-<p>所以，可以通过 Scope 来查看实际代码作用域链的情况。</p>
-<h2 id="闭包的回收"><a href="#闭包的回收" class="headerlink" title="闭包的回收"></a>闭包的回收</h2><p>通常如果引用闭包的函数是一个全局变量，那么闭包会一直存在直到页面关闭；但是如果这个闭包以后不再使用就会导致内存泄漏。</p>
-<p>所以在使用闭包的时候，尽量注意一个原则：如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存比较大的话，那就尽量让它成为一个局部变量。</p>
-]]></content>
-      <tags>
-        <tag>深入理解JS</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>JS：从执行上下文视角讲解 this</title>
     <url>/2021/07/01/JS%EF%BC%9A%E4%BB%8E%E6%89%A7%E8%A1%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E8%A7%86%E8%A7%92%E8%AE%B2%20this/</url>
     <content><![CDATA[<h1 id="JS：从执行上下文视角讲-this"><a href="#JS：从执行上下文视角讲-this" class="headerlink" title="JS：从执行上下文视角讲 this"></a>JS：从执行上下文视角讲 this</h1><p>观察以下代码</p>
@@ -454,6 +640,59 @@
 <h3 id="2、普通函数中的-this-默认指向全局对象-window"><a href="#2、普通函数中的-this-默认指向全局对象-window" class="headerlink" title="2、普通函数中的 this 默认指向全局对象 window"></a>2、普通函数中的 this 默认指向全局对象 window</h3><p>在默认情况下，调用一个函数，其执行上下文中的 this 是默认指向全局对象 window 的。</p>
 <p>不过这个设计也是一种缺陷，因为在实际工作中，我们并不希望函数执行上下文中的 this 默认指向全局对象，因为这样会打破数据边界，造成一些误操作。如果要让函数执行上下文中的 this 指向某个对象，最好的方式就是说通过 call 方法来实现调用。</p>
 <p>这个问题可以通过设置 JavaScript 的 “严格模式” 来解决。在严格模式下，默认执行一个函数，其函数的执行上下文中的 this 值是undefined，这就解决上面的问题了。</p>
+]]></content>
+      <tags>
+        <tag>深入理解JS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JS：作用域链和闭包</title>
+    <url>/2021/07/01/JS%EF%BC%9A%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%93%BE%E5%92%8C%E9%97%AD%E5%8C%85%EF%BC%8C%E4%BB%A3%E7%A0%81%E5%87%BA%E7%8E%B0%E7%9B%B8%E5%90%8C%E7%9A%84%E5%8F%98%E9%87%8F%EF%BC%8CJS%E5%BC%95%E6%93%8E%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9/</url>
+    <content><![CDATA[<h1 id="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"><a href="#JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择" class="headerlink" title="JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择"></a>JS：作用域链和闭包，代码出现相同的变量，JS引擎如何选择</h1><p>理解作用域链时理解闭包的基础，而闭包在 JavaScript 中几乎无处不在，同时作用域和作用域链还是所有编程语言的基础。</p>
+<p>首先先来看这一段代码：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(myName)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    bar()</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
+
+<p>你觉得这段代码中的 bar 函数和 foo 函数打印出来的是什么吗？</p>
+<p>分析代码，当代码执行到 bar 函数内部，调用栈的状态如图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7amvbs.jpg" alt="alt"></p>
+<p>从图中可以看出，全局执行上下文和 foo 函数的执行上下文中都包含变量 myName，那 bar 函数中的 myName应该选择哪一个呢？这里就需要了解作用域链了。</p>
+<h2 id="作用域链"><a href="#作用域链" class="headerlink" title="作用域链"></a>作用域链</h2><p>其实每一个执行上下文的变量环境中，都包含了一个外部引用，用来指向外部的执行上下文，我们把这个外部因你用哪个称为 outer。</p>
+<p>当一段代码使用了一个变量，JavaScript 引擎首先会在“当前执行上下文”中查找该变量，比如上面的那段代码在查找 myName 变量时，如果在当前的变量环境中没有查到，那么 JavaScript 引擎会继续在 outer 所指向的执行上下文中查找。为了直观理解，你可以直接看下图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zRdlhw.jpg" alt="alt"></p>
+<p>从图中可以看到，bar 函数和 foo 函数的 outer 都是指向全局上下文的，这也意味着如果在 bar 函数或者 foo 函数中使用了外部变量，那么 JavaScript 引擎就会去全局执行上下文中查找。我们把这个查找的链条就称作为作用域链。</p>
+<h2 id="词法作用域"><a href="#词法作用域" class="headerlink" title="词法作用域"></a>词法作用域</h2><p><em><strong>词法作用域就是指作用域是由代码中函数声明的位置来决定的，所以词法作用域是静态的作用域，通过它就能够预测代码在执行过程中如何查找标识符。</strong></em></p>
+<p>可以直接看下图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/zcmf66.jpg" alt="alt"></p>
+<p>从图中可以看出，词法作用域就是根据代码的位置来决定的，其中 main 函数包含了 bar 函数，bar 函数包含了 foo 函数，因为 JavaScript 作用域链是由词法作用域决定的，所以整个词法作用域链的顺序是：foo 函数作用域 -&gt; bar 函数作用域 -&gt; main 函数作用域 -&gt; 全局作用域。</p>
+<p>回过头看上边的代码，foo 函数调用了 bar 函数，但是 bar 函数的外部引用是全局执行上下文。</p>
+<p>因为词法作用域，foo 和 bar 的上级作用域都是全局作用域，所以如果 foo 或者 bar 函数使用了一个没有定义的变量，那么它们就会到全局作用域中寻找，故，词法作用域是代码阶段就决定好的，和函数的调用没有关系。</p>
+<h2 id="块级作用域中的变量查找"><a href="#块级作用域中的变量查找" class="headerlink" title="块级作用域中的变量查找"></a>块级作用域中的变量查找</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> myName = <span class="string">&quot; 极客世界 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">100</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> myName = <span class="string">&quot;Chrome 浏览器 &quot;</span></span><br><span class="line">        <span class="built_in">console</span>.log(test)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客邦 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test = <span class="number">2</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">let</span> test = <span class="number">3</span></span><br><span class="line">        bar()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line"><span class="keyword">let</span> myAge = <span class="number">10</span></span><br><span class="line"><span class="keyword">let</span> test = <span class="number">1</span></span><br><span class="line">foo()</span><br></pre></td></tr></table></figure>
+
+<p>ES6 是支持块级作用域的，当执行到代码块时，如果代码块中有 let 或者 const 声明的变量，那么变量就会存放到该函数的词法环境中，对于上面这段代码，当执行到 bar 函数内部的 if 语句块时，调用栈的情况如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/%E4%B8%8B%E8%BD%BD.png" alt="alt"></p>
+<p>现在是执行到 bar 函数的 if 语句块之内，需要打印出来的变量 test，那么久需要查找到 test 变量的值，其查找过程我已经在上图中使用了序号1、2、3、4、5标记出来了。</p>
+<p>下面我就来解释一下这个过程。首先是在 bar 函数的执行上下文中查找，但因为 bar 函数的执行上下文中没有 定义 test 变量，所以根据词法作用域的规则，下一步就在 bar 函数的外部作用域中查找，也就是全局作用域。</p>
+<h2 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h2><p>了解了作用域链，接着就可以了解闭包了。关于闭包，理解起来稍微有一点难度。结合以下代码就可以理解什么是闭包了：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> myName = <span class="string">&quot; 极客时间 &quot;</span></span><br><span class="line">    <span class="keyword">let</span> test1 = <span class="number">1</span></span><br><span class="line">    <span class="keyword">const</span> test2 = <span class="number">2</span></span><br><span class="line">    <span class="keyword">var</span> innerBar = &#123;</span><br><span class="line">        <span class="attr">getName</span>:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(test1)</span><br><span class="line">            <span class="keyword">return</span> myName</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">setName</span>:<span class="function"><span class="keyword">function</span>(<span class="params">newName</span>)</span>&#123;</span><br><span class="line">            myName = newName</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> innerBar</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> bar = foo()</span><br><span class="line">bar.setName(<span class="string">&quot; 极客邦 &quot;</span>)</span><br><span class="line">bar.getName()</span><br><span class="line"><span class="built_in">console</span>.log(bar.getName())</span><br></pre></td></tr></table></figure>
+
+<p>首先我们看看当执行到 foo 函数内部的 return innerBar 这行代码时，调用栈的情况你可以参考此图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/uPznOY.jpg" alt="alt"></p>
+<p>从上面的代码可以看出，innerBar 是一个对象，包含了 getName 和 setName 的两个方法（通常我们把对象内部的函数称为方法）。你可以看到，这两个方法都是在 foo 函数内部定义的，并且这两个方法内部都使用了 myName 和 test1 两个变量。</p>
+<p>根据词法作用域的规则，内部函数 getName 和 setName 总是可以访问它们的外部函数 foo 中的变量，所以当 innerBar 对象返回给全局变量 bar 时，虽然 foo 函数结束了，但是 getName 和 setName 函数依然可以使用 foo 函数中的变量 myName 和 test1。所以当 foo 函数执行完成之后，其整个调用栈的状态如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/20NJwJ.jpg" alt="alt"></p>
+<p>从上图可以看出，foo 函数执行完成之后，其执行上下文从栈顶弹出了，但是由于返回的 setName 和 getName 方法中使用了 foo 函数内部的变量 myName 和 test1，所以这两个变量依然存在在内存当中。这像极了 setName 和 getName 方法背的一个专属背包，无论在哪里调用 setName 和 getName 方法，它们都会背着这个 foo 函数的专属背包。</p>
+<p>之所以时专属背包，是因为除了 setName 和 getName 函数之外，其他任何地方都是无法访问该背包的，我们就可以把这个背包称为 foo 函数的闭包。</p>
+<p>最后给闭包完整的定义，在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合统称为闭包。比如外部函数 foo，那么这些变量的集合就称为 foo 函数的闭包。</p>
+<p>闭包的使用。当执行到 bar.setName 方法中的 myName = “极客邦” 这句代码时，JavaScript 引擎会沿着 “当前执行上下文 -&gt; foo 函数闭包 -&gt; 全局执行上下文” 的顺序来查找 myName 变量，你可以参考下面调用栈状态图：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/RxMYdM.jpg" alt="alt"></p>
+<p>从图中可以看出，setName 的执行上下文中没有 myName 变量，foo 函数的闭包中包含了变量 myName，所以当调用 setName 时，会修改 foo 闭包中的 myName 变量的值。</p>
+<p>同样的流程，当调用 bar.getName 的时候，所访问的变量 myName 也是位于 foo 函数闭包中的。</p>
+<p>可以通过 “开发者工具” 来看看闭包的情况，打开 Chrome 的 “开发者工具”，在 bar 函数任意地方打上断点，然后刷新页面，可以看到如下内容：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/cEAEuG.jpg" alt="alt"></p>
+<p>从图中可以看出来，当调用 bar.getName 的时候，右边 Scope 就体现了作用域链的情况：Local 就是当前的 getName 函数的作用域，Closure( foo )是指 foo 函数的闭包，最下面的 Global 就是指全局作用域，从 “Local -&gt; Closure( foo ) -&gt; Global” 就是一个完整的作用域链。</p>
+<p>所以，可以通过 Scope 来查看实际代码作用域链的情况。</p>
+<h2 id="闭包的回收"><a href="#闭包的回收" class="headerlink" title="闭包的回收"></a>闭包的回收</h2><p>通常如果引用闭包的函数是一个全局变量，那么闭包会一直存在直到页面关闭；但是如果这个闭包以后不再使用就会导致内存泄漏。</p>
+<p>所以在使用闭包的时候，尽量注意一个原则：如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存比较大的话，那就尽量让它成为一个局部变量。</p>
 ]]></content>
       <tags>
         <tag>深入理解JS</tag>
@@ -791,6 +1030,38 @@
       </tags>
   </entry>
   <entry>
+    <title>JS：深浅拷贝</title>
+    <url>/2021/07/06/JS%EF%BC%9A%E6%B7%B1%E6%B5%85%E6%8B%B7%E8%B4%9D/</url>
+    <content><![CDATA[<h1 id="JS：深浅拷贝"><a href="#JS：深浅拷贝" class="headerlink" title="JS：深浅拷贝"></a>JS：深浅拷贝</h1><p>先看一下数组的拷贝，通常我们会使用 slice( )、concat( ) 方法实现数组的拷贝。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"><span class="keyword">var</span> arr1 = arr.concat();</span><br><span class="line"><span class="keyword">var</span> arr2 = arr.slice();</span><br><span class="line"><span class="built_in">console</span>.log(arr1); <span class="comment">//[1, 2, 3, 4, 5]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2); <span class="comment">//[1, 2, 3, 4, 5]</span></span><br></pre></td></tr></table></figure>
+
+<p>slice( )、concat( ) 都是返回一个新的数组，没有改变原来的数组，看起来像是深拷贝。</p>
+<p>我们再来看一个例子：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr1 = arr.concat();</span><br><span class="line"><span class="keyword">var</span> arr2 = arr.slice();</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr1); <span class="comment">//[1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2); <span class="comment">//[1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br></pre></td></tr></table></figure>
+
+<p>这里就可以看到，如果数组里有对象，那么不会拷贝对象的值，只是拷贝对象的引用，原来数据对象的值发生改变，由于拷贝的是对象的引用，新拷贝的数据中对象的值也发生改变，拷贝得不是很彻底，slice( )、concat( ) 是浅拷贝，对于对象，我们通常是通过 assign( ) 方法，或者使用展开运算符 ( . . . ) 来实现拷贝，同样，如果对象中嵌套了对象，也只能实现浅拷贝：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;mei&quot;</span>,</span><br><span class="line">    <span class="attr">address</span>: &#123;<span class="attr">city</span>: <span class="string">&quot;shanghai&quot;</span>&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> obj1 = <span class="built_in">Object</span>.assign(&#123;&#125;,obj);</span><br><span class="line"><span class="keyword">var</span> obj2 = &#123;...obj&#125;;</span><br><span class="line">obj.address.city = <span class="string">&quot;beijing&quot;</span>;</span><br><span class="line"><span class="built_in">console</span>.log(obj1); <span class="comment">//&#123;name: &quot;mei&quot;, address:&#123;city: &quot;beijing&quot;&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(obj2); <span class="comment">//&#123;name: &quot;mei&quot;, address:&#123;city: &quot;beijing&quot;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="利用-JSON-stringify-实现对数组和对象的深拷贝"><a href="#利用-JSON-stringify-实现对数组和对象的深拷贝" class="headerlink" title="利用 JSON.stringify 实现对数组和对象的深拷贝"></a>利用 JSON.stringify 实现对数组和对象的深拷贝</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr1 = <span class="built_in">JSON</span>.parse(<span class="built_in">JSON</span>.stringify(arr));</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr1); <span class="comment">//[1, 2, 3, 4, &#123; value: 5 &#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;mei&quot;</span>,</span><br><span class="line">    <span class="attr">address</span>: &#123;<span class="attr">city</span>: <span class="string">&quot;shanghai&quot;</span>&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> obj1 = <span class="built_in">JSON</span>.parse(<span class="built_in">JSON</span>.stringify(obj));</span><br><span class="line">obj.address.city = <span class="string">&quot;beijing&quot;</span>;</span><br><span class="line"><span class="built_in">console</span>.log(obj1); <span class="comment">//&#123;name: &quot;mei&quot;, address:&#123;city: &quot;shanghai&quot;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>该方法不能对 undefined、symbol、函数进行深度拷贝。</p>
+<h2 id="利用递归实现数组和对象深拷贝"><a href="#利用递归实现数组和对象深拷贝" class="headerlink" title="利用递归实现数组和对象深拷贝"></a>利用递归实现数组和对象深拷贝</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">deepCopy</span>(<span class="params">obj</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> obj !== <span class="string">&#x27;object&#x27;</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">var</span> newObj = obj <span class="keyword">instanceof</span> <span class="built_in">Array</span> ? [] : &#123;&#125;;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> obj) &#123;</span><br><span class="line">        <span class="keyword">if</span> (obj.hasOwnProperty(key)) &#123;</span><br><span class="line">            newObj[key] = <span class="keyword">typeof</span> obj[key] === <span class="string">&#x27;object&#x27;</span> ? deepCopy(obj[key]) : obj[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newObj;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>验证一下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr2 = deepCopy(arr);</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr);<span class="comment">//1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2);<span class="comment">//1, 2, 3, 4, &#123; value: 5 &#125;]</span></span><br></pre></td></tr></table></figure>
+
+<p>对于数组和对象的浅拷贝，去掉递归就可以：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">shallowCopy</span>(<span class="params">obj</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> obj !== <span class="string">&#x27;object&#x27;</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">var</span> newObj = obj <span class="keyword">instanceof</span> <span class="built_in">Array</span> ? [] : &#123;&#125;;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> obj) &#123;</span><br><span class="line">        <span class="keyword">if</span> (obj.hasOwnProperty(key)) &#123;</span><br><span class="line">            newObj[key] = obj[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newObj;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>验证一下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr2 = shallowCopy(arr);</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr);<span class="comment">//1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2);<span class="comment">//1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>深入理解JS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>JS：箭头函数</title>
     <url>/2021/07/06/JS%EF%BC%9A%E7%AE%AD%E5%A4%B4%E5%87%BD%E6%95%B0/</url>
     <content><![CDATA[<h1 id="JS：箭头函数"><a href="#JS：箭头函数" class="headerlink" title="JS：箭头函数"></a>JS：箭头函数</h1><p>先来看下 ES6 中箭头函数的基本语法：</p>
@@ -843,104 +1114,6 @@
 ]]></content>
       <tags>
         <tag>深入理解JS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JS：深浅拷贝</title>
-    <url>/2021/07/06/JS%EF%BC%9A%E6%B7%B1%E6%B5%85%E6%8B%B7%E8%B4%9D/</url>
-    <content><![CDATA[<h1 id="JS：深浅拷贝"><a href="#JS：深浅拷贝" class="headerlink" title="JS：深浅拷贝"></a>JS：深浅拷贝</h1><p>先看一下数组的拷贝，通常我们会使用 slice( )、concat( ) 方法实现数组的拷贝。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"><span class="keyword">var</span> arr1 = arr.concat();</span><br><span class="line"><span class="keyword">var</span> arr2 = arr.slice();</span><br><span class="line"><span class="built_in">console</span>.log(arr1); <span class="comment">//[1, 2, 3, 4, 5]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2); <span class="comment">//[1, 2, 3, 4, 5]</span></span><br></pre></td></tr></table></figure>
-
-<p>slice( )、concat( ) 都是返回一个新的数组，没有改变原来的数组，看起来像是深拷贝。</p>
-<p>我们再来看一个例子：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr1 = arr.concat();</span><br><span class="line"><span class="keyword">var</span> arr2 = arr.slice();</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr1); <span class="comment">//[1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2); <span class="comment">//[1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br></pre></td></tr></table></figure>
-
-<p>这里就可以看到，如果数组里有对象，那么不会拷贝对象的值，只是拷贝对象的引用，原来数据对象的值发生改变，由于拷贝的是对象的引用，新拷贝的数据中对象的值也发生改变，拷贝得不是很彻底，slice( )、concat( ) 是浅拷贝，对于对象，我们通常是通过 assign( ) 方法，或者使用展开运算符 ( . . . ) 来实现拷贝，同样，如果对象中嵌套了对象，也只能实现浅拷贝：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;mei&quot;</span>,</span><br><span class="line">    <span class="attr">address</span>: &#123;<span class="attr">city</span>: <span class="string">&quot;shanghai&quot;</span>&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> obj1 = <span class="built_in">Object</span>.assign(&#123;&#125;,obj);</span><br><span class="line"><span class="keyword">var</span> obj2 = &#123;...obj&#125;;</span><br><span class="line">obj.address.city = <span class="string">&quot;beijing&quot;</span>;</span><br><span class="line"><span class="built_in">console</span>.log(obj1); <span class="comment">//&#123;name: &quot;mei&quot;, address:&#123;city: &quot;beijing&quot;&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(obj2); <span class="comment">//&#123;name: &quot;mei&quot;, address:&#123;city: &quot;beijing&quot;&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="利用-JSON-stringify-实现对数组和对象的深拷贝"><a href="#利用-JSON-stringify-实现对数组和对象的深拷贝" class="headerlink" title="利用 JSON.stringify 实现对数组和对象的深拷贝"></a>利用 JSON.stringify 实现对数组和对象的深拷贝</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr1 = <span class="built_in">JSON</span>.parse(<span class="built_in">JSON</span>.stringify(arr));</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr1); <span class="comment">//[1, 2, 3, 4, &#123; value: 5 &#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;mei&quot;</span>,</span><br><span class="line">    <span class="attr">address</span>: &#123;<span class="attr">city</span>: <span class="string">&quot;shanghai&quot;</span>&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> obj1 = <span class="built_in">JSON</span>.parse(<span class="built_in">JSON</span>.stringify(obj));</span><br><span class="line">obj.address.city = <span class="string">&quot;beijing&quot;</span>;</span><br><span class="line"><span class="built_in">console</span>.log(obj1); <span class="comment">//&#123;name: &quot;mei&quot;, address:&#123;city: &quot;shanghai&quot;&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>该方法不能对 undefined、symbol、函数进行深度拷贝。</p>
-<h2 id="利用递归实现数组和对象深拷贝"><a href="#利用递归实现数组和对象深拷贝" class="headerlink" title="利用递归实现数组和对象深拷贝"></a>利用递归实现数组和对象深拷贝</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">deepCopy</span>(<span class="params">obj</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> obj !== <span class="string">&#x27;object&#x27;</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">var</span> newObj = obj <span class="keyword">instanceof</span> <span class="built_in">Array</span> ? [] : &#123;&#125;;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> obj) &#123;</span><br><span class="line">        <span class="keyword">if</span> (obj.hasOwnProperty(key)) &#123;</span><br><span class="line">            newObj[key] = <span class="keyword">typeof</span> obj[key] === <span class="string">&#x27;object&#x27;</span> ? deepCopy(obj[key]) : obj[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newObj;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>验证一下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr2 = deepCopy(arr);</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr);<span class="comment">//1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2);<span class="comment">//1, 2, 3, 4, &#123; value: 5 &#125;]</span></span><br></pre></td></tr></table></figure>
-
-<p>对于数组和对象的浅拷贝，去掉递归就可以：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">shallowCopy</span>(<span class="params">obj</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> obj !== <span class="string">&#x27;object&#x27;</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">var</span> newObj = obj <span class="keyword">instanceof</span> <span class="built_in">Array</span> ? [] : &#123;&#125;;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> obj) &#123;</span><br><span class="line">        <span class="keyword">if</span> (obj.hasOwnProperty(key)) &#123;</span><br><span class="line">            newObj[key] = obj[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newObj;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>验证一下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, &#123; <span class="attr">value</span>: <span class="number">5</span> &#125;];</span><br><span class="line"><span class="keyword">var</span> arr2 = shallowCopy(arr);</span><br><span class="line">arr[<span class="number">4</span>].value = <span class="number">6</span>;</span><br><span class="line"><span class="built_in">console</span>.log(arr);<span class="comment">//1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br><span class="line"><span class="built_in">console</span>.log(arr2);<span class="comment">//1, 2, 3, 4, &#123; value: 6 &#125;]</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <tags>
-        <tag>深入理解JS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>RxJS：Cold vs Hot Observables</title>
-    <url>/2021/07/07/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/</url>
-    <content><![CDATA[<h1 id="RxJS：Cold-vs-Hot-Observables"><a href="#RxJS：Cold-vs-Hot-Observables" class="headerlink" title="RxJS：Cold vs Hot Observables"></a>RxJS：Cold vs Hot Observables</h1><p>RxJS 中 Observables 分为两种：Cold Observables 和 Hot Observables，这两个的区别：</p>
-<ul>
-<li>Cold Observables：只有被 observers 订阅的时候，才会开始产生值。是单播的，有多少个订阅就会生成多少个订阅实例，每个订阅都是从第一个产生的值开始接受值，所以每个订阅收到的值都是一样的。</li>
-<li>Hot Observables：不管有没有被订阅都会产生值。是多播的，多个订阅共享同一个，是从订阅开始接受到值，每个订阅接收到的值是不同的，取决于它们是从什么时候开始订阅的。</li>
-</ul>
-<h2 id="Cold-Observables"><a href="#Cold-Observables" class="headerlink" title="Cold Observables"></a>Cold Observables</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2nd subscriber:&quot;</span> + data) &#125;);</span><br></pre></td></tr></table></figure>
-
-<p>把一个数组转换成 Observables，然后分别用不同的 Subcription 订阅它，在 console.log 结果如下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2nd subscriber:<span class="number">1</span></span><br><span class="line">2nd subscriber:<span class="number">2</span></span><br><span class="line">2nd subscriber:<span class="number">3</span></span><br><span class="line">2nd subscriber:<span class="number">4</span></span><br><span class="line">2nd subscriber:<span class="number">5</span></span><br></pre></td></tr></table></figure>
-
-<p>我们把代码改一下，让第二个 Subscription 延迟一秒订阅：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2nd subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">&#125;, <span class="number">1100</span>);</span><br></pre></td></tr></table></figure>
-
-<p>结果还是跟上面一样，没有任何区别。这个是 Cold Observables，代码如下，先忽略 publish，ConnectableObservable，connect，稍后再详细解释。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).pipe(</span><br><span class="line">    publish()</span><br><span class="line">) <span class="keyword">as</span> ConnectableObservable&lt;any&gt;;</span><br><span class="line">obs$.connect();</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">&#125;, <span class="number">2100</span>);</span><br></pre></td></tr></table></figure>
-
-<p>根据 Hot Observables 的定义，期待的效果是第一个订阅收到 1，2，3，4，5；第二个订阅收到 3，4，5。实际上两个订阅都没有接收任何值。因为 Hot Observables 是不管有没有被订阅，都会发送值，数组中有 5 个值，等到开始订阅的时候，这 5 个值已经发送完成了，所以在订阅中接收不到任何值了。</p>
-<p>为了看到效果，把数组替换成了 interval，每隔一秒钟就发送一个值，第一个订阅等了一秒开始接受值，第二订阅等了两秒开始接收值，代码如下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    publish()</span><br><span class="line">) <span class="keyword">as</span> ConnectableObservable&lt;any&gt;;</span><br><span class="line">obs$.connect();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    &#125;, <span class="number">1100</span>);</span><br><span class="line">&#125;, <span class="number">2100</span>);	</span><br></pre></td></tr></table></figure>
-
-<p>效果是</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">2st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
-
-<h2 id="Cold-Observables-vs-Hot-Observables"><a href="#Cold-Observables-vs-Hot-Observables" class="headerlink" title="Cold Observables vs Hot Observables"></a>Cold Observables vs Hot Observables</h2><ul>
-<li>我们可以把 Cold Observables 理解为在手机网易云音乐 APP 上听歌：APP 里的歌曲资源是 Cold Observables，听歌的人是 observers。如果没有人打开 APP 去播放这首歌，这首歌不会自己播放。每个人从自己 APP 打开播放这首歌的时候，先把歌曲从网上下载到本地，每份都是单独的歌曲实例，都是从头开始听，互相不会影响。</li>
-<li>而 Hot Observables 可以理解为演唱会：比如我们去看一场演唱会，没有迟到的小伙伴（A）可以从第一首歌开始听，迟到的小伙伴就（B）只能从第二首或者更晚的歌开始听；演唱会就是 Hot Observables，小伙伴 A 和 B 就是 observers。小伙伴 A 和 B 共享同一个演唱会实例，是从订阅开始接受到值，每个订阅接收到的值是不同的，取决于它们是从什么时候开始订阅。</li>
-</ul>
-<h2 id="如何创建-Hot-Observables"><a href="#如何创建-Hot-Observables" class="headerlink" title="如何创建 Hot Observables"></a>如何创建 Hot Observables</h2><p>在上方的 Hot Observables 代码里，用到了 publish 操作符，ConnectableObservable，以及 connect( ) 方法创建 Hot Observables；看一下对应的方法是什么意思。</p>
-<ul>
-<li>publish：这个操作符把正常的 Observable (Cold Observables) 转换成 ConnectableObservable。</li>
-<li>ConnectableObservable：ConnectableObservable 是多播的共享 Observable，可以同时被多个 observers 共享订阅，是 Hot Observables。ConnectableObservable 是订阅者和真正源头 Observables (上面例子中的 interval，每隔一秒发送一个值，就是源头 Observable) 的中间人。ConnectableObservable 从源头 Observables 接收到值然后再把值转发给订阅者。</li>
-<li>connect( )：ConnectableObservable 并不会主动发送值，它有个 connect 方法，通过调用 connect 方法，可以启动共享 ConnectableObservable 发送值。当我们调用 ConnectableObservable.prototype.connect 方法，不管有没有被订阅，都会发送值。订阅者共享同一个实例，订阅者接收到的值取决于它们何时开始订阅。在我们的例子中，第一个订阅等了一秒从 2 开始接收值，第二个订阅等了两秒从 3 开始接收值。</li>
-</ul>
-<h2 id="connect-vs-refCount"><a href="#connect-vs-refCount" class="headerlink" title="connect vs refCount"></a>connect vs refCount</h2><p>除了 connect，还有一个 refCount 方法，在比较这两个区别之前，我们先看一下 refCount 的用法和效果：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    publish(),</span><br><span class="line">    refCount()</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">1100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
-
-<p>按之前对 publish 会生成一个 ConnectableObservable，它是一个 Hot Observables，那么预期结果是：第一个订阅者是从 2 开始接收值，第二个订阅者是从 3 开始接收值。</p>
-<p>实际的输出：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">2st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">2st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">2st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line"></span><br><span class="line">.....</span><br></pre></td></tr></table></figure>
-
-<p>跟预想的不一样，第一个订阅者从 0 开始接收值，第二个订阅者比第一个订阅者晚了一秒，从 1 开始接收值。</p>
-<p>当使用 refCount，是引用计数的 Observable。它表示当第一个订阅者开始订阅的时候，开始发送和产生值；第二个订阅者 (之后的订阅者) 共享第一个订阅者的 Observables 实例，没有订阅者的时候，会自动取消订阅；之后再重新订阅，又从头开始发送值。</p>
-<p>它不是 Hot Observables 也不是 Cold Observables，因为它是从有第一个订阅者的时候才开始发送值，没有订阅者的时候会自动取消订阅，而且之后的订阅者共享第一个订阅者的 Observables 实例。它是基于 Hot Observables 与 Cold Observables 之间的 Observables，可以理解为 Warm Observables。</p>
-<h2 id="share"><a href="#share" class="headerlink" title="share"></a>share</h2><p>publish 和 refCount 可以生成一个 Warm Observables，实际单独使用 share 操作符也可以达到同样的效果，share 实际上是 publish( ).refCount( ) 的简写，这次把第二个订阅比第一个订阅晚 5 秒再开始订阅，具体代码如下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    share()</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">5100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
-
-<p>输出结果：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line">1st subscriber:<span class="number">7</span></span><br><span class="line">2st subscriber:<span class="number">7</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
-
-<p>和使用 publish( ).refCount( ) 效果完全一样。</p>
-<h2 id="shareReplay"><a href="#shareReplay" class="headerlink" title="shareReplay"></a>shareReplay</h2><p>在用 share( ) 的时候，第二个或者更后面的订阅者开始订阅者，都是共享第一个订阅者的 Observables，比如上面的例子中，第二个订阅比第一个订阅晚 5 秒再开始订阅，那么第二个订阅者从 5 开始接收值。但是实际情况中，如果我想让第二个订阅者也能够拿得到前面的值，那怎么办？用 shareReplay( ) 可以实现。具体代码如下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    shareReplay(<span class="number">1</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">5100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
-
-<p>输出结果：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line">1st subscriber:<span class="number">7</span></span><br><span class="line">2st subscriber:<span class="number">7</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
-
-<p>shareReplay(1) 中的 1 表示拿到错过的前一个值，在我们的例子就是第二个订阅从 4 开始接收值。如果改成 shareReplay (2) 就表示从错过的前两个值开始接收值，也就是第二个订阅会从 3 开始接收值。</p>
-<p>shareReplay(1) 其实也是 publishReplay(1).refCount( ) 的缩写，用 publishReplay(1).refCount( ) 有同样的效果。</p>
-]]></content>
-      <tags>
-        <tag>RxJS</tag>
       </tags>
   </entry>
   <entry>
@@ -1011,6 +1184,72 @@
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> button = <span class="built_in">document</span>.getElementById(<span class="string">&quot;myBtn&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> clickStream$ = fromEvent(button, <span class="string">&quot;click&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> doubleClickStream$ = clickStream$</span><br><span class="line">    .pipe(</span><br><span class="line">        buffer(clickStream$.pipe(throttleTime(<span class="number">250</span>))),</span><br><span class="line">        map(<span class="function"><span class="params">click</span> =&gt;</span> &#123; <span class="keyword">return</span> click.length &#125;),</span><br><span class="line">        filter(<span class="function"><span class="params">num</span> =&gt;</span> num &gt;= <span class="number">2</span>)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">doubleClickStream$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&quot;the number of double click is: &quot;</span> + data);;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
 <p>从上面这个简单的例子，我们可以看到 RxJS 提供大量的操作符，处理不同的业务需求，短短几行就可以涵盖很复杂的代码逻辑，在前端交互非常复杂的系统中，客户端都是基于事件编程的，对事件处理非常多，用 RxJS 比较有优势。当然响应式编程也是支持各种语言的，包括：RxJava、Rx.NET、RxPY、RxGO等。</p>
+]]></content>
+      <tags>
+        <tag>RxJS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>RxJS：Cold vs Hot Observables</title>
+    <url>/2021/07/09/RxJS%EF%BC%9ACold%20vs%20Hot%20Observables/</url>
+    <content><![CDATA[<h1 id="RxJS：Cold-vs-Hot-Observables"><a href="#RxJS：Cold-vs-Hot-Observables" class="headerlink" title="RxJS：Cold vs Hot Observables"></a>RxJS：Cold vs Hot Observables</h1><p>RxJS 中 Observables 分为两种：Cold Observables 和 Hot Observables，这两个的区别：</p>
+<ul>
+<li>Cold Observables：只有被 observers 订阅的时候，才会开始产生值。是单播的，有多少个订阅就会生成多少个订阅实例，每个订阅都是从第一个产生的值开始接受值，所以每个订阅收到的值都是一样的。</li>
+<li>Hot Observables：不管有没有被订阅都会产生值。是多播的，多个订阅共享同一个，是从订阅开始接受到值，每个订阅接收到的值是不同的，取决于它们是从什么时候开始订阅的。</li>
+</ul>
+<h2 id="Cold-Observables"><a href="#Cold-Observables" class="headerlink" title="Cold Observables"></a>Cold Observables</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2nd subscriber:&quot;</span> + data) &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>把一个数组转换成 Observables，然后分别用不同的 Subcription 订阅它，在 console.log 结果如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2nd subscriber:<span class="number">1</span></span><br><span class="line">2nd subscriber:<span class="number">2</span></span><br><span class="line">2nd subscriber:<span class="number">3</span></span><br><span class="line">2nd subscriber:<span class="number">4</span></span><br><span class="line">2nd subscriber:<span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>我们把代码改一下，让第二个 Subscription 延迟一秒订阅：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2nd subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">&#125;, <span class="number">1100</span>);</span><br></pre></td></tr></table></figure>
+
+<p>结果还是跟上面一样，没有任何区别。这个是 Cold Observables，代码如下，先忽略 publish，ConnectableObservable，connect，稍后再详细解释。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = <span class="keyword">from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).pipe(</span><br><span class="line">    publish()</span><br><span class="line">) <span class="keyword">as</span> ConnectableObservable&lt;any&gt;;</span><br><span class="line">obs$.connect();</span><br><span class="line"></span><br><span class="line">obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">&#125;, <span class="number">2100</span>);</span><br></pre></td></tr></table></figure>
+
+<p>根据 Hot Observables 的定义，期待的效果是第一个订阅收到 1，2，3，4，5；第二个订阅收到 3，4，5。实际上两个订阅都没有接收任何值。因为 Hot Observables 是不管有没有被订阅，都会发送值，数组中有 5 个值，等到开始订阅的时候，这 5 个值已经发送完成了，所以在订阅中接收不到任何值了。</p>
+<p>为了看到效果，把数组替换成了 interval，每隔一秒钟就发送一个值，第一个订阅等了一秒开始接受值，第二订阅等了两秒开始接收值，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    publish()</span><br><span class="line">) <span class="keyword">as</span> ConnectableObservable&lt;any&gt;;</span><br><span class="line">obs$.connect();</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    &#125;, <span class="number">1100</span>);</span><br><span class="line">&#125;, <span class="number">2100</span>);	</span><br></pre></td></tr></table></figure>
+
+<p>效果是</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">2st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<h2 id="Cold-Observables-vs-Hot-Observables"><a href="#Cold-Observables-vs-Hot-Observables" class="headerlink" title="Cold Observables vs Hot Observables"></a>Cold Observables vs Hot Observables</h2><ul>
+<li>我们可以把 Cold Observables 理解为在手机网易云音乐 APP 上听歌：APP 里的歌曲资源是 Cold Observables，听歌的人是 observers。如果没有人打开 APP 去播放这首歌，这首歌不会自己播放。每个人从自己 APP 打开播放这首歌的时候，先把歌曲从网上下载到本地，每份都是单独的歌曲实例，都是从头开始听，互相不会影响。</li>
+<li>而 Hot Observables 可以理解为演唱会：比如我们去看一场演唱会，没有迟到的小伙伴（A）可以从第一首歌开始听，迟到的小伙伴就（B）只能从第二首或者更晚的歌开始听；演唱会就是 Hot Observables，小伙伴 A 和 B 就是 observers。小伙伴 A 和 B 共享同一个演唱会实例，是从订阅开始接受到值，每个订阅接收到的值是不同的，取决于它们是从什么时候开始订阅。</li>
+</ul>
+<h2 id="如何创建-Hot-Observables"><a href="#如何创建-Hot-Observables" class="headerlink" title="如何创建 Hot Observables"></a>如何创建 Hot Observables</h2><p>在上方的 Hot Observables 代码里，用到了 publish 操作符，ConnectableObservable，以及 connect( ) 方法创建 Hot Observables；看一下对应的方法是什么意思。</p>
+<ul>
+<li>publish：这个操作符把正常的 Observable (Cold Observables) 转换成 ConnectableObservable。</li>
+<li>ConnectableObservable：ConnectableObservable 是多播的共享 Observable，可以同时被多个 observers 共享订阅，是 Hot Observables。ConnectableObservable 是订阅者和真正源头 Observables (上面例子中的 interval，每隔一秒发送一个值，就是源头 Observable) 的中间人。ConnectableObservable 从源头 Observables 接收到值然后再把值转发给订阅者。</li>
+<li>connect( )：ConnectableObservable 并不会主动发送值，它有个 connect 方法，通过调用 connect 方法，可以启动共享 ConnectableObservable 发送值。当我们调用 ConnectableObservable.prototype.connect 方法，不管有没有被订阅，都会发送值。订阅者共享同一个实例，订阅者接收到的值取决于它们何时开始订阅。在我们的例子中，第一个订阅等了一秒从 2 开始接收值，第二个订阅等了两秒从 3 开始接收值。</li>
+</ul>
+<h2 id="connect-vs-refCount"><a href="#connect-vs-refCount" class="headerlink" title="connect vs refCount"></a>connect vs refCount</h2><p>除了 connect，还有一个 refCount 方法，在比较这两个区别之前，我们先看一下 refCount 的用法和效果：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    publish(),</span><br><span class="line">    refCount()</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">1100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>按之前对 publish 会生成一个 ConnectableObservable，它是一个 Hot Observables，那么预期结果是：第一个订阅者是从 2 开始接收值，第二个订阅者是从 3 开始接收值。</p>
+<p>实际的输出：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">2st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">2st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">2st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line"></span><br><span class="line">.....</span><br></pre></td></tr></table></figure>
+
+<p>跟预想的不一样，第一个订阅者从 0 开始接收值，第二个订阅者比第一个订阅者晚了一秒，从 1 开始接收值。</p>
+<p>当使用 refCount，是引用计数的 Observable。它表示当第一个订阅者开始订阅的时候，开始发送和产生值；第二个订阅者 (之后的订阅者) 共享第一个订阅者的 Observables 实例，没有订阅者的时候，会自动取消订阅；之后再重新订阅，又从头开始发送值。</p>
+<p>它不是 Hot Observables 也不是 Cold Observables，因为它是从有第一个订阅者的时候才开始发送值，没有订阅者的时候会自动取消订阅，而且之后的订阅者共享第一个订阅者的 Observables 实例。它是基于 Hot Observables 与 Cold Observables 之间的 Observables，可以理解为 Warm Observables。</p>
+<h2 id="share"><a href="#share" class="headerlink" title="share"></a>share</h2><p>publish 和 refCount 可以生成一个 Warm Observables，实际单独使用 share 操作符也可以达到同样的效果，share 实际上是 publish( ).refCount( ) 的简写，这次把第二个订阅比第一个订阅晚 5 秒再开始订阅，具体代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    share()</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">5100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line">1st subscriber:<span class="number">7</span></span><br><span class="line">2st subscriber:<span class="number">7</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>和使用 publish( ).refCount( ) 效果完全一样。</p>
+<h2 id="shareReplay"><a href="#shareReplay" class="headerlink" title="shareReplay"></a>shareReplay</h2><p>在用 share( ) 的时候，第二个或者更后面的订阅者开始订阅者，都是共享第一个订阅者的 Observables，比如上面的例子中，第二个订阅比第一个订阅晚 5 秒再开始订阅，那么第二个订阅者从 5 开始接收值。但是实际情况中，如果我想让第二个订阅者也能够拿得到前面的值，那怎么办？用 shareReplay( ) 可以实现。具体代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obs$ = interval(<span class="number">1000</span>).pipe(</span><br><span class="line">    shareReplay(<span class="number">1</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;1st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        obs$.subscribe(<span class="function"><span class="params">data</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&quot;2st subscriber:&quot;</span> + data) &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;, <span class="number">5100</span>);</span><br><span class="line"></span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">1st subscriber:<span class="number">0</span></span><br><span class="line">1st subscriber:<span class="number">1</span></span><br><span class="line">1st subscriber:<span class="number">2</span></span><br><span class="line">1st subscriber:<span class="number">3</span></span><br><span class="line">1st subscriber:<span class="number">4</span></span><br><span class="line">2st subscriber:<span class="number">4</span></span><br><span class="line">1st subscriber:<span class="number">5</span></span><br><span class="line">2st subscriber:<span class="number">5</span></span><br><span class="line">1st subscriber:<span class="number">6</span></span><br><span class="line">2st subscriber:<span class="number">6</span></span><br><span class="line">1st subscriber:<span class="number">7</span></span><br><span class="line">2st subscriber:<span class="number">7</span></span><br><span class="line"></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>shareReplay(1) 中的 1 表示拿到错过的前一个值，在我们的例子就是第二个订阅从 4 开始接收值。如果改成 shareReplay (2) 就表示从错过的前两个值开始接收值，也就是第二个订阅会从 3 开始接收值。</p>
+<p>shareReplay(1) 其实也是 publishReplay(1).refCount( ) 的缩写，用 publishReplay(1).refCount( ) 有同样的效果。</p>
 ]]></content>
       <tags>
         <tag>RxJS</tag>
@@ -1131,6 +1370,66 @@
       </tags>
   </entry>
   <entry>
+    <title></title>
+    <url>/2021/07/07/RxJS%EF%BC%9A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%BC%93%E5%AD%98/</url>
+    <content><![CDATA[<h1 id="RxJS：如何通过-RxJS-实现缓存"><a href="#RxJS：如何通过-RxJS-实现缓存" class="headerlink" title="RxJS：如何通过 RxJS 实现缓存"></a>RxJS：如何通过 RxJS 实现缓存</h1><ul>
+<li>Angular 中通过 HttpClient 执行 Http Request 返回的 Observables 是 Cold Observable。</li>
+<li>HttpClient Observable 每次被订阅都需要调用 http request，对于共用的 API 返回同样的值，在不同页面重复调用会浪费 http 资源降低性能。</li>
+<li>如何通过 ReplaySubject 实现缓存效果，提高性能。</li>
+</ul>
+<h2 id="HttpClient-返回的-Observables-是-Cold-Observable"><a href="#HttpClient-返回的-Observables-是-Cold-Observable" class="headerlink" title="HttpClient 返回的 Observables 是 Cold Observable"></a>HttpClient 返回的 Observables 是 Cold Observable</h2><p>在 Angular 2.0 以上的版本，都是通过 HttpClient 跟后端 API 交互；所有的 Http 请求方法，比如 get、post、put、delete 都是返回一个 Observable。之前介绍了 Cold Observable 与 Hot Observable 的区别。</p>
+<p>那么在 Angular 中通过 HttpClient 执行 Http Request 返回的 Observables 是 Hot Observables 还是 Cold Observables？先写一段代码测试一下，在页面中显示 30 个 GitHub user 的基本信息：</p>
+<p>先定义一个 service：RxjsCacheService，在这个 service 中定义一个方法去拿 github 的用户信息：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Injectable &#125; <span class="keyword">from</span> <span class="string">&quot;@angular/core&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; HttpClient &#125; <span class="keyword">from</span> <span class="string">&quot;@angular/common/http&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; User &#125; <span class="keyword">from</span> <span class="string">&quot;../interface/rxjs-cache.interface&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; map, catchError &#125; <span class="keyword">from</span> <span class="string">&#x27;rxjs/operators&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="keyword">of</span>, Observable &#125; <span class="keyword">from</span> <span class="string">&#x27;rxjs&#x27;</span>;</span><br><span class="line"></span><br><span class="line">@Injectable()</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsCacheService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">private http: HttpClient</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">get</span> <span class="title">users</span>() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.requestUsers();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">requestUsers</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="comment">// get the latest 30 github users: start from id =2</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.http.get&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;(<span class="string">&quot;https://api.github.com/users?since=1&quot;</span>)</span><br><span class="line">            .pipe(</span><br><span class="line">                map(<span class="function"><span class="params">respone</span> =&gt;</span> respone),</span><br><span class="line">                catchError(<span class="function"><span class="params">error</span> =&gt;</span> &#123;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">&quot;something went wrong &quot;</span> + error)</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">of</span>([]);</span><br><span class="line">                &#125;)</span><br><span class="line">            )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接口 rxjs-cache.interface 定义如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> interface User &#123;</span><br><span class="line">    <span class="attr">login</span>: string,</span><br><span class="line">    <span class="attr">id</span>: number,</span><br><span class="line">    <span class="attr">node_id</span>: string,</span><br><span class="line">    <span class="attr">avatar_url</span>: string,</span><br><span class="line">    <span class="attr">gravatar_id</span>: string,</span><br><span class="line">    <span class="attr">url</span>: string,</span><br><span class="line">    <span class="attr">html_url</span>: string,</span><br><span class="line">    <span class="attr">followers_url</span>: string,</span><br><span class="line">    <span class="attr">following_url</span>: string,</span><br><span class="line">    <span class="attr">gists_url</span>: string,</span><br><span class="line">    <span class="attr">starred_url</span>: string,</span><br><span class="line">    <span class="attr">subscriptions_url</span>: string,</span><br><span class="line">    <span class="attr">organizations_url</span>: string,</span><br><span class="line">    <span class="attr">repos_url</span>: string,</span><br><span class="line">    <span class="attr">events_url</span>: string,</span><br><span class="line">    <span class="attr">received_events_url</span>: string,</span><br><span class="line">    <span class="attr">type</span>: string,</span><br><span class="line">    <span class="attr">site_admin</span>: boolean</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后定义一个 component：RxjsCacheComponent，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Component, OnInit &#125; <span class="keyword">from</span> <span class="string">&quot;@angular/core&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; RxjsCacheService &#125; <span class="keyword">from</span> <span class="string">&quot;./service/rxjs-cache.service&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; User &#125; <span class="keyword">from</span> <span class="string">&quot;./interface/rxjs-cache.interface&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Observable &#125; <span class="keyword">from</span> <span class="string">&#x27;rxjs&#x27;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@Component(&#123;</span><br><span class="line">    <span class="attr">templateUrl</span>: <span class="string">&quot;./rxjs-cache.component.html&quot;</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsCacheComponent</span> <span class="title">implements</span> <span class="title">OnInit</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    private users$: Observable&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">private rxjsCacheService: RxjsCacheService</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">ngOnInit</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.users$ = <span class="built_in">this</span>.rxjsCacheService.users;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>rxjs-cache.component.html 代码如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h3</span>&gt;</span>here is the github user lists:<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> *<span class="attr">ngFor</span>=<span class="string">&quot;let user of users$ |async&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot; display: flex;flex-direction: row;&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;font-size: 0.9em;margin:10px;width: 10%&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>User Name:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span>  &#123; &#123; user.login &#125; &#125; <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;font-size: 0.9em;margin:10px;width: 50%&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>GitHub URL:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span> &#123; &#123; user.url &#125; &#125; <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码，在页面上列出了 30 位 Github 用户的用户名和相对应的 Github 地址，从上面的代码还是不能看出 HttpClient 返回的 Observable 是 Hot Observables 还是 Cold Observables。我们把 html 代码改一下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h3</span>&gt;</span>here is the github user lists:<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> *<span class="attr">ngFor</span>=<span class="string">&quot;let user of users$ |async&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot; display: flex;flex-direction: row;&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;font-size: 0.9em;margin:10px;width: 10%&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>User Name:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span>  &#123; &#123; user.login &#125; &#125; <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;font-size: 0.9em;margin:10px;width: 50%&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>GitHub URL:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span> &#123; &#123; user.url &#125; &#125; <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">h3</span>&gt;</span>here is the github user lists2:<span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> *<span class="attr">ngFor</span>=<span class="string">&quot;let user of users$ |async&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot; display: flex;flex-direction: row;&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;font-size: 0.9em;margin:10px;width: 10%&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>User Name:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span>  &#123; &#123; user.login &#125; &#125; <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;font-size: 0.9em;margin:10px;width: 50%&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>GitHub URL:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span> &#123; &#123; user.url &#125; &#125; <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>F12 打开浏览器的 DevTools，当前页面会调用两次 GET API，并且两个 user list 列出的 30 位用户的信息一模一样：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/scNswE.jpg" alt="alt"></p>
+<p>两个 userList 订阅 users$，生成了两个 Observable 实例并且都是订阅开始之后才开始发送值，<em><strong>也就是说 Angular 中通过 HttpClient 执行 Http Request 返回的 Observable 是 Cold Observable</strong></em>。</p>
+<h2 id="性能问题？"><a href="#性能问题？" class="headerlink" title="性能问题？"></a>性能问题？</h2><p>每次调用 API ，都会生成一个新的 Observable 实例，有订阅之后才开始发送值，这也符合现在前端的开发需求。但在实际开发过程中，有时候后端会提供一些公用的常量 API，不同页面都需要用这些常量，按现在的调用 API 的方式，会导致常量 API 在不同的页面重复多次调用，这种方式显然性能不好。</p>
+<h2 id="通过-RxJS-实现缓存效果"><a href="#通过-RxJS-实现缓存效果" class="headerlink" title="通过 RxJS 实现缓存效果"></a>通过 RxJS 实现缓存效果</h2><p>ReplaySubject(size) 可以发送之前的旧值给新的订阅者，size 是定义发送具体多少个旧值给新的订阅者。那么在示例代码中可以用 ReplaySubject 实现缓存效果。</p>
+<p>shareReplay 这个操作符会自动创建一个 ReplaySubject，一旦 http request 执行一次以后，就会在后续的订阅和源头 Observable 之间建立一个 ReplaySubject，ReplaySubject 是一个多播的 Hot Observable，后续订阅都是从这个中间的 ReplaySubject 拿到最后一个值，从而达到缓存效果。</p>
+<p>我们把 RxjsCacheService 改成如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Injectable &#125; <span class="keyword">from</span> <span class="string">&quot;@angular/core&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; HttpClient &#125; <span class="keyword">from</span> <span class="string">&quot;@angular/common/http&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; User &#125; <span class="keyword">from</span> <span class="string">&quot;../interface/rxjs-cache.interface&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; map, catchError, shareReplay &#125; <span class="keyword">from</span> <span class="string">&#x27;rxjs/operators&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="keyword">of</span>, Observable &#125; <span class="keyword">from</span> <span class="string">&#x27;rxjs&#x27;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> CACHE_SIZE = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">@Injectable()</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsCacheService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    private cacheUsers$:Observable&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">private http: HttpClient</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">get</span> <span class="title">users</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span>(!<span class="built_in">this</span>.cacheUsers$)&#123;</span><br><span class="line">            <span class="built_in">this</span>.cacheUsers$ = <span class="built_in">this</span>.requestUsers()</span><br><span class="line">            .pipe(</span><br><span class="line">                shareReplay(CACHE_SIZE)</span><br><span class="line">            );</span><br><span class="line">        &#125;</span><br><span class="line">       <span class="keyword">return</span> <span class="built_in">this</span>.cacheUsers$;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private <span class="function"><span class="title">requestUsers</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.http.get&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;(<span class="string">&quot;https://api.github.com/users?since=1&quot;</span>)</span><br><span class="line">            .pipe(</span><br><span class="line">                map(<span class="function"><span class="params">respone</span> =&gt;</span> respone),</span><br><span class="line">                catchError(<span class="function"><span class="params">error</span> =&gt;</span> &#123;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">&quot;something went wrong &quot;</span> + error)</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">of</span>([]);</span><br><span class="line">                &#125;)</span><br><span class="line">            )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码发现，页面里两个 user list 都是列出了相同的30位 Github 用户信息，但是只调用了一次 GET API，也就是说第二订阅不是从通过后端 API 拿到用户信息，而是从 ReplaySubject 中拿到的。</p>
+<p>整个流程如下：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/icGsXB.jpg" alt="alt"></p>
+<p>页面的第一个 userlist 也就是第一个 consumer，是通过调用API拿到30个用户信息，第二个 userlist 也就是第二个 consumer，直接从 cacheUsers$ 拿到这30个用户信息。cacheUsers$ 是 ReplaySubject(1) 把最后一个旧值（30个用户信息）发送给新的订阅者（第二个 userlist ），从而实现了缓存效果。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>RxJS：通过 RxJS 实现简单的消息通知机制</title>
+    <url>/2021/07/09/RxJS%EF%BC%9A%E9%80%9A%E8%BF%87%20RxJS%20%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84%E6%B6%88%E6%81%AF%E9%80%9A%E7%9F%A5%E6%9C%BA%E5%88%B6/</url>
+    <content><![CDATA[<h1 id="RxJS：通过-RxJS-实现简单的消息通知机制"><a href="#RxJS：通过-RxJS-实现简单的消息通知机制" class="headerlink" title="RxJS：通过 RxJS 实现简单的消息通知机制"></a>RxJS：通过 RxJS 实现简单的消息通知机制</h1><p>在实际开发中，还有一种 API 返回的值随着时间会有变化，这个时候去更新 RxJS 缓存里的值，从用户体验的角度出发，先在页面显示一个消息通知用户数据有更新，让用户选择是否需要更新页面内容，而不是直接在每次缓存更新之后直接刷新页面数据。下面介绍如何基于 RxJS 实现简单的消息通知机制。</p>
+<ul>
+<li>本文用到的 RxJS 缓存指 Angular 2+ 中结合 HttpClient 和 ReplaySubject 缓存 API Response 数据，后续新的订阅者都可以直接从 ReplaySubject 拿 API Response 数据。</li>
+</ul>
+<h2 id="更新-RxJS-缓存"><a href="#更新-RxJS-缓存" class="headerlink" title="更新 RxJS 缓存"></a>更新 RxJS 缓存</h2><p>这里直接每隔 10 秒调用一次 API，把新拿到的值赋值给 RxJS 缓存。</p>
+<p>还是用 Github 的 get all users API：Github API，每 10 秒调用一次 API 拿到 30 个不同的 Github 用户信息。用 interval 可以实现每隔 10s 调用一次 API，但是会有一个问题，用户在第一次进到页面的时候需要等 10s 才能看到 30 位用户信息。我们希望用户第一次进到页面立马能看到 30 位用户信息，之后是每隔 10s 调用一次 API 更新 30 位 Git 用户信息，timer 操作符可以满足这个要求，timer(0, 10000) 表示首次不用等直接调用 API 拿到 30 位 Git 用户信息，之后每隔 10s 调用一次 API。Service 代码如下：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> CACHE_SIZE = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">const</span> REFRESH_INTERVAL = <span class="number">10000</span>;</span><br><span class="line"><span class="keyword">const</span> API_ENDPOINT = <span class="string">&quot;https://api.github.com/users?since=&quot;</span>;</span><br><span class="line"><span class="meta">@Injectable</span>()</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsNotificationService</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> cacheUsers$: Observable&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;;</span><br><span class="line">    <span class="keyword">private</span> userStartId: <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> http: HttpClient</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">get</span> <span class="title">users</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">this</span>.cacheUsers$) &#123;</span><br><span class="line">            <span class="keyword">const</span> timer$ = timer(<span class="number">0</span>, REFRESH_INTERVAL);</span><br><span class="line">            <span class="built_in">this</span>.cacheUsers$ = timer$</span><br><span class="line">                .pipe(</span><br><span class="line">                    switchMap(<span class="function">() =&gt;</span> <span class="built_in">this</span>.requestUsers()),</span><br><span class="line">                    shareReplay(CACHE_SIZE)</span><br><span class="line">                );</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.cacheUsers$;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="title">requestUsers</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.userStartId = <span class="built_in">this</span>.userStartId + <span class="number">30</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.http.get&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;(API_ENDPOINT + <span class="built_in">this</span>.userStartId)</span><br><span class="line">            .pipe(</span><br><span class="line">                map(<span class="function"><span class="params">respone</span> =&gt;</span> respone),</span><br><span class="line">                catchError(<span class="function"><span class="params">error</span> =&gt;</span> &#123;</span><br><span class="line">                    <span class="built_in">console</span>.log(<span class="string">&quot;something went wrong &quot;</span> + error)</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">of</span>([]);</span><br><span class="line">                &#125;)</span><br><span class="line">            )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义一个 RxjsNotificationComponent，具体代码如下：</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">    <span class="attr">templateUrl</span>: <span class="string">&quot;./rxjs-notification.component.html&quot;</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">RxjsNotificationComponent</span> </span>&#123;</span><br><span class="line">    <span class="attr">users$</span>: Observable&lt;<span class="built_in">Array</span>&lt;User&gt;&gt;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> rxjsNotificationService: RxjsNotificationService</span>)</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">ngOnInit</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.users$ = <span class="built_in">this</span>.rxjsNotificationService.users.pipe();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>rxjs-notification.component.html 代码如下：</p>
+]]></content>
+      <tags>
+        <tag>RxJS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Vim：基础操作指南</title>
     <url>/2021/07/06/Vim%20%E7%BC%96%E8%BE%91%E5%99%A8/</url>
     <content><![CDATA[<h1 id="Vim-编辑器"><a href="#Vim-编辑器" class="headerlink" title="Vim 编辑器"></a>Vim 编辑器</h1><h2 id="移动"><a href="#移动" class="headerlink" title="移动"></a>移动</h2><ul>
@@ -1229,7 +1528,7 @@
 </ul>
 ]]></content>
       <tags>
-        <tag>Vim 攻略</tag>
+        <tag>Vim</tag>
       </tags>
   </entry>
 </search>

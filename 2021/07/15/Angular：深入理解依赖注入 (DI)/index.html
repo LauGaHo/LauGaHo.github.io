@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="N4U3z9eG38Lid_ovHy3i47Sb00M4ti3kUYgOlswt6rs" />
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="深入理解 Angular," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Angular：深入理解依赖注入 (DI)如果之前没有深入理解 Angular 依赖注入系统，那么或许你会认为 Angular 程序内的根注入器包含所有合并的服务提供商，每一个组件都有它自己的注入器，延迟加载模块有它自己的注入器。 但是，仅仅知道这些或许不够。 在 Angular 中，有两个注入器层次结构：  Module Injector (模块注入器)：使用 @NgModule( ) 或 @I">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Angular：深入理解依赖注入 (DI)">
+<meta property="og:url" content="http://example.com/2021/07/15/Angular%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%20(DI)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Angular：深入理解依赖注入 (DI)如果之前没有深入理解 Angular 依赖注入系统，那么或许你会认为 Angular 程序内的根注入器包含所有合并的服务提供商，每一个组件都有它自己的注入器，延迟加载模块有它自己的注入器。 但是，仅仅知道这些或许不够。 在 Angular 中，有两个注入器层次结构：  Module Injector (模块注入器)：使用 @NgModule( ) 或 @I">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/g7kRmn.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/lIz3Si.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/HIC19t.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/xnjleM.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/1_el4lEGLk_TSoZLUKlKK06Q.gif">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/3nKSe9.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Du0CuC.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/FE4nMJ.jpg">
+<meta property="article:published_time" content="2021-07-15T07:58:00.000Z">
+<meta property="article:modified_time" content="2021-07-16T16:39:31.978Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="深入理解 Angular">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/g7kRmn.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/07/15/Angular：深入理解依赖注入 (DI)/"/>
+
+
+
+
+
+  <title>Angular：深入理解依赖注入 (DI) | Hexo</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/15/Angular%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%20(DI)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head_icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Angular：深入理解依赖注入 (DI)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-15T15:58:00+08:00">
+                2021-07-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/07/15/Angular%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%20(DI)/" class="leancloud_visitors" data-flag-title="Angular：深入理解依赖注入 (DI)">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.7k
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Angular：深入理解依赖注入-DI"><a href="#Angular：深入理解依赖注入-DI" class="headerlink" title="Angular：深入理解依赖注入 (DI)"></a>Angular：深入理解依赖注入 (DI)</h1><p>如果之前没有深入理解 Angular 依赖注入系统，那么或许你会认为 Angular 程序内的根注入器包含所有合并的服务提供商，每一个组件都有它自己的注入器，延迟加载模块有它自己的注入器。</p>
+<p>但是，仅仅知道这些或许不够。</p>
+<p>在 Angular 中，有两个注入器层次结构：</p>
+<ul>
+<li>Module Injector (模块注入器)：使用 @NgModule( ) 或 @Injectable( ) 注解在此层次结构中配置 Module Injector</li>
+<li>Element Injector (元素注入器)：在每一个 DOM 上隐式创建</li>
+</ul>
+<h2 id="注入器树-Injector-Tree"><a href="#注入器树-Injector-Tree" class="headerlink" title="注入器树 (Injector Tree)"></a>注入器树 (Injector Tree)</h2><p>大多数开发者都知道，Angular 会创建根注入器，根注入器内的服务都是单例的。但是，貌似还有其他注入器是它的父级。</p>
+<p>作为一名开发者，我想知道 Angular 是怎么构建注入器树的，下图是注入器树的顶层部分：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/g7kRmn.jpg" alt="alt"></p>
+<p>这不是整棵树，目前还没有任何组件，后面会继续画树的其他部分，先看一下根注入器 AppModule Injector，因为他最常用。</p>
+<h2 id="根注入器-root-AppModule-Injector"><a href="#根注入器-root-AppModule-Injector" class="headerlink" title="根注入器 (root AppModule Injector)"></a>根注入器 (root AppModule Injector)</h2><p>我们知道 Angular 程序注入器就是上图中的 AppModule Injector，上文说了，这个根注入器包含所有中间模块的服务提供商，也就是说 (不翻译) ：</p>
+<blockquote>
+<p>If we have a module with some providers and import this module directly in AppModule or in any other module, which has already been imported in AppModule, then those providers become application-wide providers.</p>
+</blockquote>
+<p>ComponentFactoryResolver 也会添加到这个根注入器当中，因为它是用于动态创建定义在 entryComponents 属性中的组件。</p>
+<p>为了实例化根注入器，Angular 使用 <code>AppModule</code> 工厂函数，这个函数的位置在 <code>module.ngfactory.js</code>。</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/lIz3Si.jpg" alt="alt"></p>
+<p>我们可以看到这个工厂函数返回的是一个融合了所有 Provider 的一个 Module 定义。相信大多数开发者都知道。</p>
+<h2 id="平台注入器-Platform-Injector"><a href="#平台注入器-Platform-Injector" class="headerlink" title="平台注入器 (Platform Injector)"></a>平台注入器 (Platform Injector)</h2><p>事实证明，<code>AppModule</code> 根注入器的上一级有一个父注入器叫做 <code>NgZoneInjector</code>，他也有一个父注入器，名字叫做 <code>PlatformInjector</code>。</p>
+<p>平台注入器通常包括了一些内置的 Provider，但是我们也可以在创建平台的时候往平台注入器中添加我们自定义的 Provider：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> platform = platformBrowserDynamic([ &#123; </span><br><span class="line">  <span class="attr">provide</span>: SharedService, </span><br><span class="line">  <span class="attr">deps</span>:[] </span><br><span class="line">&#125;]);</span><br><span class="line">platform.bootstrapModule(AppModule);</span><br><span class="line">platform.bootstrapModule(AppModule2);</span><br></pre></td></tr></table></figure>
+
+<p>我们传进 platform 中的这个额外的 Provider必须是 StaticProviders。如果不了解 StaticProvider 和 Provider 的区别，可以点击这里查看 <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/48594944/can-deps-also-be-used-with-useclass/48595518#48595518">Answer</a></p>
+<p>虽然现在比较清晰 Angular 是如何根注入器和其父注入器是如何解析依赖的。但是，对于组件级别的注入器还是有一点迷惑，所以我们开始探索。</p>
+<h2 id="EntryComponent-and-RootData"><a href="#EntryComponent-and-RootData" class="headerlink" title="EntryComponent and RootData"></a>EntryComponent and RootData</h2><p>当我谈论 ComponentFactoryResolver 的时候，我提到了 <code>entryComponent</code>。这种 components 通常出现在 <code>NgModule</code> 中的 <code>bootstrap</code> 或者 <code>entryComponents</code> 数组中，Angular 路由也会使用他们来创建动态组件。</p>
+<p>Angular 会帮所有的 <code>entryComponents</code> 创建宿主工厂函数，这些宿主工厂函数就是其他视图的根视图，这就意味着：</p>
+<blockquote>
+<p>Every time we create dynamic component angular creates root view with root data, that contains references to elInjector and ngModule injector.</p>
+<p>参考译文：每次我们创建动态 Angular 组件时，都会使用根数据 ( <code>RootData</code> ) 创建根视图 ( <code>RootView</code> )。</p>
+</blockquote>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ComponentFactory_</span> <span class="keyword">extends</span> <span class="title">ComponentFactory</span>&lt;<span class="title">any</span>&gt;</span>&#123;</span><br><span class="line">  create(</span><br><span class="line">      injector: Injector, projectableNodes?: <span class="built_in">any</span>[][], rootSelectorOrNode?: <span class="built_in">string</span>|<span class="built_in">any</span>,</span><br><span class="line">      ngModule?: NgModuleRef&lt;<span class="built_in">any</span>&gt;): ComponentRef&lt;<span class="built_in">any</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (!ngModule) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">&#x27;ngModule should be provided&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> viewDef = resolveDefinition(<span class="built_in">this</span>.viewDefFactory);</span><br><span class="line">    <span class="keyword">const</span> componentNodeIndex = viewDef.nodes[<span class="number">0</span>].element!.componentProvider!.nodeIndex;</span><br><span class="line">    <span class="comment">// 使用根数据创建根视图</span></span><br><span class="line">    <span class="keyword">const</span> view = Services.createRootView(</span><br><span class="line">        injector, projectableNodes || [], rootSelectorOrNode, viewDef, ngModule, EMPTY_CONTEXT);</span><br><span class="line">    <span class="comment">// view.nodes 的访问器</span></span><br><span class="line">    <span class="keyword">const</span> component = asProviderData(view, componentNodeIndex).instance;</span><br><span class="line">    <span class="keyword">if</span> (rootSelectorOrNode) &#123;</span><br><span class="line">      view.renderer.setAttribute(asElementData(view, <span class="number">0</span>).renderElement, <span class="string">&#x27;ng-version&#x27;</span>, VERSION.full);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 创建组件</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ComponentRef_(view, <span class="keyword">new</span> ViewRef_(view), component);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该根数据 ( <code>RootData</code> ) 包含对 <code>elInjector</code> 和 <code>ngModule</code> 注入器的引用：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createRootData</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    elInjector: Injector, ngModule: NgModuleRef&lt;<span class="built_in">any</span>&gt;, rendererFactory: RendererFactory2,</span></span></span><br><span class="line"><span class="params"><span class="function">    projectableNodes: <span class="built_in">any</span>[][], rootSelectorOrNode: <span class="built_in">any</span></span>): <span class="title">RootData</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> sanitizer = ngModule.injector.get(Sanitizer);</span><br><span class="line">  <span class="keyword">const</span> errorHandler = ngModule.injector.get(ErrorHandler);</span><br><span class="line">  <span class="keyword">const</span> renderer = rendererFactory.createRenderer(<span class="literal">null</span>, <span class="literal">null</span>);</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    ngModule,</span><br><span class="line">    <span class="attr">injector</span>: elInjector, projectableNodes,</span><br><span class="line">    <span class="attr">selectorOrNode</span>: rootSelectorOrNode, sanitizer, rendererFactory, renderer, errorHandler</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在猜测当我们启动一个 Angular 应用。</p>
+<p>当我们执行下面的代码，会发生什么事情</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">platformBrowserDynamic().bootstrapModule(AppModule);</span><br></pre></td></tr></table></figure>
+
+<p>实际上，会发生许多事情，但是我们只对 Angular 如何创建 entry component 感兴趣。</p>
+<p>当应用程序 <code>ApplicationRef</code> 启动 <code>bootstrap</code> 时，会创建 <code>entryComponent</code></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> compRef = componentFactory.create(Injector.NULL, [], selectorOrNode, ngModule);</span><br></pre></td></tr></table></figure>
+
+<p>该过程会使用根数据 <code>RootData</code> 创建根视图 <code>RootView</code>，同时创建根元素注入器，在这里 <code>elInjector</code> 为 <code>Injector.NULL</code>。</p>
+<p>这里就是注入器树被分成元素注入器树和模块注入器树这两个平行树的地方。</p>
+<p>Angular 会有规律的创建下级注入器，每当 Angular 创建一个在 <code>@Component()</code> 中指定了 <code> providers</code> 的组件实例时，它也会为该实例创建一个新的子注入器。类似的，当在运行期间加载一个新的 <code>NgModule</code> 时，Angular 也可以为它创建一个拥有自己的提供者的注入器。</p>
+<p>子模块和组件注入器彼此独立，并且会为所提供的服务分别创建自己的实例。当 Angular 销毁 <code>NgModule</code> 或组件实例时，也会销毁这些注入器以及注入器中的那些服务实例。</p>
+<h2 id="Element-Injector-vs-Module-Injector"><a href="#Element-Injector-vs-Module-Injector" class="headerlink" title="Element Injector vs Module Injector"></a>Element Injector vs Module Injector</h2><p>上一段时间，当懒加载开始广泛地被应用的时候，一个奇怪的现象在 Github 上被报告。依赖注入系统导致延迟加载模块的两倍实例。因此，一个新的设计被引入，从此开始，我们有了两颗平行的树，一个是用于元素，一个是用于模块的。</p>
+<p>主要的规则如下：</p>
+<p>当我们在组件或者在指令当中当中请求依赖，会使用 <code>Merge Injector</code> 去遍历元素注入器树，然后如果找不到依赖，就会切换到模块注入器树来解析依赖。</p>
+<blockquote>
+<p>Please note I don’t use phrase “component injector” but rather “element injector”.</p>
+</blockquote>
+<h3 id="什么是-Merge-Injector"><a href="#什么是-Merge-Injector" class="headerlink" title="什么是 Merge Injector"></a>什么是 Merge Injector</h3><p>你们曾经是否写过这种代码：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Directive</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;[someDir]&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">SomeDirective</span> </span>&#123;</span><br><span class="line"> <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> injector: Injector</span>)</span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以在这里的 <code>injector</code> 就是一个 <code>Merge Injector</code> (相应的，我们同样也可以将 Merge Injector 在组件的构造函数中注入)。</p>
+<p><code>Merge Injector</code> 本身没有任何值，它只是视图和元素定义的组合，它有以下定义：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Injector_</span> <span class="title">implements</span> <span class="title">Injector</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> view: ViewData, <span class="keyword">private</span> elDef: NodeDef|<span class="literal">null</span></span>)</span> &#123;&#125;</span><br><span class="line">  get(token: <span class="built_in">any</span>, <span class="attr">notFoundValue</span>: <span class="built_in">any</span> = Injector.THROW_IF_NOT_FOUND): <span class="built_in">any</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> allowPrivateServices =</span><br><span class="line">        <span class="built_in">this</span>.elDef ? (<span class="built_in">this</span>.elDef.flags &amp; NodeFlags.ComponentView) !== <span class="number">0</span> : <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">return</span> Services.resolveDep(</span><br><span class="line">        <span class="built_in">this</span>.view, <span class="built_in">this</span>.elDef, allowPrivateServices,</span><br><span class="line">        &#123;<span class="attr">flags</span>: DepFlags.None, token, <span class="attr">tokenKey</span>: tokenKey(token)&#125;, notFoundValue);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>正如我们所看到的，<code>Merge Injector</code> 只是视图和元素定义的组合。当 Angular 解决依赖关系时，这个注入器就像是元素注入器树和模块注入器树之间的桥梁。</p>
+<p><code>Merge Injector</code> 同样也可以解析一些内置的依赖，类似于 <code>ElementRef</code>，<code>ViewContainerRef</code>，<code>TemplateRef</code>，<code>ChangeDetectorRef</code> 这些，更有趣的是，他还可以返回 <code>Merge Injector</code></p>
+<p><strong>基本上，每个元素都有一个 <code>merge injector</code> 即使你没有提供任何的 <code>Token</code></strong></p>
+<h3 id="什么是-Element-Injector"><a href="#什么是-Element-Injector" class="headerlink" title="什么是 Element Injector"></a>什么是 Element Injector</h3><p>在 Angular 中，视图是模板的表示形式，它包含不同类型的节点，其中便有元素节点，元素注入器位于此节点上。</p>
+<p>默认情况下 <code>ElementInjector</code> 为空，除非在 <code>@Directive( )</code> 或 <code>@Component( )</code> 的 <code>providers</code> 属性中进行配置。</p>
+<p>当 Angular 为嵌套的 <a target="_blank" rel="noopener" href="http://www.fly63.com/tag/html">html</a> 元素创建元素注入器时，要么从父元素注入器继承它，要么直接将父元素注入器分配给子节点定义。</p>
+<p>如果子 <a target="_blank" rel="noopener" href="http://www.fly63.com/tag/html">html</a> 元素上的元素注入器具有提供者，则应该继承该注入器。否则，无需为子组件创建单独的注入器，并且如果需要，可以直接从父级的注入器中解决依赖项。</p>
+<p>我们都知道，Angular 通过传递视图定义创建工厂函数来解析模板。视图包含很多不同类型的节点，比如说：<code>deiective</code>，<code>text</code>，<code>provider</code>，<code>query</code> 等等，其中 <code>Element Node</code> 就是代表着 <code>DOM</code> 结构，实际上，<code>Element Injector</code> 就是驻留在这个 <code>Element Node</code> 上。Angular 保留了这个节点上关于 <code>Provider</code> 的信息在这两个属性上：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">interface</span> ElementDef &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * visible public providers for DI in the view,</span></span><br><span class="line"><span class="comment">   * as see from this element. This does not include private providers.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="attr">publicProviders</span>: &#123;[tokenKey: <span class="built_in">string</span>]: NodeDef&#125;|<span class="literal">null</span>;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * same as visiblePublicProviders, but also includes private providers</span></span><br><span class="line"><span class="comment">   * that are located on this element.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  allProviders: &#123;[tokenKey: <span class="built_in">string</span>]: NodeDef&#125;|<span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Element Injector</code> 解析依赖的过程：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> providerDef =</span><br><span class="line">  (allowPrivateServices ? elDef.element!.allProviders :</span><br><span class="line">    elDef.element!.publicProviders)![tokenKey];</span><br><span class="line"><span class="keyword">if</span> (providerDef) &#123;</span><br><span class="line">  <span class="keyword">let</span> providerData = asProviderData(searchView, providerDef.nodeIndex);</span><br><span class="line">  <span class="keyword">if</span> (!providerData) &#123;</span><br><span class="line">    providerData = &#123; <span class="attr">instance</span>: _createProviderInstance(searchView, providerDef) &#125;;</span><br><span class="line">    searchView.nodes[providerDef.nodeIndex] = providerData <span class="keyword">as</span> <span class="built_in">any</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> providerData.instance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个注入器包含组件 / 指令的实例，还有就是所有在组件 / 指令当中登记了的 <code>Provider</code>。</p>
+<p>这些 <code>Providers</code> 的填充是在视图的实例化阶段，主要是由 Angular 的编译器中的 <a target="_blank" rel="noopener" href="https://github.com/angular/angular/blob/master/packages/compiler/src/provider_analyzer.ts#L47">ProviderElementContext</a> 处理的，如果我们深入到这个类会发现许多有趣的事。</p>
+<p>比如说，当使用 <code>@Host</code> 装饰器时会有一些 **<a target="_blank" rel="noopener" href="https://github.com/angular/angular/blob/master/packages/compiler/src/provider_analyzer.ts#L290-L298">限制</a>**，可以使用宿主元素的 <strong><code>viewProviders</code></strong> 属性来解决这些限制，可以查看 <a target="_blank" rel="noopener" href="https://medium.com/@a.yurich.zuev/angular-nested-template-driven-form-4a3de2042475">https://medium.com/@a.yurich.zuev/angular-nested-template-driven-form-4a3de2042475</a> 。</p>
+<p>另外的一个例子是，如果我们在组件上挂载指令，然后我们在组件和在指令上都拥有一个一样的 <code>token</code>，这个时候指令上的依赖会胜出。</p>
+<h3 id="依赖算法-Resolution-Algorithm"><a href="#依赖算法-Resolution-Algorithm" class="headerlink" title="依赖算法 (Resolution Algorithm)"></a>依赖算法 (Resolution Algorithm)</h3><p>要想明白依赖解析算法如何工作，我们需要对视图和视图父元素这个概念熟悉。</p>
+<p>如果我们有一个根组件 <code>AppComponent</code>，他的模板为 <code>&lt;child&gt;&lt;/child&gt;</code>，然后我们有三个视图，如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HostView_AppComponent</span><br><span class="line">    <span class="tag">&lt;<span class="name">my-app</span>&gt;</span><span class="tag">&lt;/<span class="name">my-app</span>&gt;</span></span><br><span class="line">View_AppComponent</span><br><span class="line">    <span class="tag">&lt;<span class="name">child</span>&gt;</span><span class="tag">&lt;/<span class="name">child</span>&gt;</span></span><br><span class="line">View_ChildComponent</span><br><span class="line">    some content</span><br></pre></td></tr></table></figure>
+
+<p>依赖解析算法会根据视图层级进行展开：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/HIC19t.jpg" alt="alt"></p>
+<blockquote>
+<ul>
+<li>首先查看子元素注入器，进行检查 <code>elRef.element.allProvider|publicProviders</code>。</li>
+<li>然后遍历所有视图父元素 ①，并检查元素注入器中的提供者。</li>
+<li>如果下一个视图父元素等于 <code>null</code> ②，则返回 <code>startView</code> ③，检查 <code>startView.rootData.elInjector</code> ④。</li>
+<li>只有在找不到令牌的情况下，才检查 <code>startView.rootData.module.injector</code> ⑤。</li>
+</ul>
+</blockquote>
+<p>如果我们在子组件中查找依赖，首先他会查看 <code>childComponent</code> 的 <code>Injector</code>，也就是查看 <code>elRef.element.allProviders|publicProviders</code>，然后会遍历所有的父视图查看 <code>Element Injector</code> 中的 <code>Provider</code>。直到视图父元素的值为 <code>null</code>。然后就会返回 <code>startView</code>，检查 <code>startView.rootData.eInjector</code> 如果最终 <code>token</code> 对应的依赖找不到，那么就会查看 <code>startView.rootData.module.injector</code>。</p>
+<p>当向上遍历组件视图来解析依赖时，会搜索 <strong>视图的父元素，而不是元素的父元素</strong>。Angular 会使用 <code>viewParentEI( )</code> 函数获取视图父元素：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * for component views, this is the host element.</span></span><br><span class="line"><span class="comment"> * for embedded views, this is the index of the parent node</span></span><br><span class="line"><span class="comment"> * that contains the view container.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">viewParentEl</span>(<span class="params">view: ViewData</span>): <span class="title">NodeDef</span>|<span class="title">null</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> parentView = view.parent;</span><br><span class="line">  <span class="keyword">if</span> (parentView) &#123;</span><br><span class="line">    <span class="keyword">return</span> view.parentNodeDef !.parent;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查找依赖详细代码如下：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">resolveDep</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    view: ViewData, elDef: NodeDef, allowPrivateServices: <span class="built_in">boolean</span>, depDef: DepDef,</span></span></span><br><span class="line"><span class="params"><span class="function">    notFoundValue: <span class="built_in">any</span> = Injector.THROW_IF_NOT_FOUND</span>): <span class="title">any</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 依赖注入被 @Value 装饰器修饰</span></span><br><span class="line">  <span class="keyword">if</span> (depDef.flags &amp; DepFlags.Value) &#123;</span><br><span class="line">    <span class="keyword">return</span> depDef.token;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> startView = view;</span><br><span class="line">  <span class="comment">// 依赖注入被 @Optional 修饰</span></span><br><span class="line">  <span class="keyword">if</span> (depDef.flags &amp; DepFlags.Optional) &#123;</span><br><span class="line">    notFoundValue = <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 获取依赖的 token</span></span><br><span class="line">  <span class="keyword">const</span> tokenKey = depDef.tokenKey;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 依赖 token 为 ChangeDetectorRef</span></span><br><span class="line">  <span class="keyword">if</span> (tokenKey === ChangeDetectorRefTokenKey) &#123;</span><br><span class="line">    <span class="comment">// directives on the same element as a component should be able to control the change detector</span></span><br><span class="line">    <span class="comment">// of that component as well.</span></span><br><span class="line">    allowPrivateServices = !!(elDef &amp;&amp; elDef.element !.componentView);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 依赖被 @SkipSelf 修饰</span></span><br><span class="line">  <span class="keyword">if</span> (elDef &amp;&amp; (depDef.flags &amp; DepFlags.SkipSelf)) &#123;</span><br><span class="line">    allowPrivateServices = <span class="literal">false</span>;</span><br><span class="line">    elDef = elDef.parent !;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 将当前视图对象 view 赋值给 searchView</span></span><br><span class="line">  <span class="keyword">let</span> searchView: ViewData|<span class="literal">null</span> = view;</span><br><span class="line">  <span class="comment">// searchView 不为空就一直执行下去，除非提前返回</span></span><br><span class="line">  <span class="keyword">while</span> (searchView) &#123;</span><br><span class="line">    <span class="keyword">if</span> (elDef) &#123;</span><br><span class="line">      <span class="keyword">switch</span> (tokenKey) &#123;</span><br><span class="line">        <span class="comment">// token 为 Renderer</span></span><br><span class="line">        <span class="keyword">case</span> RendererV1TokenKey: &#123;</span><br><span class="line">          <span class="keyword">const</span> compView = findCompView(searchView, elDef, allowPrivateServices);</span><br><span class="line">          <span class="keyword">return</span> createRendererV1(compView);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// token 为 Renderer2</span></span><br><span class="line">        <span class="keyword">case</span> Renderer2TokenKey: &#123;</span><br><span class="line">          <span class="keyword">const</span> compView = findCompView(searchView, elDef, allowPrivateServices);</span><br><span class="line">          <span class="keyword">return</span> compView.renderer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// token 为 ElementRef  </span></span><br><span class="line">        <span class="keyword">case</span> ElementRefTokenKey:</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">new</span> ElementRef(asElementData(searchView, elDef.nodeIndex).renderElement);</span><br><span class="line">        <span class="comment">// token 为 ViewContainerRef</span></span><br><span class="line">        <span class="keyword">case</span> ViewContainerRefTokenKey:</span><br><span class="line">          <span class="keyword">return</span> asElementData(searchView, elDef.nodeIndex).viewContainer;</span><br><span class="line">        <span class="comment">// token 为 TemplateRef  </span></span><br><span class="line">        <span class="keyword">case</span> TemplateRefTokenKey: &#123;</span><br><span class="line">          <span class="keyword">if</span> (elDef.element !.template) &#123;</span><br><span class="line">            <span class="keyword">return</span> asElementData(searchView, elDef.nodeIndex).template;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// token 为 ChangeDetectorRef</span></span><br><span class="line">        <span class="keyword">case</span> ChangeDetectorRefTokenKey: &#123;</span><br><span class="line">          <span class="keyword">let</span> cdView = findCompView(searchView, elDef, allowPrivateServices);</span><br><span class="line">          <span class="keyword">return</span> createChangeDetectorRef(cdView);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// token 为 Injector</span></span><br><span class="line">        <span class="keyword">case</span> InjectorRefTokenKey:</span><br><span class="line">          <span class="keyword">return</span> createInjector(searchView, elDef);</span><br><span class="line">        <span class="comment">// token 为其他类型</span></span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">          <span class="keyword">const</span> providerDef =</span><br><span class="line">              (allowPrivateServices ? elDef.element !.allProviders :</span><br><span class="line">                                      elDef.element !.publicProviders) ![tokenKey];</span><br><span class="line">          <span class="keyword">if</span> (providerDef) &#123;</span><br><span class="line">            <span class="keyword">let</span> providerData = asProviderData(searchView, providerDef.nodeIndex);</span><br><span class="line">            <span class="keyword">if</span> (!providerData) &#123;</span><br><span class="line">              providerData = &#123;<span class="attr">instance</span>: _createProviderInstance(searchView, providerDef)&#125;;</span><br><span class="line">              searchView.nodes[providerDef.nodeIndex] = providerData <span class="keyword">as</span> <span class="built_in">any</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> providerData.instance;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    allowPrivateServices = isComponentView(searchView);</span><br><span class="line">    elDef = viewParentEl(searchView) !;</span><br><span class="line">    searchView = searchView.parent !;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (depDef.flags &amp; DepFlags.Self) &#123;</span><br><span class="line">      searchView = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> value = startView.root.injector.get(depDef.token, NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (value !== NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR ||</span><br><span class="line">      notFoundValue === NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR) &#123;</span><br><span class="line">    <span class="comment">// Return the value from the root element injector when</span></span><br><span class="line">    <span class="comment">// - it provides it</span></span><br><span class="line">    <span class="comment">//   (value !== NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR)</span></span><br><span class="line">    <span class="comment">// - the module injector should not be checked</span></span><br><span class="line">    <span class="comment">//   (notFoundValue === NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR)</span></span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> startView.root.ngModule.injector.get(depDef.token, notFoundValue);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>读取依赖注入前的装饰器，例如：<code>@Host</code>、<code>@Optional</code>、<code>@Self</code>、<code>@SkipSelf</code>。并且根据这些装饰器，对传进来的 <code>viewData</code> 和 <code>elDef</code> 进行配置</li>
+<li>判断依赖注入 <code>token</code> 的类型，并且根据 <code>switch</code> 语句中的分类进行执行</li>
+<li>若是走到了 <code>default</code> 分支，那么将这样进行查找依赖：<ul>
+<li>先查看当前元素的元素注入器 (<code>elDef.allProviders|publicProviders</code>) 是否拥有给定 <code>token</code> 的依赖，若无执行下一步</li>
+<li>将当前 <code>viewData.parent</code> 赋给新的 <code>viewData</code>，将当前 <code>viewData.parentDef.parent</code> 赋值给新的 <code>elDef</code>，然后进入下一个循环，也就是查看新的元素注入器 (<code>elDef.allProviders|publicProviders</code>) 中是否拥有给定依赖</li>
+</ul>
+</li>
+<li>如果还是找不到对应的依赖，则直接去查找初始视图的根注入器 (<code>startView.root.injector.get(token)</code>)</li>
+<li>若还是找不到对应依赖，则查找 (<code>startView.root.ngModule.injector.get(token)</code>)</li>
+</ul>
+</blockquote>
+<p>比如说，假设有如下一段小程序：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;my-app&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`&lt;my-list&gt;&lt;/my-list&gt;`</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">AppComponent</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;my-list&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;container&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;grid-list&gt;</span></span><br><span class="line"><span class="string">        &lt;grid-tile&gt;1&lt;/grid-tile&gt;</span></span><br><span class="line"><span class="string">        &lt;grid-tile&gt;2&lt;/grid-tile&gt;</span></span><br><span class="line"><span class="string">        &lt;grid-tile&gt;3&lt;/grid-tile&gt;</span></span><br><span class="line"><span class="string">      &lt;/grid-list&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">MyListComponent</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;grid-list&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`&lt;ng-content&gt;&lt;/ng-content&gt;`</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">GridListComponent</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;grid-tile&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`...`</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">GridTileComponent</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> gridList: GridListComponent</span>)</span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假设 <code>grid-tile</code> 组件依赖 <code>GridListComponent</code>，我们可以成功拿到该组件对象。但是这是怎么做到的？</p>
+<p><strong>这里的视图父元素到底是什么？</strong></p>
+<p>下面的步骤回答了这个问题：</p>
+<p>1、查找 <strong>起始元素</strong>。我们的 <code>GridTileComponent</code> 拥有 <code>grid-tile</code> 这个元素选择器，因此我们需要查找匹配 <code>grid-tile</code> 选择器的元素</p>
+<p>2、查找 <strong>模板</strong>。查找 <code>grid-tile</code> 元素所属的模板 (<code>MyListComponent template</code>)。</p>
+<p>3、确定该元素的视图，如果没有父嵌入视图，则为组件视图，否则为嵌入视图。<code>grid-tile</code> 元素之上没有任何的 <code>ng-template</code> 或者 <code>*structuralDirective</code>，所以这里是组件视图 <code>View_MyListComponent</code>。</p>
+<p>4、查找视图的父元素。这里是视图的父元素，而不是元素的父元素。</p>
+<p>这里有两种情况：</p>
+<ul>
+<li>对于嵌入视图，父元素则为包含该嵌入视图的视图容器，比如，假设 <code>grid-list</code> 上挂载有结构指令，则 <code>grid-tile</code> 视图的父元素则是 <code>div.container</code>。</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;my-list&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;container&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;grid-list *ngIf=&quot;1&quot;&gt;</span></span><br><span class="line"><span class="string">        &lt;grid-tile&gt;1&lt;/grid-tile&gt;</span></span><br><span class="line"><span class="string">        &lt;grid-tile&gt;2&lt;/grid-tile&gt;</span></span><br><span class="line"><span class="string">        &lt;grid-tile&gt;3&lt;/grid-tile&gt;</span></span><br><span class="line"><span class="string">      &lt;/grid-list&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">MyListComponent</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>对于组件视图，父元素则为宿主元素</li>
+</ul>
+<p>我们上面的小程序也就是组件视图，所以视图父元素是 <code>my-list</code> 元素，而不是 <code>grid-list</code>。</p>
+<p><strong>现在，你可能想知道如果 Angular 跳过 <code>grid-list</code>，则它是怎么解析 <code>GridListComponent</code> 依赖的？</strong></p>
+<p>关键在于 Angular 使用 <strong><a target="_blank" rel="noopener" href="https://github.com/angular/angular/blob/master/packages/core/src/view/view.ts#L87">原型链继承</a></strong> 来搜集 <code>Provider</code>：</p>
+<blockquote>
+<p>Each time we provide any token on an element, angular creates new <code>allProviders</code> and <code>publicProviders</code> array inherited from parent node, otherwise it just shares the same array with parent node.</p>
+</blockquote>
+<p>这就表示了 <code>grid-tile</code> 包含当前视图内所有父元素的所有 <code>Provider</code>。</p>
+<p>下图说明了 Angular 是如何为模板内元素收集 <code>Provider</code>：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/xnjleM.jpg" alt="alt"></p>
+<p>正如我们所见，<code>grid-tile</code> 可以成功获取到 <code>GridListComponent</code> 从它自己的 Element Injector 中的 <code>allProviders</code> 属性，因为 <code>grid-tile</code> 的 Element Injector 包括了来自父元素的所有 Providers。</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/1_el4lEGLk_TSoZLUKlKK06Q.gif" alt="alt"></p>
+<p>Element Injector 的 Provider 使用了原型链继承，导致了我们不能使用 multi 选项来提供同一个令牌多个服务，但是由于依赖注入系统很灵活，也有办法去解决这个可以，具体可以查看  <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/49406615/is-there-a-way-how-to-use-angular-multi-providers-from-all-multiple-levels">答案</a></p>
+<p>现在继续画注入树。</p>
+<h3 id="Simple-my-app-gt-child-gt-grand-child-application"><a href="#Simple-my-app-gt-child-gt-grand-child-application" class="headerlink" title="Simple my-app -&gt; child -&gt; grand-child application"></a>Simple my-app -&gt; child -&gt; grand-child application</h3><p>假设有如下简单程序：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;my-app&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`&lt;child&gt;&lt;/child&gt;`</span>,</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">AppComponent</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;child&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`&lt;grand-child&gt;&lt;/grand-child&gt;`</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">ChildComponent</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;grand-child&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`grand-child`</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">GrandChildComponent</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="title">constructor</span>(<span class="params"><span class="keyword">private</span> service: Service</span>)</span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@NgModule</span>(&#123;</span><br><span class="line">  <span class="attr">imports</span>: [BrowserModule],</span><br><span class="line">  <span class="attr">declarations</span>: [</span><br><span class="line">    AppComponent, </span><br><span class="line">    ChildComponent, </span><br><span class="line">    GrandChildComponent</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">bootstrap</span>: [AppComponent]</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">AppModule</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们有三层结构，并且 GrandChildComponent 依赖于 Service：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">my-app</span><br><span class="line">   child</span><br><span class="line">      grand-child(ask <span class="keyword">for</span> Service dependency)</span><br></pre></td></tr></table></figure>
+
+<p>下图解释了 Angular 内部是如何解析 Service 依赖的：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/3nKSe9.jpg" alt="alt"></p>
+<p>上面从 View_Child ① 的 <code>&lt;grand-child&gt;</code> 开始，并向上遍历查找所有视图的父元素，当视图没有父元素时，本实例中 <code>&lt;my-app&gt;</code> 没有父元素，则使用根视图的注入器进行查找 ②</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">startView.root.injector.get(depDef.token, NOT_FOUND_CHECK_ONLY_ELEMENT_INJECTOR);</span><br></pre></td></tr></table></figure>
+
+<p>本实例中 <code>startView.root.injector</code> 就是 <code>NullInjector</code>，由于 <code>NullInjector</code> 没有任何 Provider，则 Angular 就会切换到模块注入器 ③：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">startView.root.ngModule.injector.get(depDef.token, notFoundValue);</span><br></pre></td></tr></table></figure>
+
+<p>所以 Angular 会按照以下顺序解析依赖：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">AppModule Injector </span><br><span class="line"><span class="code">        ||</span></span><br><span class="line"><span class="code">        \/</span></span><br><span class="line"><span class="code">    ZoneInjector </span></span><br><span class="line"><span class="code">        ||</span></span><br><span class="line"><span class="code">        \/</span></span><br><span class="line"><span class="code">  Platform Injector </span></span><br><span class="line"><span class="code">        ||</span></span><br><span class="line"><span class="code">        \/</span></span><br><span class="line"><span class="code">    NullInjector </span></span><br><span class="line"><span class="code">        ||</span></span><br><span class="line"><span class="code">        \/</span></span><br><span class="line"><span class="code">       Error</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="路由程序"><a href="#路由程序" class="headerlink" title="路由程序"></a>路由程序</h2><p>让我们修改程序，添加路由器</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;my-app&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`&lt;router-outlet&gt;&lt;/router-outlet&gt;`</span>,</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">AppComponent</span> </span>&#123;&#125;</span><br><span class="line">...</span><br><span class="line"><span class="meta">@NgModule</span>(&#123;</span><br><span class="line">  <span class="attr">imports</span>: [</span><br><span class="line">    BrowserModule,</span><br><span class="line">    RouterModule.forRoot([</span><br><span class="line">      &#123; <span class="attr">path</span>: <span class="string">&#x27;child&#x27;</span>, <span class="attr">component</span>: ChildComponent &#125;,</span><br><span class="line">      &#123; <span class="attr">path</span>: <span class="string">&#x27;&#x27;</span>, <span class="attr">redirectTo</span>: <span class="string">&#x27;/child&#x27;</span>, <span class="attr">pathMatch</span>: <span class="string">&#x27;full&#x27;</span> &#125;</span><br><span class="line">    ])</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">declarations</span>: [</span><br><span class="line">    AppComponent,</span><br><span class="line">    ChildComponent,</span><br><span class="line">    GrandChildComponent</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">bootstrap</span>: [ AppComponent ]</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">AppModule</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样视图树就类似为：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">my-app</span><br><span class="line">   router-outlet</span><br><span class="line">   child</span><br><span class="line"><span class="code">      grand-child(dynamic creation)</span></span><br></pre></td></tr></table></figure>
+
+<p>现在让我们看看路由是如何创建动态组件：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> injector = <span class="keyword">new</span> OutletInjector(activatedRoute, childContexts, <span class="built_in">this</span>.location.injector);                           </span><br><span class="line"><span class="built_in">this</span>.activated = <span class="built_in">this</span>.location.createComponent(factory, <span class="built_in">this</span>.location.length, injector);</span><br></pre></td></tr></table></figure>
+
+<p>这里 Angular 使用新的 rootData 对象创建一个新的根视图，同时传入 OutletInjector 作为根元素注入器 elInjector。OutletInjector 又依赖于父注入器 this.location.injector，该父注入器是 router-outlet 的元素注入器。</p>
+<p>OutletInjector 是一种特别的注入器，行为有些向路由组件和父元素 router-outlet 之间的桥梁，该对象的代码可以看 **<a target="_blank" rel="noopener" href="https://github.com/angular/angular/blob/master/packages/router/src/directives/router_outlet.ts#L144">这里</a>**：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/Du0CuC.jpg" alt="alt"></p>
+<h2 id="延迟加载程序"><a href="#延迟加载程序" class="headerlink" title="延迟加载程序"></a>延迟加载程序</h2><p>最后，让我们把 GrandChildComponent 移到延迟加载模块，为此需要再子组件中添加 router-outlet，并修改路由配置：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  <span class="attr">selector</span>: <span class="string">&#x27;child&#x27;</span>,</span><br><span class="line">  <span class="attr">template</span>: <span class="string">`</span></span><br><span class="line"><span class="string">    Child</span></span><br><span class="line"><span class="string">    &lt;router-outlet&gt;&lt;/router-outlet&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">ChildComponent</span> </span>&#123;&#125;</span><br><span class="line">...</span><br><span class="line"><span class="meta">@NgModule</span>(&#123;</span><br><span class="line">  <span class="attr">imports</span>: [</span><br><span class="line">    BrowserModule,</span><br><span class="line">    RouterModule.forRoot([</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;child&#x27;</span>, <span class="attr">component</span>: ChildComponent,</span><br><span class="line">        <span class="attr">children</span>: [</span><br><span class="line">          &#123; </span><br><span class="line">             <span class="attr">path</span>: <span class="string">&#x27;grand-child&#x27;</span>, </span><br><span class="line">             <span class="attr">loadChildren</span>: <span class="string">&#x27;./grand-child/grand-child.module#GrandChildModule&#x27;</span>&#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123; <span class="attr">path</span>: <span class="string">&#x27;&#x27;</span>, <span class="attr">redirectTo</span>: <span class="string">&#x27;/child&#x27;</span>, <span class="attr">pathMatch</span>: <span class="string">&#x27;full&#x27;</span> &#125;</span><br><span class="line">    ])</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">declarations</span>: [</span><br><span class="line">    AppComponent,</span><br><span class="line">    ChildComponent</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">bootstrap</span>: [AppComponent]</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="class"><span class="keyword">class</span> <span class="title">AppModule</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">my-app</span><br><span class="line">   router-outlet</span><br><span class="line">   child (dynamic creation)</span><br><span class="line">       router-outlet</span><br><span class="line">         +grand-child(lazy loading)</span><br></pre></td></tr></table></figure>
+
+<p>让我们为延迟加载程序画两棵独立的树：</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/FE4nMJ.jpg" alt="alt"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        
+    <div style="text-align:center;color: #ccc;font-size:14px;">
+        ------ 本文结束<i class="fa fa-paw"></i>感谢您的阅读 ------</div>
+    
+
+      </div>
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3-Angular/" rel="tag"># 深入理解 Angular</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/09/CSS%EF%BC%9A%E5%AE%9A%E4%BD%8D/" rel="next" title="CSS：定位">
+                <i class="fa fa-chevron-left"></i> CSS：定位
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/head_icon.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/LauGaHo" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:cattou147@icloud.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Angular%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5-DI"><span class="nav-text">Angular：深入理解依赖注入 (DI)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E5%85%A5%E5%99%A8%E6%A0%91-Injector-Tree"><span class="nav-text">注入器树 (Injector Tree)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B9%E6%B3%A8%E5%85%A5%E5%99%A8-root-AppModule-Injector"><span class="nav-text">根注入器 (root AppModule Injector)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E5%8F%B0%E6%B3%A8%E5%85%A5%E5%99%A8-Platform-Injector"><span class="nav-text">平台注入器 (Platform Injector)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EntryComponent-and-RootData"><span class="nav-text">EntryComponent and RootData</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Element-Injector-vs-Module-Injector"><span class="nav-text">Element Injector vs Module Injector</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Merge-Injector"><span class="nav-text">什么是 Merge Injector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Element-Injector"><span class="nav-text">什么是 Element Injector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E7%AE%97%E6%B3%95-Resolution-Algorithm"><span class="nav-text">依赖算法 (Resolution Algorithm)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Simple-my-app-gt-child-gt-grand-child-application"><span class="nav-text">Simple my-app -&gt; child -&gt; grand-child application</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1%E7%A8%8B%E5%BA%8F"><span class="nav-text">路由程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E8%BF%9F%E5%8A%A0%E8%BD%BD%E7%A8%8B%E5%BA%8F"><span class="nav-text">延迟加载程序</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">36.8k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("XgHUBJ2VOhBvinnSAGM1wwHV-gzGzoHsz", "5EKezPCM7N2SMolnbU8Ap3lR");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

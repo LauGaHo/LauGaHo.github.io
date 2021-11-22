@@ -87,24 +87,24 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="CSS：Flex 布局盒子模型盒模型盒模型由 content、padding、border、margin 组成 margin margin 可以让块状元素居中显示，注意是块状元素。实现方式是：margin: 10px, auto  设置 margin 可能会导致上下的两个元素出现外间距合并的情况，类似的上边的 div (块级元素) 设置了 margin 为 100px，然后下边的 div 设置了">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/4COzFw.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7t8Gu5.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/2FW5XI.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/6d2FWW.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/JA3nNx.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/hOo7m9.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/NFWbgj.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/rttbFb.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/W8DGmG.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/iTaKZ4.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/sn1tSc.jpg">
-<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/KeVUWJ.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/4COzFw.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/7t8Gu5.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/2FW5XI.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/6d2FWW.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/JA3nNx.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/hOo7m9.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/NFWbgj.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/rttbFb.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/W8DGmG.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/iTaKZ4.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/sn1tSc.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/KeVUWJ.jpg">
 <meta property="article:published_time" content="2021-07-09T06:35:00.000Z">
-<meta property="article:modified_time" content="2021-07-09T07:14:13.978Z">
+<meta property="article:modified_time" content="2021-10-08T01:53:34.205Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="CSS">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/4COzFw.jpg">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/4COzFw.jpg">
 
 
 
@@ -430,7 +430,7 @@
 
 <p>注意，设为Flex布局后，子元素的float、clear和vertical-align属性将失效。</p>
 <h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>采用了 Flex 布局的元素，称为 Flex 容器，简称“容器”。它的所有子元素自动称为容器成员，称为 Flex 项目，简称“项目”</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/4COzFw.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/4COzFw.jpg" alt="alt"></p>
 <p>容器默认存在两根轴：水平方向的主轴 (main axis) 和垂直方向的交叉轴 (cross axis)。主轴的开始位置 (与边框的交叉点) 叫 main start，结束位置叫做 main end；交叉轴的开始位置叫做 (cross end)。</p>
 <p>项目默认沿主轴排列。单个项目占据的主轴空间叫做 (main size)，占据的交叉轴空间叫做 (cross size)。</p>
 <h3 id="容器的属性"><a href="#容器的属性" class="headerlink" title="容器的属性"></a>容器的属性</h3><p>以下 6 个属性设置在容器上</p>
@@ -445,7 +445,7 @@
 <h4 id="flex-direction"><a href="#flex-direction" class="headerlink" title="flex-direction"></a>flex-direction</h4><p>flex-direction 属性决定主轴的方向 (即项目的排列方向)</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.box</span> &#123;</span><br><span class="line">  <span class="attribute">flex-direction</span>: row | row-reverse | column | column-reverse</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/7t8Gu5.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/7t8Gu5.jpg" alt="alt"></p>
 <p>它的取值有 4 种可能：</p>
 <ul>
 <li>row (默认值)：主轴为水平方向，起点在左端</li>
@@ -454,27 +454,27 @@
 <li>column-reverse：主轴为垂直方向，起点在下方</li>
 </ul>
 <h4 id="flex-wrap"><a href="#flex-wrap" class="headerlink" title="flex-wrap"></a>flex-wrap</h4><p>默认情况下，项目都排在一条线 (又称“轴线”) 上。flex-wrap属性定义，如果一条轴线排不下，如何换行</p>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/2FW5XI.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/2FW5XI.jpg" alt="alt"></p>
 <p>它的取值有三种可能：</p>
 <ul>
 <li>norwrap (默认值)：不换行</li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/6d2FWW.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/6d2FWW.jpg" alt="alt"></p>
 <ul>
 <li>wrap：换行，第一行在上方</li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/JA3nNx.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/JA3nNx.jpg" alt="alt"></p>
 <ul>
 <li>wrap-reverse：换行，第一行在下方</li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/hOo7m9.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/hOo7m9.jpg" alt="alt"></p>
 <h4 id="flex-flow"><a href="#flex-flow" class="headerlink" title="flex-flow"></a>flex-flow</h4><p>flex-flow 属性是 flex-direction 属性和 flex-wrap 属性的简写形式，默认值为 row norwrap</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.box</span> &#123;</span><br><span class="line">  <span class="attribute">flex-flow</span>: &lt;flex-direction&gt; || &lt;flex-wrap&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h4 id="justify-content"><a href="#justify-content" class="headerlink" title="justify-content"></a>justify-content</h4><p>justify-content 属性定义了项目在主轴的对齐方式</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">justify-content</span>: flex-start | flex-end | center | space-between</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/NFWbgj.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/NFWbgj.jpg" alt="alt"></p>
 <p>它的取值有 5 种可能，具体对齐方式跟轴的方向有关，下面假设主轴为从左到右</p>
 <ul>
 <li>flex-start (默认值)：左对齐</li>
@@ -486,7 +486,7 @@
 <h4 id="align-items"><a href="#align-items" class="headerlink" title="align-items"></a>align-items</h4><p>align-items 属性定义项目在交叉轴上如何对齐</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">align-items</span>: flex-start | flex-end | center | baseline | stretc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/rttbFb.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/rttbFb.jpg" alt="alt"></p>
 <p>它的取值有 5 种可能：</p>
 <ul>
 <li>flex-start：交叉轴起点对齐</li>
@@ -498,7 +498,7 @@
 <h4 id="align-content"><a href="#align-content" class="headerlink" title="align-content"></a>align-content</h4><p>align-content 属性定义了多根轴线的对齐方式。如果项目只有一个轴线，该属性不起作用</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.box</span>&#123;</span><br><span class="line">	<span class="attribute">align-content</span>: flex-start | flex-end | center | space-between;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/W8DGmG.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/W8DGmG.jpg" alt="alt"></p>
 <ul>
 <li>flex-start：与交叉轴的起点对齐。</li>
 <li>flex-end：与交叉轴的终点对齐。</li>
@@ -518,7 +518,7 @@
 <h4 id="order"><a href="#order" class="headerlink" title="order"></a>order</h4><p>order 属性定义项目的排列顺序。数值越小，排列越靠前，默认为 0。</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">order</span>: &lt;integer&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/iTaKZ4.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/iTaKZ4.jpg" alt="alt"></p>
 <h4 id="flex-grow"><a href="#flex-grow" class="headerlink" title="flex-grow"></a>flex-grow</h4><p>flex-grow 属性定义项目的放大比例，默认为 0，即如果存在剩余空间，也不放大。</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex-grow</span>: &lt;number&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -526,7 +526,7 @@
 <h4 id="flex-shrink"><a href="#flex-shrink" class="headerlink" title="flex-shrink"></a>flex-shrink</h4><p>flex-shrink 属性定义了项目的缩小比例，默认为 1，即如果空间不够，该项目会缩小</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex-shrink</span>: &lt;number&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/sn1tSc.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/sn1tSc.jpg" alt="alt"></p>
 <p>如果所有项目 flex-shrink 属性为 1，那么当空间不够的时候，都将等比例缩小。如果一个项目的 flex-shrink 属性为 0，其他项目都为 1，则空间不足时，前者不缩小。负值对该属性无效。</p>
 <h4 id="flex-basis"><a href="#flex-basis" class="headerlink" title="flex-basis"></a>flex-basis</h4><p>flex-basis 属性定义了在分配多余空间之前，项目占据的主轴空间 (main size)。浏览器根据这个属性，计算主轴是否有多余空间。它的默认值为 auto，即项目本来大小。</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">flex-basis</span>: &lt;length&gt; | auto;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -540,7 +540,7 @@
 <h4 id="align-self"><a href="#align-self" class="headerlink" title="align-self"></a>align-self</h4><p>align-self 属性允许单个项目有与其他项目不一样的对齐方式，可覆盖 align-items 属性。默认值为 auto，表示继承父元素的 align-items，如果没有父元素，则等同 stretch。</p>
 <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.item</span>&#123;</span><br><span class="line">	<span class="attribute">align-self</span>: auto | flex-start | flex-end | center | baseline |</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/KeVUWJ.jpg" alt="alt"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/KeVUWJ.jpg" alt="alt"></p>
 <p>该属性可能取值为 6 个，除了 auto，其他都与 align-items 属性完全一致。</p>
 
       
@@ -582,8 +582,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/09/CSS%EF%BC%9A%E9%80%89%E6%8B%A9%E5%99%A8/" rel="next" title="CSS：选择器">
-                <i class="fa fa-chevron-left"></i> CSS：选择器
+              <a href="/2021/07/09/CSS%EF%BC%9A%E5%AE%9A%E4%BD%8D/" rel="next" title="CSS：定位">
+                <i class="fa fa-chevron-left"></i> CSS：定位
               </a>
             
           </div>
@@ -592,8 +592,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/07/09/CSS%EF%BC%9A%E5%AE%9A%E4%BD%8D/" rel="prev" title="CSS：定位">
-                CSS：定位 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/07/15/Angular%EF%BC%9A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%20(DI)/" rel="prev" title="Angular：深入理解依赖注入 (DI)">
+                Angular：深入理解依赖注入 (DI) <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -675,7 +675,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-count">46</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -688,7 +688,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -771,7 +771,7 @@
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">36.8k</span>
+    <span title="Site words total count">81.6k</span>
   
 </div>
 

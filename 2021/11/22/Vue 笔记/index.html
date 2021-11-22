@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="N4U3z9eG38Lid_ovHy3i47Sb00M4ti3kUYgOlswt6rs" />
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Vue," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Vue 笔记Object.defineProperty 方法 通过 Object.defineProperty 方法为对象生成的属性是不可被枚举的 (也就是不可以被遍历的) ，不可被修改，不可被删除 若想通过 Object.defineProperty 方法为对象生成的属性可以被枚举，就需要进行以下的操作  1234Object.defineProperty(person, &amp;#x27;age&amp;#">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue 笔记">
+<meta property="og:url" content="http://example.com/2021/11/22/Vue%20%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Vue 笔记Object.defineProperty 方法 通过 Object.defineProperty 方法为对象生成的属性是不可被枚举的 (也就是不可以被遍历的) ，不可被修改，不可被删除 若想通过 Object.defineProperty 方法为对象生成的属性可以被枚举，就需要进行以下的操作  1234Object.defineProperty(person, &amp;#x27;age&amp;#">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png">
+<meta property="article:published_time" content="2021-11-22T07:24:00.000Z">
+<meta property="article:modified_time" content="2021-11-22T07:24:15.238Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Vue">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/11/22/Vue 笔记/"/>
+
+
+
+
+
+  <title>Vue 笔记 | Hexo</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/22/Vue%20%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head_icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Vue 笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-11-22T15:24:00+08:00">
+                2021-11-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/11/22/Vue%20%E7%AC%94%E8%AE%B0/" class="leancloud_visitors" data-flag-title="Vue 笔记">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  6.6k
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Vue-笔记"><a href="#Vue-笔记" class="headerlink" title="Vue 笔记"></a>Vue 笔记</h1><h2 id="Object-defineProperty-方法"><a href="#Object-defineProperty-方法" class="headerlink" title="Object.defineProperty 方法"></a><code>Object.defineProperty</code> 方法</h2><ul>
+<li>通过 <code>Object.defineProperty</code> 方法为对象生成的属性是不可被枚举的 (也就是不可以被遍历的) ，不可被修改，不可被删除</li>
+<li>若想通过 <code>Object.defineProperty</code> 方法为对象生成的属性可以被枚举，就需要进行以下的操作</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Object</span>.defineProperty(person, <span class="string">&#x27;age&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">value</span>: <span class="number">18</span>,</span><br><span class="line">  <span class="attr">enumerable</span>: <span class="literal">true</span> <span class="comment">//默认值为 false</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>若想通过 <code>Object.defineProperty</code> 方法为对象生成的属性可以被修改，就需要进行以下的操作</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Object</span>.defineProperty(person, <span class="string">&#x27;age&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">value</span>: <span class="number">18</span>,</span><br><span class="line">  <span class="attr">enumerable</span>: <span class="literal">true</span>, <span class="comment">//默认值为 false</span></span><br><span class="line">  <span class="attr">writable</span>: <span class="literal">true</span>, <span class="comment">//默认值为 false</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>若想通过 <code>Object.defineProperty</code> 方法为对象生成的属性可以被删除，就需要进行以下的操作</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Object</span>.defineProperty(person, <span class="string">&#x27;age&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">value</span>: <span class="number">18</span>,</span><br><span class="line">  <span class="attr">enumerable</span>: <span class="literal">true</span>, <span class="comment">//默认值为 false</span></span><br><span class="line">  <span class="attr">writable</span>: <span class="literal">true</span>, <span class="comment">//默认值为 false</span></span><br><span class="line">  <span class="attr">configurable</span>: <span class="literal">true</span>, <span class="comment">//默认值为 false</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>若想通过 <code>Object.defineProperty</code> 方法为对象的属性绑定一个对象的地址，需要进行以下操作</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> number = <span class="number">18</span>;</span><br><span class="line"><span class="built_in">Object</span>.defineProperty(person, <span class="string">&#x27;age&#x27;</span>, &#123;</span><br><span class="line">  <span class="comment">// 当有人读取 person.age 就会调用 get 函数，且返回值是 age 的值</span></span><br><span class="line">  <span class="attr">get</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> number;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 当有人修改 person.age 就会调用 set 函数，且会收到修改的具体值</span></span><br><span class="line">  <span class="attr">set</span>: <span class="function"><span class="keyword">function</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  	number = value;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Vue-中的数据代理"><a href="#Vue-中的数据代理" class="headerlink" title="Vue 中的数据代理"></a>Vue 中的数据代理</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> vm = <span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  <span class="attr">el</span>: <span class="string">&#x27;#root&#x27;</span>,</span><br><span class="line">  <span class="attr">data</span>: &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&#x27;尚硅谷&#x27;</span>,</span><br><span class="line">    <span class="attr">address</span>: <span class="string">&#x27;宏福科技园&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 创建了数据代理之后，就可以通过下面的方式来访问 data 中的数据</span></span><br><span class="line"><span class="built_in">console</span>.log(vm.name);</span><br><span class="line"><span class="built_in">console</span>.log(vm.address);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>上方的代码中，初始化 Vue 实例的参数对象中的 <code>data</code> 属性对应的对象地址是存放在 Vue 实例中的 <code>_data</code> 属性当中的。然后读取 <code>_data</code> 中的属性，为里边的属性创建数据代理。在上方的例子中就是在 Vue 实例中创建 <code>name</code> 属性和 <code>address</code> 属性的数据代理，意思就是在 Vue 中增加了 <code>name</code> 和 <code>address</code> 属性。Vue 创建数据代理的方式就是使用 <code>Object.defineProperty</code> 这个方法。总结来说 Vue 的数据代理就是通过 vm 对象来代理 <code>data</code> 对象中的属性操作。</li>
+</ul>
+<h2 id="Vue-事件处理"><a href="#Vue-事件处理" class="headerlink" title="Vue 事件处理"></a>Vue 事件处理</h2><ul>
+<li>使用 <code>v-on:xxx</code> 或 <code>@xxx</code> 绑定事件，其中  <code>xxx</code> 是事件名</li>
+<li>事件的回调需要配置在 <code>methods</code> 对象中，最终会在 vm 上</li>
+<li><code>methods</code> 中配置的函数，不要用箭头函数，否则 <code>this</code> 就不是 vm 了</li>
+<li><code>methods</code> 中配置的函数，都是被 Vue 所管理的函数，<code>this</code> 的指向是 vm 或组件实例对象</li>
+<li><code>@click = &quot;demo&quot;</code> 和 <code>@click = &quot;demo($event)&quot;</code> 效果一致，但后者可以传参</li>
+</ul>
+<h2 id="Vue-事件修饰符"><a href="#Vue-事件修饰符" class="headerlink" title="Vue 事件修饰符"></a>Vue 事件修饰符</h2><ul>
+<li>prevent：阻止默认事件</li>
+<li>stop：阻止事件冒泡</li>
+<li>once：事件只触发一次</li>
+<li>capture：使用事件的捕获模式</li>
+<li>self：只有 <code>event.target</code> 是当前操作的元素才触发事件</li>
+<li>passive：事件的默认行为立即执行，无需等待事件回调执行完毕</li>
+</ul>
+<h2 id="Vue-计算属性"><a href="#Vue-计算属性" class="headerlink" title="Vue 计算属性"></a>Vue 计算属性</h2><ul>
+<li><p>计算属性：需要用到的属性不存在，要通过已有属性计算得来</p>
+</li>
+<li><p>原理：底层借助了 <code>Object.defineProperty</code> 方法提供的 <code>getter</code> 和 <code>setter</code></p>
+</li>
+<li><p><code>get</code> 函数在初次读取时会执行一次；当依赖数据发生改变时会被再次调用</p>
+</li>
+<li><p>与 <code>methods</code> 相比，计算属性具有缓存机制，效率更高</p>
+</li>
+<li><p>计算属性最终会出现在 vm 上，直接读取使用即可</p>
+</li>
+<li><p>如果计算属性要被修改，那必须写 <code>set</code> 函数去响应修改，且 <code>set</code> 中要引起计算时依赖的数据发生改变</p>
+</li>
+<li><p>Vue 计算属性响应式更新原理：</p>
+<ul>
+<li><p>计算属性更新过程</p>
+<ul>
+<li>首先 b 属性会被处理成存取器属性，访问 b 就会触发其 <code>get</code> 函数，从而会执行 <code>this.b</code>，于是就触发了 b 的 <code>get</code> 函数。</li>
+<li>b 的 <code>get</code> 函数会添加 b 属性的依赖项，而刚才在处理计算属性的过程中，a 已经作为依赖项传给了一个全局变量，b 的 <code>get</code> 函数会检测到这个全局变量，并将其添加到自身的订阅者列表中。</li>
+<li>对 b 赋予新的值时，会触发其 <code>set</code> 函数，<code>set</code> 函数中会遍历执行订阅者，a 的值就是在这个时候更新的。</li>
+</ul>
+</li>
+<li><p>计算属性初始化及响应式更新代码</p>
+<ul>
+<li><p><strong>实现 <code>defineReactive</code></strong></p>
+<ul>
+<li><p>它用于初始化 <code>data</code> 中的数据，转为存取器。<code>get</code>：该函数通过闭包，维护每一个属性单独的 <code>deps</code>，定义计算属性时，计算属性绑定的函数引用了哪些 <code>data</code> 中的属性，就会触发对应的 <code>get</code> 函数，向该属性的 <code>deps</code> 中添加响应函数。设置 <code>data</code> 值时，会将闭包的 <code>deps</code> 中所有函数，全部遍历执行一遍</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义全局属性，用于向dep传送计算属性函数</span></span><br><span class="line"><span class="keyword">var</span> Dep = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">defineReactive</span>(<span class="params">obj, key, val</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> deps = [];</span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(obj, key, &#123;</span><br><span class="line">    <span class="attr">get</span>: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (Dep) &#123;</span><br><span class="line">        deps.push(Dep)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> val</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">set</span>: <span class="function"><span class="keyword">function</span> (<span class="params">newVal</span>) </span>&#123;</span><br><span class="line">      val = newVal;</span><br><span class="line">      deps.forEach(<span class="function"><span class="params">func</span> =&gt;</span> func())</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>实现 <code>defineComputed</code></p>
+<ul>
+<li><p>它用于在定义计算属性时，如果绑定函数引用了 Vue 实例 <code>data</code> 对象中的属性，则会向该属性 <code>deps</code> 中添加绑定函数的函数</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">defineComputed</span>(<span class="params">obj, key, func</span>) </span>&#123;</span><br><span class="line">  func = func.bind(obj);</span><br><span class="line">  <span class="keyword">let</span> value;</span><br><span class="line">  <span class="comment">// 首次定义计算属性，会将第一次的函数执行结果返回给该计算属性，</span></span><br><span class="line">  <span class="comment">// 此后由于闭包，以后该计算属性的value值，会由deps中的函数返回值来决定。</span></span><br><span class="line">  Dep = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    value = func();</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">&#x27;Dep中value&#x27;</span>,value)</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="comment">// 执行一次func，函数引用了哪些data中属性，就会触发get方法，向该属性的dep中添加响应函数</span></span><br><span class="line">  <span class="comment">// 在这又使用了闭包，保存计算结果，在get中返回出去</span></span><br><span class="line">  value = func();</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&#x27;defineComputed中value&#x27;</span>,value)</span><br><span class="line">  <span class="comment">// 销毁Dep</span></span><br><span class="line">  Dep = <span class="literal">null</span>;</span><br><span class="line">  <span class="comment">// 获取计算属性时，返回函数计算结果</span></span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(obj, key, &#123;</span><br><span class="line">    <span class="attr">get</span>: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="comment">// 返回函数结果</span></span><br><span class="line">      <span class="keyword">return</span> value</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Vue-监视属性"><a href="#Vue-监视属性" class="headerlink" title="Vue 监视属性"></a>Vue 监视属性</h2><ul>
+<li>当监视的属性变化时，回调函数自动调用，进行相关操作</li>
+<li>监视的属性必须存在，才能进行监视，<code>data</code> 属性和 <code>computed</code> 属性都可以被监视</li>
+<li>监视属性的两种写法：<code>new Vue</code> 时传入 <code>watch</code> 配置；通过 <code>vm.$watch</code> 监视</li>
+</ul>
+<h2 id="Vue-深度监视"><a href="#Vue-深度监视" class="headerlink" title="Vue 深度监视"></a>Vue 深度监视</h2><ul>
+<li>Vue 中的 <code>watch</code> 默认不监视对象内部值的改变 (一层)</li>
+<li>配置 <code>deep: true</code> 可以监视对象内部值的改变 (多层)</li>
+<li>Vue 自身可以监测对象内部值的改变，但 Vue 提供的 <code>watch</code> 默认不可以</li>
+<li>使用 <code>watch</code> 时根据数据的具体结构，决定是否采用深度监视</li>
+</ul>
+<h2 id="Vue-watch-对比-computed"><a href="#Vue-watch-对比-computed" class="headerlink" title="Vue watch 对比 computed"></a>Vue watch 对比 computed</h2><ul>
+<li><code>computed</code> 能完成的功能，<code>watch</code> 都可以完成</li>
+<li><code>watch</code> 能完成的功能，<code>computed</code> 不一定能完成，例如：<code>watch</code> 可以进行异步操作</li>
+<li>所有被 Vue 管理的函数，最好写成普通函数，这样 <code>this</code> 的指向才是 <code>vm</code> 或者组件示例对象</li>
+<li>所有不被 Vue 所管理的函数 (定时器的回调函数、ajax 的回调函数等) ，最好写成箭头函数，这样 <code>this</code> 的指向才是 <code>vm</code> 或者组件实例对象</li>
+</ul>
+<h2 id="Vue-style-和-class-绑定"><a href="#Vue-style-和-class-绑定" class="headerlink" title="Vue style 和 class 绑定"></a>Vue style 和 class 绑定</h2><ul>
+<li>class 样式：<ul>
+<li>字符串写法：适用于类名不确定，要动态获取</li>
+<li>对象写法：适用于要绑定多个样式，个数不确定，名字也不确定</li>
+<li>数组写法：适用于要绑定多个样式，个数确定，名字也确定，但不确定用还是不用</li>
+</ul>
+</li>
+<li>style 样式：<ul>
+<li><code>:style = &quot;&#123;fontSize: xxx&#125;&quot;</code> 其中 xxx 是动态值</li>
+<li><code>:style = &quot;[a, b]&quot;</code> 其中 a、b 是样式对象</li>
+</ul>
+</li>
+</ul>
+<h2 id="Vue-条件渲染"><a href="#Vue-条件渲染" class="headerlink" title="Vue 条件渲染"></a>Vue 条件渲染</h2><ul>
+<li><code>v-if</code><ul>
+<li><code>v-if = &quot;xxx&quot;</code></li>
+<li><code>v-else-if = &quot;xxx&quot;</code></li>
+<li><code>v-else = xxx</code></li>
+<li>适用于切换频率比较低的场景，不展示的 DOM 元素直接被移除掉，配合使用时不能被打断</li>
+</ul>
+</li>
+<li><code>v-show</code><ul>
+<li><code>v-show = &quot;xxx&quot;</code></li>
+<li>适用于切换频率较高的场景，不展示的 DOM 元素不会被移除，仅仅是使用样式隐藏掉</li>
+</ul>
+</li>
+<li>使用 <code>v-if</code> 的时候，元素可能无法获取到，但使用 <code>v-show</code> 就能被获取到</li>
+</ul>
+<h2 id="Vue-列表渲染"><a href="#Vue-列表渲染" class="headerlink" title="Vue 列表渲染"></a>Vue 列表渲染</h2><ul>
+<li><code>v-for</code> <ul>
+<li>用于展示列表数据</li>
+<li>语法：<code>v-for = &quot;(item, index) in xxx&quot; :key = &quot;yyy&quot;</code></li>
+<li>可遍历：数组、对象、字符串 (用得少)、指定次数 (用得少)</li>
+</ul>
+</li>
+</ul>
+<h2 id="Vue-中-key-的作用与原理"><a href="#Vue-中-key-的作用与原理" class="headerlink" title="Vue 中 key 的作用与原理"></a>Vue 中 key 的作用与原理</h2><ul>
+<li>虚拟 DOM 中 key 的作用<ul>
+<li>key 是虚拟 DOM 对象的标识，当数据发生变化时，Vue 会根据新数据生成新的虚拟 DOM，随后 Vue 进行新虚拟 DOM 与旧虚拟 DOM 的差异比较。比较规则在下面说明</li>
+</ul>
+</li>
+<li>对比规则<ul>
+<li>旧虚拟 DOM 中找到了与新虚拟 DOM 相同的 key<ul>
+<li>若虚拟 DOM 中内容没有发生改变，直接使用之前的真实 DOM</li>
+<li>若虚拟 DOM 中内容发生了改变，则直接生成新的真实 DOM，随后替换掉页面中之前的真实 DOM</li>
+</ul>
+</li>
+<li>旧虚拟 DOM 中未找到与新虚拟 DOM 相同的 key<ul>
+<li>创建新的真实 DOM，随后渲染到页面</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>用 index 作为 key 可能会引发的问题<ul>
+<li>若对数据进行：逆序添加、逆序删除等操作会产生没有必要的真实 DOM 更新，导致效率低下</li>
+<li>如果结构中还包含输入类 DOM 会产生错误 DOM 更新，导致界面有问题</li>
+</ul>
+</li>
+<li>开发中如何选择 key<ul>
+<li>最好使用每条数据的唯一标识作为 key，比如 id、手机号、身份证号、学号等唯一值</li>
+<li>如果不存在对数据的逆序添加、逆序删除等破坏顺序操作，仅用于渲染列表用于展示，使用 index 作为 key 是没有问题的。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Vue-监视数据的原理"><a href="#Vue-监视数据的原理" class="headerlink" title="Vue 监视数据的原理"></a>Vue 监视数据的原理</h2><ul>
+<li>Vue 会监视 data 中所有层次的数据</li>
+<li>如何监测对象中的数据<ul>
+<li>通过 <code>setter</code> 实现监测，且要在 <code>new Vue</code> 时就传入要监测的数据<ul>
+<li>对象中后追加的属性，Vue 默认不做响应式处理</li>
+<li>如需给后添加的属性做响应式，请使用如下的 API：<code>Vue.set(target, propertyName/index, value)</code> 或 <code>vm.$set(target, propertyName/index, value)</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如何监测数组中的数据<ul>
+<li>通过包裹数组更新元素的方法实现，本质上就是做了两件事情<ul>
+<li>调用原生对应的方法对数组进行更新</li>
+<li>重新解析模板，进而更新页面</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在 Vue 修改数组中的某个元素一定要用如下方法<ul>
+<li>使用这些 API：<code>push(), pop(), shift(), unshift(), splice(), sort(), reverse()</code></li>
+<li>或者使用：<code>Vue.set()</code> 或者 <code>vm.$set()</code></li>
+<li>特别注意，<code>Vue.set()</code> 和 <code>vm.$set()</code> 不能给 vm 或者 vm 的根数据对象添加属性</li>
+</ul>
+</li>
+</ul>
+<h2 id="收集表单数据"><a href="#收集表单数据" class="headerlink" title="收集表单数据"></a>收集表单数据</h2><ul>
+<li><code>&lt;input type=&quot;text&quot;/&gt;</code>。则 <code>v-model</code> 收集的是 value 值，用户输入的就是 value 值</li>
+<li><code>&lt;input type=&quot;radio&quot;/&gt;</code>。则 <code>v-model</code> 收集的是 value 值，且要给标签配置 value 值。</li>
+<li><code>&lt;input type=&quot;checkbox&quot;/&gt;</code><ul>
+<li>没有配置 <code>input</code> 的 value 值，那么收集的就是 checked (布尔值)</li>
+<li>配置 <code>input</code> 的 value 属性：<ul>
+<li><code>v-model</code> 的初始值是非数组，那么收集的就是 checked (布尔值)</li>
+<li><code>v-model</code> 的初始值是数组，那么收集的就是 value 组成的数组</li>
+</ul>
+</li>
+<li>备注：<code>v-model</code> 的三个修饰符<ul>
+<li><code>lazy</code>：失去焦点再收集数据</li>
+<li><code>number</code>：输入字符串转为有效的数字</li>
+<li><code>trim</code>：输入首尾空格过滤</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="过滤器"><a href="#过滤器" class="headerlink" title="过滤器"></a>过滤器</h2><ul>
+<li>定义：对要显示的数据进行特定格式化后再显示 (适用于一些简单逻辑的处理)</li>
+<li>语法：<ul>
+<li>注册过滤器：<code>Vue.filter(name, callback)</code> 或 <code>new Vue(filters: &#123;&#125;)</code></li>
+<li>使用过滤器：<code>&#123;&#123;xxx | 过滤器名&#125;&#125;</code> 或 <code>v-bind: 属性 = &quot;xxx | 过滤器名&quot;</code></li>
+</ul>
+</li>
+<li>备注<ul>
+<li>过滤器也可以接收额外的参数、多个过滤器也可以串联</li>
+<li>并没有改变原来的数据，是产生新的对应的数据</li>
+</ul>
+</li>
+</ul>
+<h2 id="已学的-Vue-指令"><a href="#已学的-Vue-指令" class="headerlink" title="已学的 Vue 指令"></a>已学的 Vue 指令</h2><ul>
+<li><code>v-bind</code> ：单向绑定解析表达式，可简写为 <code>:xxx</code></li>
+<li><code>v-model</code>：双向数据绑定</li>
+<li><code>v-for</code>：遍历数组、对象、字符串</li>
+<li><code>v-on</code>：绑定事件监听，可简写为 <code>@xxx</code></li>
+<li><code>v-if</code>：条件渲染 (动态控制节点是否存在)</li>
+<li><code>v-else</code>：条件渲染 (动态控制节点是否存在)</li>
+<li><code>v-show</code>：条件渲染  (动态控制节点是否展示)</li>
+</ul>
+<h2 id="v-html-指令"><a href="#v-html-指令" class="headerlink" title="v-html  指令"></a>v-html  指令</h2><ul>
+<li>作用：向指定节点中渲染包含 html 结构的内容</li>
+<li>与插值语法的区别<ul>
+<li><code>v-html</code> 会替换掉节点中所有的内容，<code>&#123;&#123;xx&#125;&#125;</code> 则不会</li>
+<li><code>v-html</code> 可以识别 html 结构</li>
+</ul>
+</li>
+<li>严重注意，<code>v-html</code> 有安全性问题<ul>
+<li>在网站上动态渲染任意 html 是非常危险的，容易导致 XSS 攻击</li>
+<li>一定要在可信的内容上使用 v-html，永不要用在用户提交的内容上</li>
+</ul>
+</li>
+</ul>
+<h2 id="v-cloak-指令"><a href="#v-cloak-指令" class="headerlink" title="v-cloak 指令"></a>v-cloak 指令</h2><ul>
+<li>本质是一个特殊属性，Vue 实例创建完毕并接管容器后，会删掉 <code>v-cloak</code> 属性</li>
+<li>使用 css 配合 <code>v-cloak</code> 可以解决网速慢时页面展示出 <code>&#123;&#123;xxx&#125;&#125;</code> 的问题</li>
+</ul>
+<h2 id="v-once-指令"><a href="#v-once-指令" class="headerlink" title="v-once 指令"></a>v-once 指令</h2><ul>
+<li><code>v-once</code> 所在节点在初次动态渲染后，就视为静态内容了</li>
+<li>以后数据的改变不会引起 <code>v-once</code> 所在结构的更新，可以用于优化性能</li>
+</ul>
+<h2 id="v-pre-指令"><a href="#v-pre-指令" class="headerlink" title="v-pre 指令"></a>v-pre 指令</h2><ul>
+<li>跳过其所在节点的编译过程</li>
+<li>可利用它跳过：没有使用指令语法、没有使用插值语法的节点，会加快编译</li>
+</ul>
+<h2 id="Vue-模板语法"><a href="#Vue-模板语法" class="headerlink" title="Vue 模板语法"></a>Vue 模板语法</h2><ul>
+<li>插值语法<ul>
+<li>功能：用于解析标签体内容</li>
+<li>写法：<code>&#123;&#123;xxx&#125;&#125;</code> 其中 <code>xxx</code> 是 JS 表达式，且可以直接读取到 data 中的所有属性</li>
+</ul>
+</li>
+<li>指令语法<ul>
+<li>功能：用于解析标签 (包括：标签属性、标签体内容、绑定事件)</li>
+<li>举例：<code>v-bind:href=&quot;xxx&quot;</code> 或简写为 <code>:href=&quot;xxx&quot;</code>，<code>xxx</code> 同样要写 JS 表达式，且可以直接读取到 data 中的所有属性</li>
+<li>备注：Vue 中有很多指令，且形式都是 <code>v-??????</code>，此处我们只是拿  <code>v-bind</code> 举个例子</li>
+</ul>
+</li>
+</ul>
+<h2 id="自定义指令"><a href="#自定义指令" class="headerlink" title="自定义指令"></a>自定义指令</h2><ul>
+<li><p>定义语法</p>
+<ul>
+<li><p>局部指令</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">	<span class="attr">directives</span>: &#123;</span><br><span class="line">		指令名: 配置对象</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  <span class="function"><span class="title">directives</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
+<li><p>全局指令</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Vue.directive(指令名, 配置对象) 或者 Vue.directive(指令名, 回调函数)</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>配置对象中常用的 3 个回调</p>
+<ul>
+<li><code>.bind</code>：指令和元素成功绑定时调用</li>
+<li><code>.inserted</code>：指令所在元素被插入页面时调用</li>
+<li><code>.update</code>：指令所在模板结构被重新解析时调用</li>
+</ul>
+</li>
+<li><p>备注</p>
+<ul>
+<li>指令定义时不加 <code>v-</code>，但使用时要加 <code>v-</code></li>
+<li>指令名如果是多个单词，要是用 <code>kekab-case</code> 命名方式，不要使用 <code>camelCase</code> 方式命名</li>
+<li>配置对象中的常用 3 个回调函数中的 <code>this</code> 指向都是指向 <code>window</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h2><ul>
+<li>生命周期又名生命周期回调函数、生命周期函数、生命周期钩子</li>
+<li>Vue 在关键时刻帮我们调用的一些特殊名称的函数</li>
+<li>生命周期函数的名字不可更改，但函数的具体内容是程序员根据需求编写的</li>
+<li>生命周期函数中的 this 指向是 vm 或 组件实例对象</li>
+<li>Vue 的生命周期：<ul>
+<li>将要创建 ==&gt; 调用 <code>beforeCreate</code> 函数</li>
+<li>创建完毕 ==&gt; 调用 <code>created</code> 函数</li>
+<li>将要挂载 ==&gt; 调用 <code>beforeMount</code></li>
+<li><u><strong>(重要)</strong></u> 挂载完毕 ==&gt; 调用 <code>mounted</code> 函数 ==========&gt; 重要的钩子</li>
+<li>将要更新 ==&gt; 调用 <code>beforeUpdate</code> 函数</li>
+<li>更新完毕 ==&gt; 调用 <code>updated</code> 函数</li>
+<li><strong><u>(重要)</u></strong> 将要销毁 ==&gt; 调用 <code>beforeDestroy</code> 函数 ==========&gt; 重要的钩子</li>
+<li>销毁完毕 ==&gt; 调用 <code>destroyed</code> 函数</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png" alt="alt"></p>
+<ul>
+<li>常用的生命周期钩子<pre><code>- `mounted`：发送 ajax 请求、启动定时器、绑定自定义事件、订阅消息等 (初始化操作)
+- `beforeDestroy`：清除定时器、解绑自定义事件、取消订阅消息等 (收尾工作)
+</code></pre>
+</li>
+<li>关于销毁 Vue 实例<pre><code>- 销毁后借助 Vue 开发者工具看不到任何信息
+- 销毁后自定义事件会失效，但原生 DOM 事件依然有效
+- 一般不会在 `beforeDestroy` 操作数据，因为即便操作数据，也不会再触发更新流程了
+</code></pre>
+</li>
+</ul>
+<h2 id="Vue-使用组件的三大步骤"><a href="#Vue-使用组件的三大步骤" class="headerlink" title="Vue 使用组件的三大步骤"></a>Vue 使用组件的三大步骤</h2><ul>
+<li>定义组件<ul>
+<li>使用 <code>Vue.extend(options)</code> 创建，其中 <code>options</code> 和 <code>new Vue(options)</code> 时传入的那个 <code>options</code> 几乎一样，但也有点区别，区别如下：<ul>
+<li><code>el</code> 不要写 — 最终所有的组件都要经过一个 vm 的管理，由 vm 中的 <code>el</code> 决定服务哪个容器。</li>
+<li><code>data</code> 必须写成函数  — 避免组件复用时，数据存在引用关系</li>
+</ul>
+</li>
+<li>备注：使用 <code>template</code> 可以配置组件结构</li>
+</ul>
+</li>
+<li>如何注册组件<ul>
+<li>局部注册：靠 <code>new Vue</code> 的时候传入 <code>component</code> 选项</li>
+<li>全局注册：靠 <code>Vue.component(&#39;组件名&#39;, 组件)</code></li>
+</ul>
+</li>
+<li>编写组件标签<ul>
+<li><code>&lt;school&gt;&lt;/school&gt;</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="Vue-组件注意的点"><a href="#Vue-组件注意的点" class="headerlink" title="Vue 组件注意的点"></a>Vue 组件注意的点</h2><ul>
+<li>关于组件名<ul>
+<li>一个单词<ul>
+<li>第一种写法 (首字母小写)：school</li>
+<li>第二种写法 (首字母大写)：School</li>
+</ul>
+</li>
+<li>多个单词<ul>
+<li>第一种写法 (kekab-case)：my-school</li>
+<li>第二种写法 (CamelCase)：MySchool (需要 Vue 脚手架支持)</li>
+</ul>
+</li>
+<li>备注<ul>
+<li>组件名尽可能回避 HTML 中已有的元素名称，例如：h2 和 H2 都不行</li>
+<li>可以使用 name 配置项指定组件在开发者工具中呈现的名字</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>关于组件标签<ul>
+<li>第一种写法：<code>&lt;school&gt;&lt;/school&gt;</code></li>
+<li>第二种写法：<code>&lt;/school&gt;</code></li>
+<li>备注：不使用脚手架时，<code>&lt;/school&gt;</code> 会导致后续组件不能渲染</li>
+</ul>
+</li>
+<li>一个简写方式<ul>
+<li><code>const school = Vue.extend(options)</code> 可简写为：<code>const school  = options</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="关于-VueComponent"><a href="#关于-VueComponent" class="headerlink" title="关于 VueComponent"></a>关于 VueComponent</h2><ul>
+<li>school  组件的本质是一个名为 <code>VueComponent</code>  的构造函数，且不是程序员定义的，是 <code>Vue.extend</code> 生成的</li>
+<li>我们只需要写 <code>&lt;school&gt;&lt;/school&gt;</code> 或 <code>&lt;/school&gt;</code>，Vue 解析时会为我们创建 school 组件的实例对象，即 Vue 帮我们执行 <code>new VueComponent(options)</code></li>
+<li>特别注意：每次调用 <code>Vue.extend</code> ，返回的都是一个全新的 <code>VueComponent</code>！！！！！！！！！！</li>
+<li>关于 <code>this</code> 指向：<ul>
+<li>组件配置中：<code>data</code>、<code>methods</code>、<code>watch</code>、<code>computed</code> 等函数他们的 <code>this</code> 指向都是 <code>VueComponent</code> 实例对象</li>
+<li><code>new Vue()</code> 配置中：<code>data</code>、<code>methods</code>、<code>watch</code>、<code>computed</code> 等函数他们的 <code>this</code> 指向都是 <code>Vue</code> 实例对象</li>
+</ul>
+</li>
+<li><code>VueComponent</code> 的实例对象，以后简称 <code>vc</code> 。<code>Vue</code> 的实例对象，以后简称 <code>vm</code> 。</li>
+</ul>
+<h2 id="一个重要的内置关系"><a href="#一个重要的内置关系" class="headerlink" title="一个重要的内置关系"></a>一个重要的内置关系</h2><ul>
+<li><code>VueComponent.prototype.__proto__ === Vue.prototype</code></li>
+<li>上述的关系是为了能够让组件实例 (vc) 可以访问到 Vue 原型上的属性和方法</li>
+</ul>
+<h2 id="关于不同版本的-Vue"><a href="#关于不同版本的-Vue" class="headerlink" title="关于不同版本的 Vue"></a>关于不同版本的 Vue</h2><ul>
+<li><code>vue.js</code> 和 <code>vue.runtime.xxx.js</code> 的区别：<ul>
+<li><code>vue.js</code> 是完整版的 Vue，包含：核心功能和模板解析器</li>
+<li><code>vue.runtime.xxx.js</code> 是运行版的 Vue，只包含核心功能，没有模板解析器</li>
+</ul>
+</li>
+<li>因为 <code>vue.runtime.xxx.js</code> 没有模板解析器，所以不能使用 <code>template</code> 配置项，需要使用 <code>render</code> 函数接收到的 <code>createElement</code> 函数去指定具体内容</li>
+</ul>
+<h2 id="ref-属性-相当于-Angular-中的-ViewChild"><a href="#ref-属性-相当于-Angular-中的-ViewChild" class="headerlink" title="ref 属性 (相当于 Angular 中的 @ViewChild)"></a>ref 属性 (相当于 Angular 中的 @ViewChild)</h2><ul>
+<li>被用来给元素或子组件注册引用信息 (id 的替代者)</li>
+<li>应用在 HTML 标签上获取的是真实 DOM 元素，应用在组件标签上是组件实例对象 (vc)</li>
+<li>使用方式：<ul>
+<li>打标识：<code>&lt;h1 ref=&quot;xxx&quot;&gt;......&lt;/h1&gt;</code> 或 <code>&lt;School ref=&quot;xxx&quot;&gt;&lt;/School&gt;</code></li>
+<li>获取：<code>this.$refs.xxx</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="props-配置项-相当于-Angular-中的-Input"><a href="#props-配置项-相当于-Angular-中的-Input" class="headerlink" title="props 配置项 (相当于 Angular 中的 @Input)"></a>props 配置项 (相当于 Angular 中的 @Input)</h2><ul>
+<li><p>功能：让组件接收外部传过来的数据</p>
+<ul>
+<li><p>传递数据</p>
+<ul>
+<li><code>&lt;Demo name=&quot;xxx&quot;/&gt;</code> 或者 <code>&lt;Demo :name=&quot;xxx&quot;&gt;</code>。两者的区别在于：前者传入的是一个字符串，后者传入的是一个名为 xxx 的变量</li>
+</ul>
+</li>
+<li><p>接收数据</p>
+<ul>
+<li><p>第一种方式 (只接收)：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">props: [<span class="string">&#x27;name&#x27;</span>]</span><br></pre></td></tr></table></figure></li>
+<li><p>第二种方式 (限制类型)：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">props: &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="built_in">String</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>第三种方式 (限制类型、限制必要性、指定默认值)</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">props: &#123;</span><br><span class="line">  <span class="attr">name</span>: &#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="built_in">String</span>, <span class="comment">//类型</span></span><br><span class="line">  	<span class="attr">required</span>: <span class="literal">true</span>,	<span class="comment">//必要性</span></span><br><span class="line">    <span class="attr">default</span>: <span class="string">&#x27;老王&#x27;</span>	<span class="comment">//默认值</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code>props</code> 是只读的，Vue 底层会检测你对 <code>props</code> 的修改，如果进行了修改，就会发出警告，若业务需求确实需要修改，那么请复制 <code>props</code> 的内容到 <code>data</code> 中一份，然后去修改 <code>data</code> 中的数据。<code>VueComponent</code> 加载的过程中，是先加载 <code>props</code> 然后再加载 <code>data</code> 的，所以在初始化加载 <code>data</code> 的时候，已经能够获取对应 <code>props</code> 的值了。</p>
+</li>
+</ul>
+<h2 id="mixin-混入-相当于-Angular-中子类继承父类"><a href="#mixin-混入-相当于-Angular-中子类继承父类" class="headerlink" title="mixin 混入 (相当于 Angular 中子类继承父类)"></a>mixin 混入 (相当于 Angular 中子类继承父类)</h2><ul>
+<li><p>功能：可以把多个组件共用的配置提取成一个混入对象</p>
+</li>
+<li><p>使用方式：</p>
+<ul>
+<li><p>第一步定义混合，例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="function"><span class="title">data</span>(<span class="params"></span>)</span> &#123;...&#125;,</span><br><span class="line">  <span class="attr">methods</span>: &#123;...&#125;,</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>第二步使用混合，例如：</p>
+<ul>
+<li>全局混入：<code>Vue.mixin(xxx)</code></li>
+<li>局部混入：<code>mixins: [&#39;xxx&#39;]</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="插件"><a href="#插件" class="headerlink" title="插件"></a>插件</h2><ul>
+<li><p>功能：用于增强 Vue</p>
+</li>
+<li><p>本质：包含 <code>intall</code> 方法的一个对象，<code>install</code> 的第一个参数是 Vue，第二个以后的参数是插件使用者传递的数据</p>
+</li>
+<li><p>定义插件：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">对象.install = <span class="function"><span class="keyword">function</span>(<span class="params">Vue, options</span>) </span>&#123;</span><br><span class="line">  <span class="comment">//添加全局过滤器</span></span><br><span class="line">  Vue.filter(...)</span><br><span class="line">            </span><br><span class="line">  <span class="comment">//添加全局指令</span></span><br><span class="line">  Vue.directive(...)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//配置全局混入</span></span><br><span class="line">  Vue.mixin(...)</span><br><span class="line">            </span><br><span class="line">  <span class="comment">//添加实例方法</span></span><br><span class="line">  Vue.prototype.$myMethod = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;...&#125;</span><br><span class="line">  Vue.prototype.$myProperty = xxx</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="comment">// 使用插件</span></span><br><span class="line">Vue.use(plugin);</span><br><span class="line"><span class="comment">// 此外，还可以在后边添加参数</span></span><br><span class="line">Vue.use(plugin, xxx, yyy)</span><br><span class="line"><span class="comment">// 多出来的参数可以在上方的 options 中获取</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="scoped-样式"><a href="#scoped-样式" class="headerlink" title="scoped 样式"></a>scoped 样式</h2><ul>
+<li>作用：让样式在局部生效，防止冲突</li>
+<li>写法：<code>&lt;style scoped&gt;&lt;/style&gt;</code></li>
+<li>注意：一般情况下，<code>AppComponent</code> 中不是用局部样式，<code>AppComponent</code> 中一般使用的都是全局样式</li>
+</ul>
+<h2 id="总结-TodoList-案例"><a href="#总结-TodoList-案例" class="headerlink" title="总结 TodoList 案例"></a>总结 TodoList 案例</h2><ul>
+<li>组件化编码流程<ul>
+<li>拆分静态组件：组件要按照功能点进行拆分，命名不要和 <code>html</code> 元素冲突</li>
+<li>实现动态组件：考虑好数据的存放位置，数据是一个组件在用还是一些组件在用：<ul>
+<li>一个组件在用：放在组件自身即可</li>
+<li>一些组件再用：放在他们共同的父组件上 (<em>状态提升</em>)</li>
+</ul>
+</li>
+<li>实现交互：从绑定事件开始</li>
+</ul>
+</li>
+<li><code>props</code> 使用于<ul>
+<li>父组件 ==&gt; 子组件</li>
+<li>子组件 ==&gt; 父组件 (要求：需要父组件先给子组件传一个函数，具体可以参考 ezlearn 项目中的 <code>crossGet</code>)</li>
+</ul>
+</li>
+<li>使用 <code>v-model</code> 时需要切记：<code>v-model</code> 绑定的值不能是 <code>props</code> 传过来的值，因为 <code>props</code> 是不可以修改的！(其实这里 Vue 跟 Angular 是有点类似的，在 Angular 中如果存在 <code>@Input</code> 这种父传值给子的情况，一旦在子组件中改变对应 <code>@Input</code> 的值就很容易会导致 Angular 变更检测的时候无法检测到数据的变化，所以两个框架的道理都是相通的，如果存在父传子的数据绑定，一定需要在数据源的地方进行修改数据，不要直接在子组件对数据进行修改！！！！！！！！这个是代码规范的问题！！！！)</li>
+<li><code>props</code> 传过来的若是类型的值，修改对象中的属性时，Vue 不会报错，但是不推荐这样做，因为这样违背了上一条中所说的规范，关于所有 父传子的绑定，都需要在数据源的地方进行修改，切勿随意在子组件对数据进行修改</li>
+</ul>
+<h2 id="WebStorage"><a href="#WebStorage" class="headerlink" title="WebStorage"></a>WebStorage</h2><ul>
+<li>存储内容大小一般支持 5MB 左右 (不同浏览器可能还不一样)</li>
+<li>浏览器通过 Window.sessionStorage 和 Window.localStorage 属性来实现本地存储机制</li>
+<li>相关 API<ul>
+<li><code>xxxxxStorage.setItem(&#39;key&#39;, &#39;value&#39;)</code> ：该方法接收一个键和值作为参数，会把键和值添加到存储中，如果键名存在，则更新其对应的值</li>
+<li><code>xxxxxStorage.getItem(&#39;person&#39;)</code> ：该方法接收一个键名作为参数，返回键名对应的值</li>
+<li><code>xxxxxStorage.removeItem(&#39;key&#39;)</code> ：该方法接收一个键名作为参数，并把键名从存储中删除</li>
+<li><code>xxxxxStorage.clear()</code> ： 该方法会清空存储中的所有数据</li>
+</ul>
+</li>
+<li>备注：<ul>
+<li>SessionStorage 中存储的内容会随着浏览器窗口关闭而消失</li>
+<li>LocalStorage 中存储的内容，需要手动清除才会消失</li>
+<li><code>xxxxxStorage.getItem(xxx)</code> 如果对应 xxx 的 value 获取不到，那么 <code>getItem</code> 的返回值是 null</li>
+<li><code>JSON.parse(null)</code> 的结果依然是 null</li>
+</ul>
+</li>
+</ul>
+<h2 id="组件的自定义事件"><a href="#组件的自定义事件" class="headerlink" title="组件的自定义事件"></a>组件的自定义事件</h2><ul>
+<li><p>一种组件间的通信方式，适用于：子组件 ===&gt; 父组件</p>
+</li>
+<li><p>使用场景：A 是父组件，B 是子组件，B 想给 A 传数据，那么就要在 A 中给 B 绑定自定义事件 (事件回调在 A 中)</p>
+</li>
+<li><p>绑定自定义事件：</p>
+<ul>
+<li><p>第一种方式：在父组件中 <code>&lt;Demo @atguigu=&quot;test&quot;/&gt;</code> 或 <code>&lt;Demo v-on:atguigu=&quot;test&quot;/&gt;</code></p>
+</li>
+<li><p>第二种方式：在父组件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;Demo ref=&quot;demo&quot;/&gt;</span><br><span class="line">.............</span><br><span class="line">mounted() &#123;</span><br><span class="line">	this.$ref.xxx.$on(&#x27;atguigu&#x27;, this.test);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>  -  若想自定义事件只触发一次，可以使用 `once` 修饰符，或 `$once` 方法
+</code></pre>
+</li>
+</ul>
+</li>
+<li><p>触发自定义事件：<code>this.$emit(&#39;atguigu&#39;, data)</code></p>
+</li>
+<li><p>解绑自定义事件：<code>this.$off(&#39;atguigu&#39;)</code></p>
+</li>
+<li><p>组件上也可以绑定原生 DOM 事件，需要使用 <code>native</code> 修饰符</p>
+</li>
+<li><p>注意：通过 <code>this.$ref.xxx.$on(&#39;atguigu&#39;, callback)</code> 绑定自定义事件时，回调如果要使用 <code>function()&#123;...&#125;</code> 这种方式定义的话，就需要定义在 <code>methods</code> 属性当中，才能确保 <code>this</code> 指针正常，又或者可以直接使用箭头函数</p>
+</li>
+</ul>
+<h2 id="全局事件总线-GlobalEventBus"><a href="#全局事件总线-GlobalEventBus" class="headerlink" title="全局事件总线 (GlobalEventBus)"></a>全局事件总线 (GlobalEventBus)</h2><ul>
+<li><p>一种组件间通信的方式，适用于任意组件间通信</p>
+</li>
+<li><p>安装全局事件总线</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="function"><span class="title">beforeCreate</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">  	Vue.prototype.$bus = <span class="built_in">this</span> <span class="comment">// 安装全局事件总线，$bus 就是当前应用的 vm</span></span><br><span class="line">	&#125;</span><br><span class="line">  ...</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></li>
+<li><p>使用事件总线</p>
+<ul>
+<li><p>接收数据：A 组件想接收数据，则在 A 组件中给 <code>$bus</code> 绑定自定义事件，事件的回调留在 A 组件自身</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">methods() &#123;</span><br><span class="line">  demo(data) &#123;...&#125;</span><br><span class="line">&#125;</span><br><span class="line">......</span><br><span class="line">mounted() &#123;</span><br><span class="line">	this.$bus.$on(&#x27;xxx&#x27;, this.demo)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>提供数据：<code>this.$bus.$emit(&#39;xxx&#39;, data)</code></p>
+</li>
+</ul>
+</li>
+<li><p>最好再 <code>beforeDestroy</code> 钩子中，用 <code>$off</code> 去解绑当前组件所用到的事件</p>
+</li>
+</ul>
+<h2 id="消息订阅与发布-pubsub"><a href="#消息订阅与发布-pubsub" class="headerlink" title="消息订阅与发布 (pubsub)"></a>消息订阅与发布 (pubsub)</h2><ul>
+<li><p>一种组件间通信的方式，适用于任意组件间的通信</p>
+</li>
+<li><p>使用步骤</p>
+<ul>
+<li><p>安装 pubsub：<code>yarn add pubsub-js</code></p>
+</li>
+<li><p>引入：<code>import pubsub from &#39;pubsub-js&#39;</code></p>
+</li>
+<li><p>接收数据：A 组件想接收数据，则在 A 组件中订阅消息，订阅的回调留在 A 组件自身</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">methods: &#123;</span><br><span class="line">	demo(data) &#123;...&#125;</span><br><span class="line">&#125;</span><br><span class="line">...</span><br><span class="line">mounted() &#123;</span><br><span class="line">	this.pid = pubsub.subscribe(&#x27;xxx&#x27;, this.demo) // 订阅消息</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>提供数据：<code>pubsub.publish(&#39;xxx&#39;, data)</code></p>
+</li>
+<li><p>最好再 <code>beforeDestroy</code> 钩子中，用 <code>Pubsub.unsubscribe(pid)</code> 去取消订阅</p>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        
+    <div style="text-align:center;color: #ccc;font-size:14px;">
+        ------ 本文结束<i class="fa fa-paw"></i>感谢您的阅读 ------</div>
+    
+
+      </div>
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Vue/" rel="tag"># Vue</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/22/D3.js%EF%BC%9A%E7%BB%98%E5%88%B6%E6%A0%91%E5%9B%BE/" rel="next" title="D3.js：绘制树图">
+                <i class="fa fa-chevron-left"></i> D3.js：绘制树图
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/head_icon.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">46</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/LauGaHo" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:cattou147@icloud.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Vue-%E7%AC%94%E8%AE%B0"><span class="nav-text">Vue 笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-defineProperty-%E6%96%B9%E6%B3%95"><span class="nav-text">Object.defineProperty 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E4%BB%A3%E7%90%86"><span class="nav-text">Vue 中的数据代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86"><span class="nav-text">Vue 事件处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E4%BA%8B%E4%BB%B6%E4%BF%AE%E9%A5%B0%E7%AC%A6"><span class="nav-text">Vue 事件修饰符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7"><span class="nav-text">Vue 计算属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E7%9B%91%E8%A7%86%E5%B1%9E%E6%80%A7"><span class="nav-text">Vue 监视属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E6%B7%B1%E5%BA%A6%E7%9B%91%E8%A7%86"><span class="nav-text">Vue 深度监视</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-watch-%E5%AF%B9%E6%AF%94-computed"><span class="nav-text">Vue watch 对比 computed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-style-%E5%92%8C-class-%E7%BB%91%E5%AE%9A"><span class="nav-text">Vue style 和 class 绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E6%9D%A1%E4%BB%B6%E6%B8%B2%E6%9F%93"><span class="nav-text">Vue 条件渲染</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93"><span class="nav-text">Vue 列表渲染</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E4%B8%AD-key-%E7%9A%84%E4%BD%9C%E7%94%A8%E4%B8%8E%E5%8E%9F%E7%90%86"><span class="nav-text">Vue 中 key 的作用与原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E7%9B%91%E8%A7%86%E6%95%B0%E6%8D%AE%E7%9A%84%E5%8E%9F%E7%90%86"><span class="nav-text">Vue 监视数据的原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B6%E9%9B%86%E8%A1%A8%E5%8D%95%E6%95%B0%E6%8D%AE"><span class="nav-text">收集表单数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="nav-text">过滤器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%B2%E5%AD%A6%E7%9A%84-Vue-%E6%8C%87%E4%BB%A4"><span class="nav-text">已学的 Vue 指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v-html-%E6%8C%87%E4%BB%A4"><span class="nav-text">v-html  指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v-cloak-%E6%8C%87%E4%BB%A4"><span class="nav-text">v-cloak 指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v-once-%E6%8C%87%E4%BB%A4"><span class="nav-text">v-once 指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v-pre-%E6%8C%87%E4%BB%A4"><span class="nav-text">v-pre 指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E6%A8%A1%E6%9D%BF%E8%AF%AD%E6%B3%95"><span class="nav-text">Vue 模板语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4"><span class="nav-text">自定义指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-text">生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E4%BD%BF%E7%94%A8%E7%BB%84%E4%BB%B6%E7%9A%84%E4%B8%89%E5%A4%A7%E6%AD%A5%E9%AA%A4"><span class="nav-text">Vue 使用组件的三大步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vue-%E7%BB%84%E4%BB%B6%E6%B3%A8%E6%84%8F%E7%9A%84%E7%82%B9"><span class="nav-text">Vue 组件注意的点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-VueComponent"><span class="nav-text">关于 VueComponent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E9%87%8D%E8%A6%81%E7%9A%84%E5%86%85%E7%BD%AE%E5%85%B3%E7%B3%BB"><span class="nav-text">一个重要的内置关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E4%B8%8D%E5%90%8C%E7%89%88%E6%9C%AC%E7%9A%84-Vue"><span class="nav-text">关于不同版本的 Vue</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ref-%E5%B1%9E%E6%80%A7-%E7%9B%B8%E5%BD%93%E4%BA%8E-Angular-%E4%B8%AD%E7%9A%84-ViewChild"><span class="nav-text">ref 属性 (相当于 Angular 中的 @ViewChild)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#props-%E9%85%8D%E7%BD%AE%E9%A1%B9-%E7%9B%B8%E5%BD%93%E4%BA%8E-Angular-%E4%B8%AD%E7%9A%84-Input"><span class="nav-text">props 配置项 (相当于 Angular 中的 @Input)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mixin-%E6%B7%B7%E5%85%A5-%E7%9B%B8%E5%BD%93%E4%BA%8E-Angular-%E4%B8%AD%E5%AD%90%E7%B1%BB%E7%BB%A7%E6%89%BF%E7%88%B6%E7%B1%BB"><span class="nav-text">mixin 混入 (相当于 Angular 中子类继承父类)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%92%E4%BB%B6"><span class="nav-text">插件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#scoped-%E6%A0%B7%E5%BC%8F"><span class="nav-text">scoped 样式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-TodoList-%E6%A1%88%E4%BE%8B"><span class="nav-text">总结 TodoList 案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebStorage"><span class="nav-text">WebStorage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E7%9A%84%E8%87%AA%E5%AE%9A%E4%B9%89%E4%BA%8B%E4%BB%B6"><span class="nav-text">组件的自定义事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E4%BA%8B%E4%BB%B6%E6%80%BB%E7%BA%BF-GlobalEventBus"><span class="nav-text">全局事件总线 (GlobalEventBus)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E8%AE%A2%E9%98%85%E4%B8%8E%E5%8F%91%E5%B8%83-pubsub"><span class="nav-text">消息订阅与发布 (pubsub)</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">81.6k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("XgHUBJ2VOhBvinnSAGM1wwHV-gzGzoHsz", "5EKezPCM7N2SMolnbU8Ap3lR");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

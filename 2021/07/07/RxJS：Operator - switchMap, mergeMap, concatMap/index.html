@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="N4U3z9eG38Lid_ovHy3i47Sb00M4ti3kUYgOlswt6rs" />
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="RxJS," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="RxJS：Operator - switchMap, mergeMap, concatMapOperatorconcatMapconcatMap 其实就是 map 加上 concatAll 的简化写法，直接看一个例子 1234567891011var source &#x3D; Rx.Observable.fromEvent(document.body, &amp;#x27;click&amp;#x27;);var exa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RxJS：Operator - switchMap, mergeMap, concatMap">
+<meta property="og:url" content="http://example.com/2021/07/07/RxJS%EF%BC%9AOperator%20-%20switchMap,%20mergeMap,%20concatMap/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="RxJS：Operator - switchMap, mergeMap, concatMapOperatorconcatMapconcatMap 其实就是 map 加上 concatAll 的简化写法，直接看一个例子 1234567891011var source &#x3D; Rx.Observable.fromEvent(document.body, &amp;#x27;click&amp;#x27;);var exa">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/wd5oo0.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/4MdIAL.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/ohyqkB.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/fonvDO.jpg">
+<meta property="article:published_time" content="2021-07-07T03:51:00.000Z">
+<meta property="article:modified_time" content="2021-11-22T07:18:37.326Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="RxJS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/wd5oo0.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/07/07/RxJS：Operator - switchMap, mergeMap, concatMap/"/>
+
+
+
+
+
+  <title>RxJS：Operator - switchMap, mergeMap, concatMap | Hexo</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/07/RxJS%EF%BC%9AOperator%20-%20switchMap,%20mergeMap,%20concatMap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head_icon.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RxJS：Operator - switchMap, mergeMap, concatMap</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-07T11:51:00+08:00">
+                2021-07-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/2021/07/07/RxJS%EF%BC%9AOperator%20-%20switchMap,%20mergeMap,%20concatMap/" class="leancloud_visitors" data-flag-title="RxJS：Operator - switchMap, mergeMap, concatMap">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">Visitors&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.1k
+                </span>
+              
+
+              
+
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="RxJS：Operator-switchMap-mergeMap-concatMap"><a href="#RxJS：Operator-switchMap-mergeMap-concatMap" class="headerlink" title="RxJS：Operator - switchMap, mergeMap, concatMap"></a>RxJS：Operator - switchMap, mergeMap, concatMap</h1><h2 id="Operator"><a href="#Operator" class="headerlink" title="Operator"></a>Operator</h2><h3 id="concatMap"><a href="#concatMap" class="headerlink" title="concatMap"></a>concatMap</h3><p><code>concatMap</code> 其实就是 <code>map</code> 加上 <code>concatAll</code> 的简化写法，直接看一个例子</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source</span><br><span class="line">                .map(<span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.interval(<span class="number">1000</span>).take(<span class="number">3</span>))</span><br><span class="line">                .concatAll();</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>上面这个示例可以简化成</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source</span><br><span class="line">                .concatMap(</span><br><span class="line">                    <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.interval(<span class="number">100</span>).take(<span class="number">3</span>)</span><br><span class="line">                );</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>前后两个行为是一致的，<code>concatMap</code> 也会先处理前一个送出的 Observable 在处理下一个 Observable，对应 Marble Diagrams</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">source : -----------c--c------------------...</span><br><span class="line">        concatMap(<span class="function"><span class="params">c</span> =&gt;</span> Rx.Observable.interval(<span class="number">100</span>).take(<span class="number">3</span>))</span><br><span class="line"><span class="attr">example</span>: -------------<span class="number">0</span>-<span class="number">1</span>-<span class="number">2</span>-<span class="number">0</span>-<span class="number">1</span>-<span class="number">2</span>---------...</span><br></pre></td></tr></table></figure>
+
+<p>这样的行为也很常被用在发送 request 如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPostData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> fetch(<span class="string">&#x27;https://jsonplaceholder.typicode.com/posts/1&#x27;</span>)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> res.json())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source.concatMap(</span><br><span class="line">                    <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.from(getPostData()));</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这里我们每点击一下画面就会送出一个 HTTP request，如果我们快速的连续点击，大家可以在开发者工具的 network 看到每个 request 是等到前一个 request 完成才会送出下一个 request，如下图</p>
+<p><img src="https://raw.githubusercontent.com/LauGaHo/blog-img/master/uPic/wd5oo0.jpg" alt="alt"></p>
+<p>从 network 的图形可以看得出来，第二个 request 的发送时间是接在第一个 request 之后的，我们可以确保每一个 request 会等前一个 request 完成才做处理。</p>
+<p><code>concatMap</code> 还有第二个参数是一个 <code>selector callback</code>，这个 <code>callback</code> 会传入四个参数，分别是</p>
+<ul>
+<li>外部 Observable 送出的元素</li>
+<li>内部 Observable 送出的元素</li>
+<li>外部 Observable 送出元素的 index</li>
+<li>内部 Observable 送出元素的 index</li>
+</ul>
+<p>回传我们想要的值，示例如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPostData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> fetch(<span class="string">&#x27;https://jsonplaceholder.typicode.com/posts/1&#x27;</span>)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> res.json())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source.concatMap(</span><br><span class="line">                <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.from(getPostData()), </span><br><span class="line">                <span class="function">(<span class="params">e, res, eIndex, resIndex</span>) =&gt;</span> res.title);</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这个示例的外部 Observable 送出的元素就是 <code>click event</code> 实例，内部 Observable 送出的元素就是 <code>response</code> 实例，这里我们回传 <code>response</code> 实例的 <code>title</code> 属性，这样一来我们就可以直接收到 <code>title</code>，这个方法很适合用在 <code>response</code> 要选取的值跟前一个事件或顺位相关。</p>
+<h3 id="switchMap"><a href="#switchMap" class="headerlink" title="switchMap"></a>switchMap</h3><p><code>switchMap</code> 其实就是 <code>map</code> 加上 <code>switch</code> 简化的写法，如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source</span><br><span class="line">                .map(<span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.interval(<span class="number">1000</span>).take(<span class="number">3</span>))</span><br><span class="line">                .switch();</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码可以简化成</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source</span><br><span class="line">                .switchMap(</span><br><span class="line">                    <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.interval(<span class="number">100</span>).take(<span class="number">3</span>)</span><br><span class="line">                );</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>对应的 Marble Diagrams</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">source : -----------c--c-----------------...</span><br><span class="line">        concatMap(<span class="function"><span class="params">c</span> =&gt;</span> Rx.Observable.interval(<span class="number">100</span>).take(<span class="number">3</span>))</span><br><span class="line"><span class="attr">example</span>: -------------<span class="number">0</span>--<span class="number">0</span>-<span class="number">1</span>-<span class="number">2</span>-----------...</span><br></pre></td></tr></table></figure>
+
+<p>只要注意一个重点 <code>switchMap</code> 会在下一个 Observable 被送出后直接退订前一个未完成的 Observable。</p>
+<p>另外我们也可以把 <code>switchMap</code> 用在发送 HTTP request。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPostData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> fetch(<span class="string">&#x27;https://jsonplaceholder.typicode.com/posts/1&#x27;</span>)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> res.json())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source.switchMap(</span><br><span class="line">                    <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.from(getPostData()));</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>如果我们快速的连续点击 5 下，可以在开发者工具的 network 看到每个 request 会在点击时发送，如下图</p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/4MdIAL.jpg" alt="alt"></p>
+<blockquote>
+<p>灰色是浏览器原生的停顿行为，实际上灰色的一开始就是 <code>fetch</code> 执行送出 request，只是卡在浏览器等待发送。</p>
+</blockquote>
+<p>从上图可以看到，虽然我们发送了多个 request 但最后真正印出来的 <code>log</code> 只会有一个，代表前面发送的 request 已经不会造成任何的 side-effect 了，这个很适合用在只看最后一次 request 的情景，比如说 自动完成 (Auto Complete)，我们只需要显示使用者最后一次打在画面上的文字，来做建议选项而不用每一次的。</p>
+<p><code>switchMap</code> 和 <code>concatMap</code> 一样有第二个参数 <code>selector callback</code> 可用来回传我们想要的值，这部分的行为跟 <code>concatMap</code> 是一样的。</p>
+<h3 id="mergeMap"><a href="#mergeMap" class="headerlink" title="mergeMap"></a>mergeMap</h3><p><code>mergeMap</code> 其实就是 <code>map</code> 加上 <code>mergeAll</code> 简化的写法，如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source</span><br><span class="line">                .map(<span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.interval(<span class="number">1000</span>).take(<span class="number">3</span>))</span><br><span class="line">                .mergeAll();</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>上面代码可以简化成</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source</span><br><span class="line">                .mergeMap(</span><br><span class="line">                    <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.interval(<span class="number">100</span>).take(<span class="number">3</span>)</span><br><span class="line">                );</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>对应 Marble Diagrams</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">source : -----------c-c------------------...</span><br><span class="line">        concatMap(<span class="function"><span class="params">c</span> =&gt;</span> Rx.Observable.interval(<span class="number">100</span>).take(<span class="number">3</span>))</span><br><span class="line"><span class="attr">example</span>: -------------<span class="number">0</span>-(<span class="number">10</span>)-(<span class="number">21</span>)-<span class="number">2</span>----------...</span><br></pre></td></tr></table></figure>
+
+<p><code>mergeMap</code> 可以并行处理多个 Observable，以这个例子来讲当我们快速点按 2 下，元素发送的时间点是有机会重叠的，这个部分的细节大家可以看上一篇文章 <code>merge</code> 部分。</p>
+<p>另外也可以把 <code>switchMap</code> 用在发送 HTTP request</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPostData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> fetch(<span class="string">&#x27;https://jsonplaceholder.typicode.com/posts/1&#x27;</span>)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> res.json())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source.mergeMap(</span><br><span class="line">                    <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.from(getPostData()));</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>如果我们快速的连续点击 5 下，大家可以在开发者工具的 network 看到每个 request 会在点击时发送并且会 <code>log</code> 出 5 个实例，如下图</p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/ohyqkB.jpg" alt="alt"></p>
+<p><code>mergeMap</code> 也能传入第二个参数 <code>selector callback</code>，这个 <code>selector callback</code> 跟 <code>concatMap</code> 第二个参数也是完全一致的，但 <code>mergeMap</code> 的重点我们可以传入第三个参数，来限制并行处理的数量。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPostData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> fetch(<span class="string">&#x27;https://jsonplaceholder.typicode.com/posts/1&#x27;</span>)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> res.json())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source.mergeMap(</span><br><span class="line">                <span class="function"><span class="params">e</span> =&gt;</span> Rx.Observable.from(getPostData()), </span><br><span class="line">                <span class="function">(<span class="params">e, res, eIndex, resIndex</span>) =&gt;</span> res.title, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这里我们传入 3 就能限制，HTTP request 最多只能同时送出 3 个，并且要等其中一个完成再处理下一个，如下图</p>
+<p><img src="https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/fonvDO.jpg" alt="alt"></p>
+<p>可以注意一下这张图，连续点了 5 下，但第四个 request 是在第一个完成之后才送出，这个适合在特殊的需求下，可以限制同时发送 request 的数量</p>
+<blockquote>
+<p>RxJS 还保留了 <code>mergeMap</code> 的别名叫 <code>flatMap</code>，虽然官方文档上没有，但这两个方法是完全一致的</p>
+</blockquote>
+<h3 id="switchMap-mergeMap-concatMap"><a href="#switchMap-mergeMap-concatMap" class="headerlink" title="switchMap, mergeMap,  concatMap"></a>switchMap, mergeMap,  concatMap</h3><p>这三个 Operator 还有一个共同的特性，那就是这三个 Operator 可以把第一个参数所回传的 <code>Promise</code> 实例直接转成 Observable，这样我们就不用再用 <code>Rx.Observable.from</code> 转一次，如下</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPersonData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> fetch(<span class="string">&#x27;https://jsonplaceholder.typicode.com/posts/1&#x27;</span>)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> res.json())</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> source = Rx.Observable.fromEvent(<span class="built_in">document</span>.body, <span class="string">&#x27;click&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> example = source.concatMap(<span class="function"><span class="params">e</span> =&gt;</span> getPersonData());</span><br><span class="line">                                    <span class="comment">//直接回传 promise 实例</span></span><br><span class="line"></span><br><span class="line">example.subscribe(&#123;</span><br><span class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value); &#125;,</span><br><span class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;Error: &#x27;</span> + err); &#125;,</span><br><span class="line">    <span class="attr">complete</span>: <span class="function">() =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">&#x27;complete&#x27;</span>); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>至于在上面如何选择三个 Operator？其实还是要看具体使用情景而定，这里简单列一下大部分的使用场景</p>
+<ul>
+<li><code>concatMap</code> 用在可以确定内部的 Observable 结束时间比外部 Observable 发送时间快的情景，并且不希望有任何并行处理行为，适合少数要一次一次完成到底的 UI 动画或特别的 HTTP request 行为。</li>
+<li><code>switchMap</code> 用在只要最后一次行为的结果，适合绝大多数的使用情景。</li>
+<li><code>mergeMap</code> 用在并行处理多个 Observable，适合需要并行处理的行为，像是多个 I/O 的并行处理。</li>
+</ul>
+<blockquote>
+<p>不确定选择哪一种时，使用 <code>switchMap</code></p>
+</blockquote>
+<blockquote>
+<p>在使用 <code>concatAll</code> 或 <code>concatMap</code> 时，请注意内部的 Observable 一定要能够结束，且外部的 Observable 发送元素的速度不能俾内部的 Observable 结束时间快太多，不然会有内存问题。</p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        
+    <div style="text-align:center;color: #ccc;font-size:14px;">
+        ------ 本文结束<i class="fa fa-paw"></i>感谢您的阅读 ------</div>
+    
+
+      </div>
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RxJS/" rel="tag"># RxJS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/07/RxJS%EF%BC%9AOperator%20-%20throttle,%20debounce/" rel="next" title="RxJS：Operator - throttle, debounce">
+                <i class="fa fa-chevron-left"></i> RxJS：Operator - throttle, debounce
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/07/07/RxJS%EF%BC%9AOperator%20-%20switch,%20mergeAll,%20concatAll/" rel="prev" title="RxJS：Operator - switch, mergeAll, concatAll">
+                RxJS：Operator - switch, mergeAll, concatAll <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/head_icon.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">46</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/LauGaHo" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:cattou147@icloud.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJS%EF%BC%9AOperator-switchMap-mergeMap-concatMap"><span class="nav-text">RxJS：Operator - switchMap, mergeMap, concatMap</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Operator"><span class="nav-text">Operator</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#concatMap"><span class="nav-text">concatMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#switchMap"><span class="nav-text">switchMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mergeMap"><span class="nav-text">mergeMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#switchMap-mergeMap-concatMap"><span class="nav-text">switchMap, mergeMap,  concatMap</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">81.6k</span>
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("XgHUBJ2VOhBvinnSAGM1wwHV-gzGzoHsz", "5EKezPCM7N2SMolnbU8Ap3lR");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

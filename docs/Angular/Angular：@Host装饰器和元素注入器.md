@@ -1,9 +1,3 @@
----
-title: Angular：@Host 装饰器和元素注入器
-date: 2021/11/22 15:11:00
-tag: [深入理解 Angular]
----
-
 # Angular：@Host 装饰器和元素注入器
 
 Angular 依赖注入机制包含 `@Optional` 和 `@Self` 等影响依赖解析过程的装饰器，尽管它们字面意思就直接解释了作用，但是 `@Host` 却困扰了我好久，其源码对于该装饰器的描述

@@ -1,9 +1,3 @@
----
-title: Angular：深入理解 Angular Modules
-date: 2021/11/22 15:11:00
-tag: [深入理解 Angular]
----
-
 # Angular：深入理解 Angular Modules
 
 Angular Modules 是一个相当复杂的话题，本文将深度解析 `Modules` 内部工作原理，争取做到消除一些常见的误会

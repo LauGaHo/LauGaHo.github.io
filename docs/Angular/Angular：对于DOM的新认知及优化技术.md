@@ -1,9 +1,3 @@
----
-title: Angular：对于 DOM 的新认知及优化技术
-date: 2021/11/22 15:11:00
-tag: [深入理解 Angular]
----
-
 # Angular：对于 DOM 的新认知及优化技术
 
 ## 视图引擎 (View Engine)

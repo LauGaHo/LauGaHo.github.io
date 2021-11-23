@@ -1,9 +1,3 @@
----
-title: Vue 笔记
-date: 2021/11/22 15:24:00
-tag: [Vue]
----
-
 # Vue 笔记
 
 ## `Object.defineProperty` 方法

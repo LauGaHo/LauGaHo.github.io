@@ -1,9 +1,3 @@
----
-title: RxJS：Operator - combineLatest, withLatestFrom, zip
-date: 2021/7/7 11:51:00
-tag: [RxJS]
----
-
 # RxJS：Operator - combineLatest, withLatestFrom, zip
 
 > 非同步最难的地方在于，当有多个非同步行为同时触发且相互依赖，这时候我们要处理的逻辑跟状态就会变得极其复杂，甚至程序很可能会在完成的一两天就成了 Legacy Code (遗留代码)。

@@ -1,9 +1,3 @@
----
-title: Angular：Angular 路由器之概览
-date: 2021/11/22 15:11:00
-tag: [深入理解 Angular]
----
-
 # Angular：Angular 路由器之概览
 
 ## A Tree of States

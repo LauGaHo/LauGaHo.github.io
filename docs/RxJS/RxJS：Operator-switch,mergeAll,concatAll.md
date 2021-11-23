@@ -1,9 +1,3 @@
----
-title: RxJS：Operator - switch, mergeAll, concatAll
-date: 2021/7/7 11:51:00
-tag: [RxJS]
----
-
 # RxJS：Operator - switch, mergeAll, concatAll
 
 本文讲解的三个 Operator 都是用来处理 Higher Order Observable。所谓的 Higher Order Observable 就是指一个 Observable 送出的元素还是一个 Observable，就像是二维数组一样，一个数组中的每个元素都是数组。如果用泛型来表达就像是

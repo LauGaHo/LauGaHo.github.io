@@ -1,9 +1,3 @@
----
-title: RxJS：建立 Observable (二)
-date: 2021/7/7 11:51:00
-tag: [RxJS]
----
-
 # RxJS：建立 Observable (二)
 
 ## 创建运算符 `Creation Operator`

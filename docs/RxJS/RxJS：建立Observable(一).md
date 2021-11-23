@@ -1,9 +1,3 @@
----
-title: RxJS：建立 Observable (一)
-date: 2021/7/7 11:51:00
-tag: [RxJS]
----
-
 # RxJS：建立 Observable (一)
 
 ## 建立 Observable：`create`

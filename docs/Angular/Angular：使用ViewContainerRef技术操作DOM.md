@@ -1,9 +1,3 @@
----
-title: Angular：使用 ViewContainerRef 技术操作 DOM
-date: 2021/11/22 15:11:00
-tag: [深入理解 Angular]
----
-
 # Angular：使用 ViewContainerRef 技术操作 DOM
 
 Angular 操作 DOM，总会发现会涉及到 `ElementRef`，`TemplateRef`，`ViewContainerRef` 和其他类。本文将详细讲解他们的使用思路。

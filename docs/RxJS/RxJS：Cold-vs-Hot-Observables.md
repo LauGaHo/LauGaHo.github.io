@@ -1,9 +1,3 @@
----
-title: RxJS：Cold vs Hot Observables
-date: 2021/7/9 14:35:00
-tag: [RxJS]
----
-
 # RxJS：Cold vs Hot Observables
 
 RxJS 中 Observables 分为两种：Cold Observables 和 Hot Observables，这两个的区别：

@@ -1,9 +1,3 @@
----
-title: RxJS：四种 Subjuct 的用法和区别
-date: 2021/7/7 11:54:00
-tag: [RxJS]
----
-
 # RxJS：四种 Subject 的用法和区别
 
 在 RxJS 中有四种 Subject 分别是：Subject、BehaviorSubject、AsyncSubject、ReplaySubject；这四种 Subject 都是特殊的 Observable。

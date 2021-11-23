@@ -1,9 +1,3 @@
----
-title: RxJS：入门和概览
-date: 2021/7/7 11:51:00
-tag: [RxJS]
----
-
 # RXJS：入门和概览
 
 RxJS 是 Reactive Extensions For JavaScript 的简写，它是一个强大的 JavaScript Reactive 编程库。Reactive 是指响应式编程。

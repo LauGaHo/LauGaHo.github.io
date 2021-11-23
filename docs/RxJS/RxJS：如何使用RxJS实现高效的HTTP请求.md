@@ -1,9 +1,3 @@
----
-title: RxJS：如何使用 RxJS 实现高效的 HTTP 请求
-date: 2021/7/7 11:51:00
-tag: [RxJS]
----
-
 # RxJS：如何使用 RxJS 实现高效的 HTTP 请求
 
 在项目中，经常碰到这样的需求：用户在输入框输入数据，需要实时调用后端 API，拿到结果显示在页面上。如果用传统方式一般实现方式是在输入框上绑定一个 `keydown` 或者 `keyup` 事件，然后每次输入值以后都调用一次后端 API，拿到返回数据。这样会有一个问题，比如我们输入 'liujiahao'，`l` `li` `liu` `liuj` `liuji` `liujia` `liujiah` `liujiaha` `liujiahao` 这五次会分别调用一次 API。这样就会有五个 Response，但是这个五个 Response 的顺序是不可控的，可能最后返回的是 `liu` 的结果，这种方法不仅效率低下，而且没有办法保证正确性。

@@ -549,7 +549,7 @@ console.log(vm.address);
   - 第一步定义混合，例如：
 
     ```javascript
-    {
+    var myMixin = {
       data() {...},
       methods: {...},
       ...
@@ -560,41 +560,159 @@ console.log(vm.address);
 
     - 全局混入：`Vue.mixin(xxx)`
     - 局部混入：`mixins: ['xxx']`
+  
+- 选项合并
+
+  - 当组件和混入对象含有同名选项时，这些选项将以恰当的方式进行“合并”。
+
+    比如，数据对象 (data) 在内部会进行递归合并，并在发生冲突时以组件数据优先
+  
+    ```javascript
+    var mixin = {
+      data: function () {
+        return {
+          message: 'hello',
+          foo: 'abc'
+        }
+      }
+    }
+    
+    new Vue({
+      mixins: [mixin],
+      data: function () {
+        return {
+          message: 'goodbye',
+          bar: 'def'
+        }
+      },
+      created: function () {
+        console.log(this.$data)
+        // => { message: "goodbye", foo: "abc", bar: "def" }
+      }
+    })
+    ```
+  
+    同名钩子函数将合并成为一个数组，因此都将被调用。另外，混入对象的钩子将在组件自身钩子之前调用。
+  
+    ```javascript
+    var mixin = {
+      created: function () {
+        console.log('混入对象的钩子被调用')
+      }
+    }
+    
+    new Vue({
+      mixins: [mixin],
+      created: function () {
+        console.log('组件钩子被调用')
+      }
+    })
+    
+    // => "混入对象的钩子被调用"
+    // => "组件钩子被调用"
+    ```
+  
+    值为对象的选项，例如 `method`、`components`、`directives`，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对。
+  
+    ```javascript
+    var mixin = {
+      methods: {
+        foo: function () {
+          console.log('foo')
+        },
+        conflicting: function () {
+          console.log('from mixin')
+        }
+      }
+    }
+    
+    var vm = new Vue({
+      mixins: [mixin],
+      methods: {
+        bar: function () {
+          console.log('bar')
+        },
+        conflicting: function () {
+          console.log('from self')
+        }
+      }
+    })
+    
+    vm.foo() // => "foo"
+    vm.bar() // => "bar"
+    vm.conflicting() // => "from self"
+    ```
+  
+    注意：`Vue.extend()` 也是用同样的策略进行合并。
+  
 
 
 
 ## 插件
 
-- 功能：用于增强 Vue
+- 用途：
 
-- 本质：包含 `intall` 方法的一个对象，`install` 的第一个参数是 Vue，第二个以后的参数是插件使用者传递的数据
+  - 添加全局方法或 property。如：vue-custom-element
+  - 添加全局资源：指令/过滤器/过渡.如 vue-touch
+  - 通过全局混入来添加一些组件选项。如 vue-router
+  - 添加 Vue 实例方法，通过把他们添加到 `Vue.prototype` 上实现
 
-- 定义插件：
+- 使用插件
 
-  ```javascript
-  对象.install = function(Vue, options) {
-    //添加全局过滤器
-    Vue.filter(...)
-              
-    //添加全局指令
-    Vue.directive(...)
+  - 通过全局方法 `Vue.use()` 使用插件。他需要在你调用 `new Vue()` 启动应用之前完成：
+
+    ```javascript
+    // 调用 `MyPlugin.install(Vue)`
+    Vue.use(MyPlugin)
     
-    //配置全局混入
-    Vue.mixin(...)
-              
-    //添加实例方法
-    Vue.prototype.$myMethod = function() {...}
-    Vue.prototype.$myProperty = xxx
-  }
-    
-  // 使用插件
-  Vue.use(plugin);
-  // 此外，还可以在后边添加参数
-  Vue.use(plugin, xxx, yyy)
-  // 多出来的参数可以在上方的 options 中获取
-  ```
+    new Vue({
+     	// ......组件选项
+    })
+    ```
 
-  
+    也可以传入一个可选的选项对象：
+
+    ```javascript
+    Vue.use(MyPlugin, { someOption: true })
+    ```
+
+    `Vue.use` 会自动阻止多次注册相同组件，届时即使多次调用也只会注册一次该插件。
+
+- 开发插件
+
+  - Vue 的插件应该暴露一个 `install` 方法。这个方法的第一个参数是 `Vue` 构造器，第二个参数是一个可选的选项对象：
+
+    ```javascript
+    MyPlugin.install = function (Vue, options) {
+      // 1. 添加全局方法或 property
+      Vue.myGlobalMethod = function () {
+        // 逻辑...
+      }
+    
+      // 2. 添加全局资源
+      Vue.directive('my-directive', {
+        bind (el, binding, vnode, oldVnode) {
+          // 逻辑...
+        }
+        ...
+      })
+    
+      // 3. 注入组件选项
+      Vue.mixin({
+        created: function () {
+          // 逻辑...
+        }
+        ...
+      })
+    
+      // 4. 添加实例方法
+      Vue.prototype.$myMethod = function (methodOptions) {
+        // 逻辑...
+      }
+    }
+    ```
+
+    
 
 ## scoped 样式
 

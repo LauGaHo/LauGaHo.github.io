@@ -1079,4 +1079,52 @@ console.log(vm.address);
     })
     ```
 
+- 基本使用
+
+  - **初始化数据、配置 `actions`、配置 `mutations`、操作文件 `store.js`**
+
+    ```javascript
+    // 引入 Vue 核心库
+    import Vue from 'vue'
+    // 引入 Vuex
+    import Vuex from 'vuex'
+    // 使用 Vuex
+    Vue.use(Vuex);
     
+    // 初始化 actions
+    const actions = {
+      // 响应组件中加的动作
+      jia(context, value) {
+        context.commit('JIA', value);
+      },
+    };
+    
+    // 初始化 mutations
+    const mutations = {
+      // 执行 actions 中 commit 的函数
+      JIA(state, value) {
+        state.sum += value;
+      },
+    };
+    
+    // 初始化数据
+    const state = {
+      sum: 0,
+    };
+    
+    // 创建并暴露 store
+    export default new Vuex.Store({
+      actions,
+      mutations,
+      state,
+    });
+    ```
+
+  - 组件中读取 vuex 中的数据：`$store.state.sum`
+
+  - 组件中修改 vuex 中的数据：`$store.dispatch('actions 中的方法名', 数据)` 或 `$store.commit('mutations 中的方法名', 数据)`
+
+  - **备注：**
+
+    - 若没有网络请求或其他业务逻辑，组件中也可以越过 `actions` ，即不写 `dispatch` ，直接编写 `commit`
+    - 在 `store` 中，切记代码规范，业务逻辑的代码，或者请求后台的代码，统一写在 `actions` 当中，修改数据的代码就写在 `mutations` 中，切勿将业务代码写在 `mutations` 中，`mutations` 只允许编写操作 `state` 中数据的相关代码！！！！！！

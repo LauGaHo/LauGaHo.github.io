@@ -1023,3 +1023,60 @@ console.log(vm.address);
       ```
 
       
+
+## Vuex
+
+- **概念**
+
+  - 在 Vue 中实现集中式状态 (数据) 管理的一个 Vue 插件，对 Vue 应用中多个组件的共享状态进行集中式管理 (读/写) ，也是一种组件间通信的方式，且适用于任何组件间的通信
+
+- **何时使用**
+
+  - 多个组件需要共享数据时
+
+- **搭建 Vuex 环境**
+
+  - 创建文件：`src/store/index.js`
+
+    ```javascript
+    // 引入 Vue 核心库
+    import Vue from 'vue'
+    // 引入 Vuex
+    import Vuex from 'vuex'
+    // 应用 Vuex 插件
+    Vue.use(Vuex);
+    
+    // 准备 actions 对象来响应组件中用户的动作
+    const actions = {};
+    // 准备 mutations 对象来修改 state 中的数据
+    const mutations = {};
+    // 准备 state 对象来保存具体的数据
+    const state = {};
+    
+    // 创建并导出 store
+    export default new Vuex.Store({
+      actions,
+      mutations,
+      state
+    })
+    ```
+
+    **注意：**在上方的代码中，由于应用插件 `Vue.use(Vuex)` 需要再创建 `store` (需要注意：创建 `store` 语句是在 `./store/index.js` 中的 `new Vuex.Store()`)，所以无法在 `main.js` 中 `import store from ./store` 和 进行 `Vue.use(Vuex)`，因为这两者的顺序必须是先进行 `Vue.use(Vuex)` 然后再进行 `import store from ./store` (即 `new Vuex.Store()`)，不然就会报错，但是由于在文件中，无论 `import ... from ...` 语句在哪一行出现，首先执行的都是 `import ... from ...` 中导入的 JS 文件，在此处就是对应的 `./store/index.js`，相当于 JS 中的 `var` 变量提升， 所以需要将 `Vue.use(Vuex)` 放到 `./store` 当中，如上方所示，这样在 `main.js` 执行 `import store from './store'` 时，就可以保证先进行 `Vue.use(Vuex)` 再进行 `new Vuex.Store()`
+
+  - 在 `main.js` 中创建 vm 时传入 `store` 配置项
+
+    ```javascript
+    ......
+    // 引入 store
+    import store from './store'
+    ......
+    
+    // 创建 vm
+    new Vue({
+      el: '#app',
+      render: h => h(App),
+      store,
+    })
+    ```
+
+    

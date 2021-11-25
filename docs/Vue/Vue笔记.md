@@ -975,11 +975,11 @@ console.log(vm.address);
     </template>
     ```
 
-  - 作用域插槽
+  - **作用域插槽**
 
-    - 理解：<span style="color: red">数据在组件的本身，也就是定义插槽的组件本身，但是数据生成HTML结构需要组件的使用者来决定。</span>(games 数据在 Category 组件中，但使用数据所遍历出来的结构由 App 组件决定)
+    - **理解：**<span style="color: red">数据在组件的本身，也就是定义插槽的组件本身，但是数据生成HTML结构需要组件的使用者来决定。</span>(games 数据在 Category 组件中，但使用数据所遍历出来的结构由 App 组件决定)
 
-    - 具体代码：
+    - **具体代码：**
 
       ```vue
       <!--父组件-->
@@ -1079,7 +1079,7 @@ console.log(vm.address);
     })
     ```
 
-- 基本使用
+- **基本使用**
 
   - **初始化数据、配置 `actions`、配置 `mutations`、操作文件 `store.js`**
 
@@ -1128,3 +1128,29 @@ console.log(vm.address);
 
     - 若没有网络请求或其他业务逻辑，组件中也可以越过 `actions` ，即不写 `dispatch` ，直接编写 `commit`
     - 在 `store` 中，切记代码规范，业务逻辑的代码，或者请求后台的代码，统一写在 `actions` 当中，修改数据的代码就写在 `mutations` 中，切勿将业务代码写在 `mutations` 中，`mutations` 只允许编写操作 `state` 中数据的相关代码！！！！！！
+
+
+
+- **getter 的使用 (此处的 getters 其实有点类似计算属性 computed 是对原数据进行加工后显示)**
+
+  - **概念：**当 `state` 中的数据需要经过加工后再使用时，可以使用 `getter` 进行加工
+
+  - 在 `store.js` 中追加 `getter` 配置
+
+    ```javascript
+    ......
+    
+    const getters = {
+      bigSum(state) {
+        return state.sum * 10;
+      }
+    }
+    
+    // 创建并导出 store
+    export default new Vuex.Store({
+      ......
+      getters,
+    })
+    ```
+
+  - **组件中读取数据：**`$store.getters.bigSum`

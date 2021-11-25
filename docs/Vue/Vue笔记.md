@@ -1027,12 +1027,14 @@ console.log(vm.address);
 ## Vuex
 
 - **概念**
-
   - 在 Vue 中实现集中式状态 (数据) 管理的一个 Vue 插件，对 Vue 应用中多个组件的共享状态进行集中式管理 (读/写) ，也是一种组件间通信的方式，且适用于任何组件间的通信
 
-- **何时使用**
 
+
+- **何时使用**
   - 多个组件需要共享数据时
+
+
 
 - **搭建 Vuex 环境**
 
@@ -1078,6 +1080,8 @@ console.log(vm.address);
       store,
     })
     ```
+
+  
 
 - **基本使用**
 
@@ -1208,3 +1212,79 @@ console.log(vm.address);
     ```
 
   - **备注：**mapActions 和 mapMutations 使用时，若需要传参数，则需要：在模板中绑定事件时传递好参数，否则参数是事件参数！！！！！！！
+
+
+
+- **模块化 + 命名空间**
+
+  - **目的：**让代码更好维护，让多种数据分类更加明确
+
+  - **修改 `store.js`**
+
+    ```javascript
+    const countAbout = {
+      // 开启命名空间
+      namespace: true,
+      state: {x: 1},
+      mutations: {...}, 
+      actions: {...},
+      getters: {
+        bigSum(state) {
+          return state.sum * 10;
+        }
+      }
+    }
+                  
+    const personAbout = {
+      // 开启命名空间
+      namespace: true,
+      state: {...},
+      mutations: {...},
+      actions: {...}
+    }
+                  
+    const store = new Vuex,Store({
+      modules: {
+      	countAbout,
+        personAbout,
+      }            
+    })             
+    ```
+
+  - **开启命名空间后，组件中读取 `state` 数据**
+
+    ```javascript
+    // 方式一：自己直接读取
+    this.$store.state.personAbout.list;
+    // 方式而：在 computed 中借助 mapState 读取
+    ...mapState('countAbout', ['sum', 'school', 'subject']),
+    ```
+
+  - **开启命名空间后，组件中读取 `getters` 数据**
+
+    ```javascript
+    // 方式一：自己读取
+    this.$store.getters['personAbout/firstPersonName'];
+    // 方式二：在 computed 中借助 mapGetters 读取
+    ...mapGetters('countAbout', ['bigSum']);
+    ```
+
+  - **开启命名空间后，组件中调用 `dispatch`**
+
+    ```javascript
+    // 方式一：自己直接 dispatch
+    this.$store.dispatch('personAbout/addPersonWang', person);
+    // 方式二：在 methods 中借助 mapActions 生成对应函数
+    ...mapActions('countAbout', {incrementOdd: 'jiaOdd', incrementWait: 'jiaWait'}),
+    ```
+
+  - **开启命名空间后，组件中调用 `commit`**
+
+    ```javascript
+    // 方式一：自己直接 commit
+    this.$store.commit('personAbout/ADD_PERSON', person);
+    // 方式二：在 methods 中借助 mapMutations 生成对应函数
+    ...mapMutations('countAbout', {increment: 'JIA', decrement: 'JIAN'}),
+    ```
+
+    

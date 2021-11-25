@@ -1287,4 +1287,56 @@ console.log(vm.address);
     ...mapMutations('countAbout', {increment: 'JIA', decrement: 'JIAN'}),
     ```
 
-    
+
+
+## 路由 Router
+
+- **安装 `vue-router`，命令：`yarn add vue-router`**
+
+- **应用插件：`Vue.use(VueRouter)`**
+
+- **编写 `router` 配置项**
+
+  ```javascript
+  // 引入 VueRouter
+  import VueRouter from 'vue-router'
+  // 引入路由组件
+  import About from '../components/About'
+  import Home from '../components/Home'
+  
+  // 创建 router 实例对象，去管理一组一组的路由规则
+  const router = new VueRouter({
+    routes: [
+      {
+        path: '/about',
+        component: About
+      },
+      {
+        path: '/home',
+        component: Home
+      }
+    ]
+  })
+  
+  // 导出 router
+  export default router
+  ```
+
+- **实现切换 (`active-class` 可配置高亮样式)**
+
+  ```html
+  <router-link active-class="active" to="/about">About</router-link>
+  ```
+
+- **指定展示位置**
+
+  ```html
+  <router-view></router-view>
+  ```
+
+- **几个注意点**
+
+  - 路由组件通常存放在 `pages` 文件夹，一般组件通常在 `components` 文件夹
+  - 通过切换，“隐藏”了的路由组件，默认是被销毁的，需要的时候再去挂载
+  - 每个组件都有自己的 `$route` s属性，里面存储着自己的路由信息
+  - 整个应用只有一个 `router`，可以通过组件的 `$router` 属性获取到

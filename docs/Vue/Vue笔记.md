@@ -1154,3 +1154,57 @@ console.log(vm.address);
     ```
 
   - **组件中读取数据：**`$store.getters.bigSum`
+
+
+
+- 四个 map 方法的使用
+
+  - **mapState 方法：**用于帮助我们映射 `state` 中的数据为计算属性
+
+    ```javascript
+    computed: {
+      // 借助 mapState 生成：sum、school、subject 计算属性(对象写法)
+      ...mapState({sum: 'sum', school: 'school', subject: 'subject'}),
+        
+      // 借助 mapState 生成：sum、school、subject 计算属性(数组写法)
+      ...mapState(['sum', 'school', 'subject']),
+    }
+    ```
+
+  - **mapGetters 方法：**用于帮助我们映射 `getters` 中的数据为计算属性
+
+    ```javascript
+    computed: {
+      // 借助 mapGetters 生成：bigSum 计算属性(对象写法)
+      ...mapAGetters({bigSum: 'bigSum'}),
+        
+      // 借助 mapGetters 生成：bigSum 计算属性(数组写法)
+      ...mapGetters(['bigSum'])
+    }
+    ```
+
+  - **mapActions 方法：**用于帮助我们生成和 `actions` 对话的方法，即：包含 `$store.dispatch(xxx)` 的函数
+
+    ```javascript
+    methods: {
+      // 靠 mapActions 生成：incrementOdd、incrementWait 函数 (对象形式)
+      ...mapActions({incrementOdd: 'jiaOdd', incrementWait: 'jiaWait'})
+      
+      // 靠 mapActions 生成：jiaOdd、jiaWait 函数 (数组形式)
+      ...mapActions(['jiaOdd', 'jiaWait'])
+    }
+    ```
+
+  - **mapMutations 方法：**用于帮助我们生成和 `mutations` 对话的方法，即：包含 `$store.commit(xxx)` 的参数
+
+    ```javascript
+    methods: {
+      // 靠 mapActions 生成：increment、decrement 函数 (对象形式)
+      ...mapMutations({increment: 'JIA', decrement: 'JIAN'}),
+        
+      // 靠 mapMutations 生成 JIA、JIAN 函数 (数组形式)
+      ...mapMutations(['JIA', 'JIAN']),
+    }
+    ```
+
+  - **备注：**mapActions 和 mapMutations 使用时，若需要传参数，则需要：在模板中绑定事件时传递好参数，否则参数是事件参数！！！！！！！

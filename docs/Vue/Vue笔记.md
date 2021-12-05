@@ -1613,3 +1613,85 @@ console.log(vm.address);
   - `activated` 路由组件被激活时触发
   - `deactivated` 路由组件失活时触发
 
+
+
+## 路由守卫
+
+- **作用：**对路由进行权限控制
+
+- **分类：**全局守卫、独享守卫、组件内守卫
+
+- **全局守卫：**
+
+  ```javascript
+  // 以下内容写在 new Router 所在的地方中
+  // 全局前置守卫，初始化时执行、每次路由切换前执行
+  router.beforeEach((to, from, next) => {
+    console.log('beforeEach', to, from);
+    // 判断当前路由是否需要进行权限控制
+    if(to.meta.isAuth) {
+      // 权限控制的具体规则
+      if(localStorage.getItem('school') === 'atguigu') {
+        // 方形
+        next();
+      }
+      else {
+        alert('暂无权限查看');
+      }
+    }
+    else {
+      // 放行
+      next();
+    }
+  });
+  
+  // 全局后置守卫，初始化时执行，每次路由切换后执行
+  router.afterEach((to, from) => {
+    console.log('afterEach', to, from);
+    if(to.meta.title) {
+      // 修改网页的 title
+      document.title = to.meta.title;
+    }
+    else {
+      document.title = 'vue_test';
+    }
+  })
+  ```
+
+- **独享守卫**
+
+  ```javascript
+  // 该函数放置在具体的路由规则之下
+  beforeEnter(to, from, next) {
+    console.log('beforeEnter', to, from);
+    // 判断当前路由是否需要进行权限控制
+    if(to.meta.isAuth) {
+      if(localStorage.getItem('school') ===  'atguigu') {
+        next();
+      }
+      else {
+        alert('暂无权限查看');
+      }
+    }
+    else {
+      next();
+    }
+  }
+  ```
+
+- 组件内守卫
+
+  ```javascrip
+  // 进入守卫：通过路由规则，进入该组件时被调用
+  beforeRouteEnter (to, from, next) {
+    ......
+  }
+    
+  // 离开守卫：通过路由规则，离开该组件时被调用
+  beforeRouteLeave (to, from, next) {
+  	......
+  }
+  ```
+
+  
+

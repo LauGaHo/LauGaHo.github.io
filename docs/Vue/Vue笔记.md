@@ -1139,7 +1139,7 @@ console.log(vm.address);
 
   - **概念：**当 `state` 中的数据需要经过加工后再使用时，可以使用 `getter` 进行加工
 
-  - 在 `store.js` 中追加 `getter` 配置
+  - **在 `store.js` 中追加 `getter` 配置**
 
     ```javascript
     ......
@@ -1345,7 +1345,7 @@ console.log(vm.address);
 
 ## 多级路由 (嵌套路由)
 
-- 配置路由规则，使用 `children` 配置项
+- **配置路由规则，使用 `children` 配置项**
 
   ```javascript
   routes: [
@@ -1373,34 +1373,34 @@ console.log(vm.address);
   ]
   ```
 
-- 跳转 (要写完整路径)：
+- **跳转 (要写完整路径)：**
 
   ```vue
-  <route-link to="/home/news">News</route-link>
+  <router-link to="/home/news">News</router-link>
   ```
 
 
 
 ## 路由的 query 参数
 
-- 传递参数
+- **传递参数**
 
   ```vue
   <!-- 跳转并携带 query 参数，to 的字符串写法 -->
-  <route-link :to="`/home/message/detail?id=${id}&title=${title}`">跳转</route-link>
+  <router-link :to="`/home/message/detail?id=${id}&title=${title}`">跳转</router-link>
   
   <!-- 跳转并携带 query 参数，to 的对象写法 -->
-  <route-link :to="{
+  <router-link :to="{
                    		path: '/home/message/detail',
                    		query: {
                    				id: 666,
                    				title: '你好'
                    		}
                    }"
-  >跳转</route-link>
+  >跳转</router-link>
   ```
 
-- 接收参数
+- **接收参数**
 
   ```vue
   $route.query.id
@@ -1411,11 +1411,11 @@ console.log(vm.address);
 
 ## 命令路由
 
-- 作用：可以简化路由的跳转
+- **作用：可以简化路由的跳转**
 
-- 使用方法：
+- **使用方法**：
 
-  - 给路由命名：
+  - **给路由命名：**
 
     ```javascript
     {
@@ -1438,25 +1438,151 @@ console.log(vm.address);
     }
     ```
 
-  - 简化跳转：
+  - **简化跳转**：
 
     ```vue
     <!-- 简化前，需要写完整的路径 -->
-    <route-link to="/demo/test/welcome">跳转</route-link>
+    <router-link to="/demo/test/welcome">跳转</router-link>
     
     <!-- 简化后，直接通过名字跳转 -->
-    <route-link :to="{name: 'hello'}">跳转</route-link>
+    <router-link :to="{name: 'hello'}">跳转</router-link>
     
     <!-- 简化写法配合传递参数 -->
-    <route-link :to="{
+    <router-link :to="{
                      		name: 'hello',
                      		query: {
                      				id: 666,
                      				title: '你好'
                      		}
                      }"
-    >跳转</route-link>
+    >跳转</router-link>
     ```
 
+
+
+## 路由的 params 参数
+
+- **配置路由，声明接收 params 参数**
+
+  ```javascript
+  {
+    path: '/home',
+    component: Home,
+    children: [
+      {
+        path: 'news',
+        component: News,
+      },
+      {
+        component: Message,
+        children: [
+          {
+            name: 'xiangqing',
+  					// 使用占位符声明接收 params 参数
+            path: 'detail/:id/:title',
+            component: Detail
+          }
+        ]
+      },
+    ]
+  }
+  ```
+
+- **传递参数**
+
+  ```vue
+  <!-- 跳转并携带 params 参数，to 的字符串写法 -->
+  <router-link :to="/home/message/detail/666/你好">跳转</router-link>
+  
+  <!-- 跳转并携带 params 参数，to 的对象写法 -->
+  <router-link :to="{
+                   		name: 'xiangqing',
+                   		params: {
+                   				id: 666,
+                   				title: '你好',
+                   		}
+                   }"
+  >跳转</router-link>
+  ```
+
+  > **特别注意：路由携带 params 参数时，若使用 to 的对象写法，则不能使用 path 配置项，必须使用 name 配置项！！！**
+
+- **接收参数**
+
+  ```javascript
+  $route.params.id
+  $route.params.title
+  ```
+
+
+
+## 路由的 props 配置
+
+- **作用：让路由组件更方便的收到参数**
+
+  ```javascript
+  {
+    name: "xiangqing",
+    path: 'detail/:id',
+    component: Detail,
     
+    // 第一种写法：props 值为对象，该对象中所有的 key-value 的组合最终都会通过 props 传给 Detail 组件
+    props: {a: 90},
+      
+    // 第二种写法：props 值为布尔值，布尔值为 true，则把路由收到的所有 params 参数通过 props 传给 Detail 组件
+    props: true,
+      
+    // 第三种写法：props 值为函数，该函数返回的对象中每一组 key-value 都会通过 props 传给 Detail 组件
+    props(route) {
+      return {
+        id: route.query.id,
+        title: route.query.title,
+      }
+    }
+  }
+  ```
+
+  
+
+## `<route-link>` 的 replace 属性
+
+- **作用：**控制路由跳转时操作浏览器历史记录的模式
+- **浏览器的历史记录有两种写入方式：**分别是 `push` 和 `replace` ，`push` 是追加历史记录，`replace` 是替换当前的记录。路由跳转时候，默认开启的是 `push` 方式
+- **如何开启 `replace` 模式：**`<router-link replace ......>News</router-link>`
+
+
+
+## 编程式路由导航
+
+- **作用：**不借助 `<router-link>` 实现路由跳转，让路由跳转更加灵活
+
+- **具体编码：**
+
+  ```javascript
+  // $router 的两个 API
+  this.$router.push({
+    name: 'xiangqing',
+    params: {
+      id: xxx,
+      title: xxx,
+    }
+  })
+  
+  this.$router.replace({
+    name: 'xiangqing',
+    params: {
+      id: xxx,
+      title: xxx
+    }
+  })
+  
+  // 前进
+  this.$router.forward();
+  // 后退
+  this.$router.back();
+  // 可前进也可后退
+  this.$router.go();
+  ```
+
+  
 

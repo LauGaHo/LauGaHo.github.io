@@ -1340,3 +1340,123 @@ console.log(vm.address);
   - 通过切换，“隐藏”了的路由组件，默认是被销毁的，需要的时候再去挂载
   - 每个组件都有自己的 `$route` s属性，里面存储着自己的路由信息
   - 整个应用只有一个 `router`，可以通过组件的 `$router` 属性获取到
+
+
+
+## 多级路由 (嵌套路由)
+
+- 配置路由规则，使用 `children` 配置项
+
+  ```javascript
+  routes: [
+    {
+      path: '/about',
+      component: About,
+    },
+    {
+      path: '/home',
+      component: Home,
+      // 通过 children 配置子路由
+      children: [
+        {
+          // 此处一定不要写：/news
+          path: 'news',
+          component: News,
+        },
+        {
+          // 此处一定不要写：/message
+          path: 'message',
+          component: Message,
+        }
+      ]
+    }
+  ]
+  ```
+
+- 跳转 (要写完整路径)：
+
+  ```vue
+  <route-link to="/home/news">News</route-link>
+  ```
+
+
+
+## 路由的 query 参数
+
+- 传递参数
+
+  ```vue
+  <!-- 跳转并携带 query 参数，to 的字符串写法 -->
+  <route-link :to="`/home/message/detail?id=${id}&title=${title}`">跳转</route-link>
+  
+  <!-- 跳转并携带 query 参数，to 的对象写法 -->
+  <route-link :to="{
+                   		path: '/home/message/detail',
+                   		query: {
+                   				id: 666,
+                   				title: '你好'
+                   		}
+                   }"
+  >跳转</route-link>
+  ```
+
+- 接收参数
+
+  ```vue
+  $route.query.id
+  $route.query.title
+  ```
+
+
+
+## 命令路由
+
+- 作用：可以简化路由的跳转
+
+- 使用方法：
+
+  - 给路由命名：
+
+    ```javascript
+    {
+      path: '/demo',
+      component: Demo,
+      children: [
+        {
+          path: 'test',
+          component: Test,
+          children: [
+            {
+              // 给路由命名
+              name: 'hello',
+              path: 'welcome',
+              component: Hello,
+            }
+          ]
+        }
+      ]
+    }
+    ```
+
+  - 简化跳转：
+
+    ```vue
+    <!-- 简化前，需要写完整的路径 -->
+    <route-link to="/demo/test/welcome">跳转</route-link>
+    
+    <!-- 简化后，直接通过名字跳转 -->
+    <route-link :to="{name: 'hello'}">跳转</route-link>
+    
+    <!-- 简化写法配合传递参数 -->
+    <route-link :to="{
+                     		name: 'hello',
+                     		query: {
+                     				id: 666,
+                     				title: '你好'
+                     		}
+                     }"
+    >跳转</route-link>
+    ```
+
+    
+

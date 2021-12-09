@@ -842,3 +842,52 @@ export default helloWorld
 
     **这个时候重新编译，打开浏览器，就可以成功运行了。**
 
+
+
+## 代码分离
+
+**代码分离是 webpack 中最引人注目的特性之一。此特性能够将代码分离到不同的 bundle 中，然后可以按需加载或并行加载这些文件。代码分离可以获取更小的 bundle，以及控制资源加载优先级，如果使用合理，会极大影响加载时间。**
+
+
+
+**常用的代码分离方法有三种：**
+
+1. **入口起点：**使用 `entry` 配置手动分离代码。
+2. **防止重复：**使用 `Entry dependencies` 或者 `SplitChunksPlugin` 去重和分离 chunk
+3. **动态导入：**通过模块的内联函数调用来分离代码
+
+
+
+- **入口起点**
+
+  **这时迄今为止最简单直观的分离代码的方式。不过，这种方式手动配置较多，并有一些隐患，我们将会解决这些问题，先来看看如何从 main bundle 中分离 another module (另一个模块)**
+
+  **创建一个新的 js 文件 `another-module.js`**
+
+  ```javascript
+  import _ from 'lodash'
+  
+  console.log(_.join(['Another', 'module', 'loaded!'], ' '))
+  ```
+
+  **这个模块依赖了 `lodash`，需要安装一下：**
+
+  ```shell
+  npm install lodash --save-dev
+  ```
+
+  **修改配置文件：**
+
+  ```javascript
+  module.exports = {
+    entry: {
+      index: './src/index.js',
+      another: './src/another-module.js',
+    },
+    output: {
+      filename: '[name].bundle.js'
+    },
+  }
+  ```
+
+  

@@ -53,4 +53,5 @@
 
 - Vue源码解读
     - [Vue源码解读—patch](Vue源码解读/Vue源码解读—patch.md)
+    - [Vue源码解读—reactive](Vue源码解读/Vue源码解读—reactive.md)
     

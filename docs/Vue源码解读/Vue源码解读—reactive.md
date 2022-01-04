@@ -672,3 +672,283 @@ cleanupDeps () {
 
 
 
+## 派发更新
+
+**Vue 中的派发更新是通过触发 `Dep` 类中的 `notify()` 函数来进行触发的：**
+
+```javascript
+notify () {
+    const subs = this.subs.slice()
+    // 依次触发渲染 watcher 的 update
+    for (let i = 0, l = subs.length; i < l; i++) {
+        subs[i].update()
+    }
+}
+```
+
+> **上方的 `update()` 方法的位置在 `src/core/observer/watch.js`。**
+
+```javascript
+update () {
+    // ...
+    // 这里省略掉 computed watcher 和同步 user watcher 的逻辑，直接看栗子 🌰会执行到的 queueWatcher
+    queueWatcher(this)
+}
+```
+
+> **`queueWatcher` 在 `src/core/observer/scheduler.js` 中定义：**
+
+```javascript
+const queue: Array<Watcher> = []
+let waiting = false
+let flushing = false
+let index = 0
+
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+
+  // 确保一个 watcher 只添加一次
+  if (has[id] == null) {
+    has[id] = true
+    if (!flushing) {
+      // 把当前 watcher 加入到队列中
+      queue.push(watcher)
+    } else {
+      // if already flushing, splice the watcher based on its id
+      // if already past its id, it will be run next immediately.
+      let i = queue.length - 1
+      while (i > index && queue[i].id > watcher.id) {
+        i--
+      }
+      queue.splice(i + 1, 0, watcher)
+    }
+    // queue the flush
+
+    // 保证只执行一次nextTick
+    if (!waiting) {
+      waiting = true
+      nextTick(flushSchedulerQueue)
+    }
+  }
+}
+```
+
+**`queueWatcher` 可以看到是把渲染 `watcher` 加入到队列中，并不是每次更新都实时执行。然后执行到 `nextTick(flushSchedulerQueue)`：**
+
+```javascript
+export function withMacroTask (fn: Function): Function {
+  return fn._withTask || (fn._withTask = function () {
+    useMacroTask = true
+    const res = fn.apply(null, arguments)
+    useMacroTask = false
+    return res
+  })
+}
+
+export function nextTick (cb?: Function, ctx?: Object) {
+  let _resolve
+
+  // 把传入的函数压入callbacks数组，需要callbacks而不是直接执行cb是因为多次执行nextTick时，能用同步顺序在下一个tick中执行，而不需要开启多个宏/微任务
+  callbacks.push(() => {
+    if (cb) {
+      try {
+        cb.call(ctx)
+      } catch (e) {
+        handleError(e, ctx, 'nextTick')
+      }
+    } else if (_resolve) {
+      _resolve(ctx)
+    }
+  })
+  if (!pending) {
+    pending = true
+    // 对于手动触发的一些数据更新，比如栗子 🌰 中的 click 事件，强行走宏任务 
+    if (useMacroTask) {
+      macroTimerFunc()
+    } else {
+      microTimerFunc()
+    }
+  }
+  // $flow-disable-line
+  // 当nextTick不传函数时，提供一个promise化的调用
+
+  // 不传cb直接返回一个promise的调用
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(resolve => {
+      _resolve = resolve
+    })
+  }
+}
+```
+
+**看 `nextTick` 之前，我们先看宏任务 `macroTimerFunc` 和微任务 `microTimerFunc` 的实现：**
+
+```javascript
+// 宏任务的实现：先看是否支持 setImmediate，然后判断是否支持 MessageChannel，最终 setTimeout 兜底
+if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  macroTimerFunc = () => {
+    setImmediate(flushCallbacks)
+  }
+} else if (typeof MessageChannel !== 'undefined' && (
+  isNative(MessageChannel) ||
+  // PhantomJS
+  MessageChannel.toString() === '[object MessageChannelConstructor]'
+)) {
+  const channel = new MessageChannel()
+  const port = channel.port2
+  channel.port1.onmessage = flushCallbacks
+  macroTimerFunc = () => {
+    port.postMessage(1)
+  }
+} else {
+  /* istanbul ignore next */
+  macroTimerFunc = () => {
+    setTimeout(flushCallbacks, 0)
+  }
+}
+
+// Determine microtask defer implementation.
+/* istanbul ignore next, $flow-disable-line */
+// 微任务实现：先判断是否支持Promise，否则直接指向 macroTimerFunc
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  const p = Promise.resolve()
+  microTimerFunc = () => {
+    p.then(flushCallbacks)
+    // in problematic UIWebViews, Promise.then doesn't completely break, but
+    // it can get stuck in a weird state where callbacks are pushed into the
+    // microtask queue but the queue isn't being flushed, until the browser
+    // needs to do some other work, e.g. handle a timer. Therefore we can
+    // "force" the microtask queue to be flushed by adding an empty timer.
+    if (isIOS) setTimeout(noop)
+  }
+} else {
+  // fallback to macro
+  microTimerFunc = macroTimerFunc
+}
+```
+
+**回到 `nextTick`，把回调函数存到 `callbacks`，通过 `macroTimerFunc` 触发 `flushCallbacks`：**
+
+```javascript
+function flushCallbacks () {
+  pending = false
+  const copies = callbacks.slice(0)
+  callbacks.length = 0
+  for (let i = 0; i < copies.length; i++) {
+    copies[i]()
+  }
+}
+```
+
+**然后依次调用 `callbacks` 中的函数—`flushSchedulerQueue`：**
+
+```javascript
+function flushSchedulerQueue () {
+  flushing = true
+  let watcher, id
+
+  /**
+   * 1.组件的更新由父到子；因为父组件的创建过程是先于子的，所以 watcher 的创建也是先父后子，执行顺序也应该保持先父后子。
+   * 2.用户的自定义 watcher 要优先于渲染 watcher 执行；因为用户自定义 watcher 是在渲染 watcher 之前创建的。
+   * 3.如果一个组件在父组件的 watcher 执行期间被销毁，那么它对应的 watcher 执行都可以被跳过，所以父组件的 watcher 应该先执行。
+   */
+  queue.sort((a, b) => a.id - b.id)
+
+  // do not cache length because more watchers might be pushed
+  // as we run existing watchers
+  // 这里不缓存队列长度的原因是在 watcher.run() 的时候，很可能用户会再次添加新的 watcher
+  for (index = 0; index < queue.length; index++) {
+    watcher = queue[index]
+    // 执行 before 函数，也就是 beforeUpdated 钩子
+    if (watcher.before) {
+      watcher.before()
+    }
+    id = watcher.id
+    has[id] = null
+    watcher.run()
+    // in dev build, check and stop circular updates.
+    if (process.env.NODE_ENV !== 'production' && has[id] != null) {
+      circular[id] = (circular[id] || 0) + 1
+      if (circular[id] > MAX_UPDATE_COUNT) {
+        warn(
+          'You may have an infinite update loop ' + (
+            watcher.user
+              ? `in watcher with expression "${watcher.expression}"`
+              : `in a component render function.`
+          ),
+          watcher.vm
+        )
+        break
+      }
+    }
+  }
+
+  // keep copies of post queues before resetting state
+  const activatedQueue = activatedChildren.slice()
+  const updatedQueue = queue.slice()
+
+  // 重置调度队列的状态
+  resetSchedulerState()
+
+  // call component updated and activated hooks
+  // 执行一些钩子函数，比如keep-alive的actived和组件的updated钩子
+  callActivatedHooks(activatedQueue)
+  callUpdatedHooks(updatedQueue)
+
+  // devtool hook
+  /* istanbul ignore if */
+  if (devtools && config.devtools) {
+    devtools.emit('flush')
+  }
+}
+```
+
+**上面的代码主要操作是：先对 `watcher` 做了排序，然后依次执行组件的 `beforeUpdated` 的钩子函数。依次调用 `watcher.run()` 触发更新：**
+
+```javascript
+run () {
+    if (this.active) {
+        this.getAndInvoke(this.cb)
+    }
+}
+
+getAndInvoke (cb: Function) {
+    // 对于渲染 watcher 而言，调用 get 会重新触发 updateComponent，就又会重新执行依赖收集，不一样的是更新时是有老的VNode，会做对比再重新patch
+    const value = this.get()
+    if (
+        value !== this.value ||
+        // Deep watchers and watchers on Object/Arrays should fire even
+        // when the value is the same, because the value may
+        // have mutated.
+        isObject(value) ||
+        this.deep
+    ) {
+        // set new value
+        const oldValue = this.value
+        this.value = value
+        this.dirty = false
+        if (this.user) {
+            try {
+
+                // 这就是为什么我们写自定义watcher时能拿到新值和旧值
+                cb.call(this.vm, value, oldValue)
+            } catch (e) {
+                handleError(e, this.vm, `callback for watcher "${this.expression}"`)
+            }
+        } else {
+            cb.call(this.vm, value, oldValue)
+        }
+    }
+}
+```
+
+**上面的代码主要操作：执行 `getAndInvoke()` 函数，其实也就是执行 `this.get()` 获取当前的值，如果满足新老值不相等，新值是对象、`deep` 模式下的任一条件，就执行回调 `cb`。回调中的参数是新老值，这也是为什么我们写自定义 `watcher` 有新老值参数的原因，对于例子而言，这里的 `this.get` 重新触发 `updateComponent()`。**
+
+
+
+## 总结
+
+![alt](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/SSxrOG.png)
+
+**根据上图做一个总结：在 `render` 阶段，会读取到响应式数据，触发数据的 `getter`，然后会通过 `Dep` 做 `render watcher` 的收集。当修改响应式数据时，会触发数据的 `setter`，从而触发 `Dep` 的 `notify`。让所有的 `render watcher` 异步更新，从而重新渲染页面。重新渲染页面会做 `VNode` 的 `diff`，然后高效地渲染页面。**
+

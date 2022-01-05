@@ -1,6 +1,6 @@
 # Vue源码解读—mergeOptions
 
-## mergeOptions 函数的三个参数
+## `mergeOptions` 函数的三个参数
 
 > **`mergeOptions` 函数来自于 `core/util/options.js` 文件，事实上不仅是 `mergeOptions` 函数，整个文件所做的一切都为了选项的合并。**
 
@@ -140,7 +140,7 @@ Vue.options = {
 
 
 
-## mergeOptions 函数本体
+## `mergeOptions` 函数本体
 
 **`mergeOptions` 函数上有一段注释：**
 
@@ -209,6 +209,10 @@ export function mergeOptions (
 }
 ```
 
+
+
+## `mergeOptions` 中的 `checkComponents`
+
 **我们逐段分析，先看第一段：**
 
 ```javascript
@@ -227,6 +231,278 @@ function checkComponents (options: Object) {
   for (const key in options.components) {
     validateComponentName(key)
   }
+}
+```
+
+**从注释可以得知，这个方法是用来校验组件的名字是否符合要求的，该方法使用一个 `for in` 循环遍历 `options.component` 选项，将每个子组件的名字作为参数传递给 `validateComponentName` 函数，所以 `validateComponentName` 函数才是真正校验名字的函数，该函数就定义在 `checkComponents` 函数下方，源码如下：**
+
+```javascript
+export function validateComponentName (name: string) {
+  if (!/^[a-zA-Z][\w-]*$/.test(name)) {
+    warn(
+      'Invalid component name: "' + name + '". Component names ' +
+      'can only contain alphanumeric characters and the hyphen, ' +
+      'and must start with a letter.'
+    )
+  }
+  if (isBuiltInTag(name) || config.isReservedTag(name)) {
+    warn(
+      'Do not use built-in or reserved HTML elements as component ' +
+      'id: ' + name
+    )
+  }
+}
+```
+
+**`validateComponentName` 函数由两个 `if` 语句块组成，所以组件的名字需要满足这两个条件才可以：**
+
+- **组件的名字需要满足正则表达式：`/^[a-zA-Z][\w-]*$/`**
+- **需要满足条件：`isBuiltInTag(name) || config.isReservedTag(name)` 不成立，也就是说组件名字不能是 Vue 内置的标签 (`isBuiltInTag(name)`) 以及不能够是保留标签 (`config.isReservedTag(name)`)**
+
+
+
+## 允许合并另一个构造函数的 `options`
+
+**继续看下一段代码**
+
+```javascript
+if (typeof child === 'function') {
+  child = child.options
+}
+```
+
+**这里说明 `child` 参数除了可以是普通的选项对象外，还可以是一个函数，如果是函数的话，就取函数的 `options` 属性作为新的 `child`，我们所知道的除了 Vue 构造函数本身就具有这个属性之外，其实通过 `Vue.extend` 创造出来的子类 (Vue 组件构造器) 也拥有这个属性，说明进行选项合并的时候，允许合并一个 Vue 组件构造器的选项**
+
+**接着看下一段代码，是用来规范化 `options` 的函数调用：**
+
+```javascript
+normalizeProps(child, vm)
+normalizeInject(child, vm)
+normalizeDirectives(child)
+```
+
+
+
+## 规范化 `props` (`normalizeProps`)
+
+**`normalizeProps` 是用来规范化 `props` 的，我们在 Vue 中，使用 `props` 的时候有两种写法，一种是字符串数组，如下：**
+
+```javascript
+const ChildComponent = {
+  props: ['someData']
+}
+```
+
+**另外一种是使用对象语法：**
+
+```javascript
+const ChildComponent = {
+  props: {
+    someData: {
+      type: Number,
+      default: 0
+    }
+  }
+}
+```
+
+**我们看一下 `normalizeProps` 函数的源码：**
+
+```javascript
+/**
+ * Ensure all props option syntax are normalized into the
+ * Object-based format.
+ */
+function normalizeProps (options: Object, vm: ?Component) {
+  const props = options.props
+  if (!props) return
+  const res = {}
+  let i, val, name
+  if (Array.isArray(props)) {
+    i = props.length
+    while (i--) {
+      val = props[i]
+      if (typeof val === 'string') {
+        name = camelize(val)
+        res[name] = { type: null }
+      } else if (process.env.NODE_ENV !== 'production') {
+        warn('props must be strings when using array syntax.')
+      }
+    }
+  } else if (isPlainObject(props)) {
+    for (const key in props) {
+      val = props[key]
+      name = camelize(key)
+      res[name] = isPlainObject(val)
+        ? val
+        : { type: val }
+    }
+  } else if (process.env.NODE_ENV !== 'production') {
+    warn(
+      `Invalid value for option "props": expected an Array or an Object, ` +
+      `but got ${toRawType(props)}.`,
+      vm
+    )
+  }
+  options.props = res
+}
+```
+
+**根据注释可以知道，这个函数最终将 `props` 规范为对象的形式，比如当 `props` 是一个字符串数组的时候：**
+
+```javascript
+props: ["data"]
+```
+
+**经过这个函数之后，就会规范成：**
+
+```javascript
+props: {
+  data: {
+    type: null
+  }
+}
+```
+
+**如果对象是这样的：**
+
+```javascript
+props: {
+  data1: Number,
+  data2: {
+    type: String,
+    default: ''
+  }
+}
+```
+
+**经过这个函数之后就会变成：**
+
+```javascript
+props: {
+  data1: {
+    type: Number
+  },
+  data2: {
+    type: String,
+    default: ''
+  }
+}
+```
+
+
+
+## 规范化 `inject` (`normalizeInject`)
+
+**接着看下一个规范化函数 `normalizeInject`，源码如下：**
+
+```javascript
+/**
+ * Normalize all injections into Object-based format
+ */
+function normalizeInject (options: Object, vm: ?Component) {
+  const inject = options.inject
+  if (!inject) return
+  const normalized = options.inject = {}
+  if (Array.isArray(inject)) {
+    for (let i = 0; i < inject.length; i++) {
+      normalized[inject[i]] = { from: inject[i] }
+    }
+  } else if (isPlainObject(inject)) {
+    for (const key in inject) {
+      const val = inject[key]
+      normalized[key] = isPlainObject(val)
+        ? extend({ from: key }, val)
+        : { from: val }
+    }
+  } else if (process.env.NODE_ENV !== 'production') {
+    warn(
+      `Invalid value for option "inject": expected an Array or an Object, ` +
+      `but got ${toRawType(inject)}.`,
+      vm
+    )
+  }
+}
+```
+
+**其中，我们知道，Vue 中定义 `inject` 可以使用数组或者对象两种方式进行定义的，对应的 `normalizeInject` 就需要对这两种情况进行相应的处理，下面我们举例子来说明：**
+
+```javascript
+// 子组件
+const ChildComponent = {
+  template: '<div>child component</div>',
+  created: function () {
+    // 这里的 data 是父组件注入进来的
+    console.log(this.data)
+  },
+  inject: ['data']
+}
+
+// 父组件
+var vm = new Vue({
+  el: '#app',
+  // 向子组件提供数据
+  provide: {
+    data: 'test provide'
+  },
+  components: {
+    ChildComponent
+  }
+})
+```
+
+**在上面的代码中，在父组件中定义了 `provide` 属性，在子组件中通过使用数组的方式来定义了 `inject` 属性，同样的，我们也可以用对象的方式来定义 `inject` 属性，如下：**
+
+```javascript
+// 子组件
+const ChildComponent = {
+  template: '<div>child component</div>',
+  created: function () {
+    console.log(this.d)
+  },
+  // 对象的语法类似于允许我们为注入的数据声明一个别名
+  inject: {
+    d: 'data'
+  }
+}
+```
+
+**下面我们看一下规范化后的数据形式是怎样的**
+
+**如果 `inject` 属性是以数组的形式展示：**
+
+```javascript
+inject: ['data1', 'data2']
+```
+
+**那么他将会被规范为：**
+
+```javascript
+inject = {
+  'data1': { from: 'data1' },
+  'data2': { from: 'data2' }
+}
+```
+
+**如果 `inject` 属性是以对象的形式展示：**
+
+```javascript
+let data1 = 'data1'
+
+inject: {
+  data1,
+  d2: 'data2',
+  data3: { someProperty: 'someValue' }
+}
+```
+
+**规范化后的数据形式如下：**
+
+```javascript
+inject: {
+  'data1': { from: 'data1' },
+  'd2': { from: 'data2' },
+  'data3': { from: 'data3', someProperty: 'someValue' }
 }
 ```
 

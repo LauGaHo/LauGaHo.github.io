@@ -506,3 +506,201 @@ inject: {
 }
 ```
 
+
+
+## Vue 选项合并
+
+**前边我们了解了 Vue 对选项的规范化，接下来才是真实的合并阶段，接着看 `mergeOptions` 函数的代码如下：**
+
+```javascript
+const options = {}
+let key
+for (key in parent) {
+  mergeField(key)
+}
+for (key in child) {
+  if (!hasOwn(parent, key)) {
+    mergeField(key)
+  }
+}
+function mergeField (key) {
+  const strat = strats[key] || defaultStrat
+  options[key] = strat(parent[key], child[key], vm, key)
+}
+return options
+```
+
+**这段代码的第一句和最后一句说明了 `mergeOptions` 函数确实返回了一个新的对象，因为上方的代码块中的第一句定义了一个常量 `options`，而最后一句代码将其返回，所以中间的代码就是用来填充 `options` 的，`options` 就是最后合并之后的选项，围观一下它的产生过程：**
+
+```javascript
+for (key in parent) {
+  mergeField(key)
+}
+```
+
+**这段 `for in` 用来遍历 `parent`，并且将 `parent` 对象的键作为参数传递给 `mergeField` 函数，假设 `parent` 就是 `Vue.options`：**
+
+```javascript
+Vue.options = {
+  components: {
+      KeepAlive,
+      Transition,
+      TransitionGroup
+  },
+  directives:{
+      model,
+      show
+  },
+  filters: Object.create(null),
+  _base: Vue
+}
+```
+
+**那么 `key` 就应该分别是：`components`、`directives`、`filters` 以及 `_base`，除了 `_base` 其他字段都可以理解为是 Vue 提供的选项的名字。**
+
+**而第二段 `for in` 代码：**
+
+```javascript
+for (key in child) {
+  if (!hasOwn(parent, key)) {
+    mergeField(key)
+  }
+}
+```
+
+**第二段代码中遍历的是 `child` 对象，且增加了一个判断条件：**
+
+```javascript
+if (!hasOwn(parent, key))
+```
+
+**`hasOwn()` 函数的作用是用来判断一个属性是否是对象自身的属性 (不包括原型上的)，所以这个判断语句具体的意思是：如果 `child` 对象的 `key` 在 `parent` 上出现，那么不要再调用 `mergeField(key)` 方法了，因为在上一个循环中已经调用过了一次了，避免了重复调用，增加不必要的开支。**
+
+**这两个 `for in` 循环的目的是将 `child` 和 `parent` 中的 `key` 作为参数调用 `mergeField(key)` 函数，真正的合并操作是发生在 `mergeField(key)` 中的，而 `mergeField(key)` 的源码如下：**
+
+```javascript
+function mergeField (key) {
+  const strat = strats[key] || defaultStrat
+  options[key] = strat(parent[key], child[key], vm, key)
+}
+```
+
+**`mergeField` 函数只有两行代码，第一行定义了一个常量 `strat`，他的值是通过使用指定的 `key` 去访问对应的 `strats` 对象得到的，当 `strats` 对象中没有 `key` 对应的 `value`，则会使用 `defaultStrat` 作为值。**
+
+> **`strats` 的定义在 `src/core/util/options.js` 文件中，如下：**
+
+```javascript
+/**
+ * Option overwriting strategies are functions that handle
+ * how to merge a parent option value and a child option
+ * value into the final value.
+ */
+const strats = config.optionMergeStrategies
+```
+
+**这行代码就定义了 `strats` 变量的值，它是一个名为 `config.optionMergeStrategies`，这个 `config` 对象是全局配置对象，来自于 `src/core/config.js` 文件，此时 `config.optionMergeStrategies` 只是一个空对象，上边代码的注释的中文意思是：`config.optionMergeStrategies` 是一个合并选项的策略对象，这个对象中包含很多函数，这些函数是合并特定选项的策略。这就可以让不同的选项使用不同的合并策略，如果使用自定义选项，那么也可以自定义该选项的合并策略，只需要在 `Vue.config.optionMergeStrategies` 对象添加和自定义选项同名的函数即可。**
+
+
+
+## 选项 `el`、`propsData` 的合并策略
+
+**紧接着将探讨这个策略对象中有哪些策略，看下边的代码：**
+
+>**`src/core/util/options.js` 的开头几行代码**
+
+```javascript
+/**
+ * Options with restrictions
+ */
+if (process.env.NODE_ENV !== 'production') {
+  strats.el = strats.propsData = function (parent, child, vm, key) {
+    if (!vm) {
+      warn(
+        `option "${key}" can only be used during instance ` +
+        'creation with the `new` keyword.'
+      )
+    }
+    return defaultStrat(parent, child)
+  }
+}
+```
+
+**上述代码，非生产环境下在 `strats` 策略对象上添加两个策略 (一个属性对应一个策略) 分别是 `el` 属性和 `propsData` 属性对应的策略，并且这个两个策略对应的是同一个函数，由此可知，合并 `el` 和合并 `propsData` 的方式是一样，毕竟他们的策略都是一致的。**
+
+**首先是一段 `if` 判断语句，判断是否有传递 `vm` 参数：**
+
+```javascript
+if (!vm) {
+  warn(
+    `option "${key}" can only be used during instance ` +
+    'creation with the `new` keyword.'
+  )
+}
+```
+
+**如果没有传递这个参数，便会弹出一个警告，提示 `el` 和 `propsData` 只能在使用 `new` 操作符创建实例的时候使用，比如下面的代码：**
+
+```javascript
+// 子组件
+var ChildComponent = {
+  el: '#app2',
+  created: function () {
+    console.log('child component created')
+  }
+}
+
+// 父组件
+new Vue({
+  el: '#app',
+  data: {
+    test: 1
+  },
+  components: {
+    ChildComponent
+  }
+})
+```
+
+**上面的代码中在父组件中使用了 `el` 选项，这里没有问题，但是在子组件中也使用了 `el` 属性，这里就会喜提警告，说明了一个问题，如果在策略函数中如果拿不到 `vm` 参数，就说明处理的是子组件选项。为了搞清楚这个结论的出处，我们来仔细研究一下整个流程，首先我们一层一层往外看，看看 `vm` 来自哪里，先看 `mergeField(key)` 函数：**
+
+```javascript
+function mergeField (key) {
+  const strat = strats[key] || defaultStrat
+  options[key] = strat(parent[key], child[key], vm, key)
+}
+```
+
+**而 `mergeField(key)` 函数体中的 `vm` 是来自于 `mergeOptions()` 函数的第三个参数。所以当调用 `mergeOptions()` 函数时不传第三个参数，那么在策略中就会获取不到 `vm` 参数。所以我们可以猜测到一件事，那就是 `mergeOptions()` 函数除了在 `_init()` 函数中被调用之外，还在其他地方被调用，并且是没有传递第三个参数，先解开谜底，就是在 `Vue.extend()` 方法中被调用的，至于 `Vue.extend()` 就来自于 `src/global-api/extend.js` 文件，我们在 `Vue.extend()` 方法体中就能够看到有这么一段代码：**
+
+```javascript
+Sub.options = mergeOptions(
+  Super.options,
+  extendOptions
+)
+```
+
+**由此可知，此时调用 `mergeOptions()` 被调用时并没有传递第三个参数，也就说通过 `Vue.extend()` 创建子类构造器时 `mergeOptions()` 会被调用，这时 `mergeOptions()` 就会拿不到第三个参数。**
+
+**因此得出结论，通过判断是否存在 `vm` 就能够知道 `mergeOptions()` 是在实例化的时候调用 (使用 `new` 操作符走 `_init()` 方法) 还是在继承时调用 (`Vue.extend()`)，而子组件的实现方式是通过实例化子类完成的，子类有时通过 `Vue.extend()` 创造出来的，所以通过对 `vm` 的判断就可以得知是否是子组件了。**
+
+**结论：如果策略函数中拿不到 `vm` 参数，那么处理的就是子组件的选项**
+
+**`strats.el` 和 `strats.propsData` 策略函数的代码中，最终是调用了 `defaultStrat()` 函数并将 `defaultStrat()` 函数的返回值返回。**
+
+```javascript
+return defaultStrat(parent, child)
+```
+
+**`defaultStrat()` 函数的定义在 `src/core/util/option.js` 文件中：**
+
+```javascript
+/**
+ * Default strategy.
+ */
+const defaultStrat = function (parentVal: any, childVal: any): any {
+  return childVal === undefined
+    ? parentVal
+    : childVal
+}
+```
+

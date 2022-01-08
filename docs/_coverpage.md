@@ -8,4 +8,7 @@
 * UI类库：NG-ZORRO
 
 [GitHub](https://github.com/LauGaHo/LauGaHo.github.io)
-[Get Started](#quick-start)
+<!-- [Get Started](#quick-start) -->
+
+<!-- 背景图片 -->
+![](_media/coverpage.jpg)

@@ -285,3 +285,32 @@ components: {
 }
 ```
 
+**而 `parentVal` 就是 `Vue.options.components`，`Vue.options` 如下：**
+
+```javascript
+Vue.options = {
+  components: {
+    KeepAlive,
+    Transition,
+    TransitionGroup
+  },
+  directives: Object.create(null),
+  directives: {
+    model,
+    show
+  },
+  filter: Object.create(null),
+  _base: Vue
+}
+```
+
+**由此可得：`Vue.options.components` 如下：**
+
+```javascript
+{
+  KeepAlive,
+  Transition,
+  TransitionGroup
+}
+```
+

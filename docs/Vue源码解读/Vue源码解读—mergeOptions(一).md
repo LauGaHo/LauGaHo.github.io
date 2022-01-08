@@ -1,4 +1,4 @@
-# Vue源码解读—mergeOptions
+# Vue源码解读—mergeOptions(一)
 
 ## `mergeOptions` 函数的三个参数
 
@@ -1105,4 +1105,146 @@ typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
 
 **通过看 `mergeData` 的源码，可以看到究极终极版合并策略，如下：**
 
- 
+```javascript
+/**
+ * Helper that recursively merges two data objects together.
+ */
+function mergeData (to: Object, from: ?Object): Object {
+  // 没有 from 直接返回 to
+  if (!from) return to
+  let key, toVal, fromVal
+  const keys = Object.keys(from)
+  // 遍历 from 的 key
+  for (let i = 0; i < keys.length; i++) {
+    key = keys[i]
+    toVal = to[key]
+    fromVal = from[key]
+    // 如果 from 对象中的 key 不在 to 对象中，则使用 set 函数为 to 对象设置 key 及相应的值
+    if (!hasOwn(to, key)) {
+      set(to, key, fromVal)
+    // 如果 from 对象中的 key 也在 to 对象中，且这两个属性的值都是纯对象则递归进行深度合并
+    } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
+      mergeData(toVal, fromVal)
+    }
+    // 其他情况什么都不做
+  }
+  return to
+}
+```
+
+**`mergeData()` 只接收两个参数 `to` 和 `from`，根据 `mergeData()` 函数被调用时参数的传递顺序可知道，`to` 对应的是 `childVal` 产生的纯对象，`from` 对应 `parentVal` 产生的纯对象，看 `mergeData()` 第一行代码：**
+
+```javascript
+if (!from) return to
+```
+
+**如果有 `parentVal` 产生的值，则代码继续向下运行，看 `mergeData()` 函数最后的返回值：**
+
+```javascript
+return to
+```
+
+**其返回的仍是 `to` 对象，所以 `mergeData()` 函数的作用 (通俗理解)：*将 `from` 对象的混合到 `to` 对象中，同样地也是将  `parentVal` 对象的属性混合到 `childVal` 中，最后返回的是处理后的 `childVal` 对象。***
+
+**`mergeData()` 的具体做法：*对 `from` 对象的 `key` 进行遍历：***
+
+- **如果 `from` 对象中的 `key` 不在 `to` 对象中，则使用 `set` 函数为 `to` 对象设置 `key` 及相应的值**
+- **如果 `from` 对象中 `key` 在 `to` 对象中，且两个属性的值都是纯对象则递归调用 `mergeData()` 进行深度合并**
+- **其他情况不做处理**
+
+**上边提到了一个 `set` 函数，根据 `options.js` 文件头部引用可知：这个函数来自于 `src/core/observer/index.js` 文件，实际上这个 `set` 函数就是 Vue 暴露给我们的全局 API `Vue.set()`。这里还没讲到 `set()` 函数的具体实现，所以可以理解为：*`set()` 函数的功能和 `extend()` 工具函数功能相似。***
+
+**由此可知，`mergeData()` 函数的执行结果爱是真正的数据对象。`mergedDataFn()` 和 `mergedInstanceDataFn()` 这两个函数的返回结果就是 `mergeData()` 函数的执行结果，所以执行 `mergedDataFn()` 函数和 `mergedInstanceDataFn()` 将会得到数据对象。终极结论：*最后得到的 `strats.data` 属性是一个函数，且该函数的执行结果是最终的数据对象！！！***
+
+### `strats.data` 最终被处理成一个函数
+
+**`strats.data` 最后处理成一个函数的原因是：*通过函数返回数据对象，保证了每个组件实例都有一个唯一的数据副本，避免了组件间数据互相影响。后边讲到 Vue 初始化的时候会看到，在初始化数据状态的时候，就是通过执行 `strats.data` 函数来获取数据并对其进行处理的。***
+
+### 合并阶段不合并数据，等到初始化的时候才合并数据
+
+**合并阶段 `strats.data` 将被处理成一个函数，但是这个函数并没有被执行，而是到了后边初始化才执行，这个时候才会调用 `mergeData()` 函数对数据进行合并处理，这样做的目的：*在后边讲到 Vue 初始化的时候，就会讲到 `inject` 和 `props` 这两个选项的初始化时先于 `data` 选项的，这就保证了能够使用 `props` 初始化 `data` 中的数据，如下：***
+
+```javascript
+// 子组件：使用 props 初始化子组件的 childData 
+const Child = {
+  template: '<span></span>',
+  data () {
+    return {
+      childData: this.parentData
+    }
+  },
+  props: ['parentData'],
+  created () {
+    // 这里将输出 parent
+    console.log(this.childData)
+  }
+}
+
+var vm = new Vue({
+    el: '#app',
+    // 通过 props 向子组件传递数据
+    template: '<child parent-data="parent" />',
+    components: {
+      Child
+    }
+})
+```
+
+**如上方的例子，子组件的数据 `childData` 的初始值是名为 `parentData` 这个 `props`。可以这样做的原因如下：**
+
+- **`props` 的初始化是先于 `data` 选项的初始化**
+- **`data` 选项时在初始化的时候才求值，通俗理解：*在初始化的时候才使用 `mergeData` 进行数据合并***
+
+### 也可以这样
+
+**在上方的例子中，子组件的 `data` 选项是这样写的：**
+
+```javascript
+data () {
+  return {
+    childData: this.parentData
+  }
+}
+```
+
+**达到同样的效果，也可以这样做：**
+
+```javascript
+data (vm) {
+  return {
+    childData: vm.parentData
+  }
+}
+// 或者使用 ES6 的解构赋值
+data ({ parentData }) {
+  return {
+    childData: parentData
+  }
+}
+```
+
+**从上方的代码可知，`data()` 函数的参数是当前实例对象。这个参数在两个地方传递进来的，其中一个地方如下：**
+
+```javascript
+return function mergedDataFn () {
+  return mergeData (
+  	typeof childVal === 'function' ? childVal.call(this, this) : childVal,
+    typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+  )
+}
+```
+
+***这里的 `childVal.call(this, this)` 和 `parentVal.call(this, this)`，关键在于 `call(this, this)` 中，第一个 `this` 指定了 `data()` 函数的作用域，第二个 `this` 就是传递给 `data()` 函数的参数。***
+
+**仅仅这样做是不够的，比如在 `mergedDataFn()` 前方的代码：**
+
+```javascript
+if (!childVal) {
+  return parentVal
+}
+if (!parentVal) {
+  return childVal
+}
+```
+
+**在这段代码中，直接将 `parentVal` 或 `childVal` 返回了，这里的 `parentVal` 和 `childVal` 就是 `data()` 函数，由于被直接返回，并没有指定其运行的作用域，而且也没有传递当前实例作为参数，所以还会在第二个地方做绑定作用域和传递参数这件事，这里的第二个地方就是初始化的时候，后边会讲到，且听下回分解。**

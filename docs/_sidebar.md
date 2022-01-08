@@ -54,5 +54,5 @@
 - Vue源码解读
     - [Vue源码解读—patch](Vue源码解读/Vue源码解读—patch.md)
     - [Vue源码解读—reactive](Vue源码解读/Vue源码解读—reactive.md)
-    - [Vue源码解读—mergeOptions](Vue源码解读/Vue源码解读—mergeOptions.md)
+    - [Vue源码解读—mergeOptions(一)](Vue源码解读/Vue源码解读—mergeOptions(一).md)
     

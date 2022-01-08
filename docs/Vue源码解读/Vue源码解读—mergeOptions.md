@@ -704,3 +704,405 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 }
 ```
 
+**实际上 `defaultStrat()` 函数就如同他的名字一样，是一个默认策略，当一个选项不需要特殊处理的时候就使用默认的合并策略，逻辑很简单：只要子选项不是 `undefined` 就使用子选项，否则使用父选项。**
+
+**有一个地方需要注意点：`strats.el` 和 `strats.propsData` 这两个策略函数只有在非生产环境才有，在生产环境下访问这个两个函数将会得到 `undefined`，这个时候 `mergeField()` 函数中的第一行就起作用了：**
+
+```javascript
+// 当一个选项没有对应的策略函数时，使用默认策略函数
+const strat = strats[key] || defaultStrat
+```
+
+**因此在生产环境下将直接使用默认的策略函数 `defaultStrat()` 函数来处理 `el` 和 `propsData` 这两个选项。**
+
+
+
+## 选项 `data` 的合并策略
+
+**接着看 `src/core/util/option.js` 文件的代码，紧接着定义了两个函数：`mergeData()` 以及 `mergeDataOrFn()`，他们都是关于合并 `data` 属性的，但这里直接先看 `strats.data`，从他入手了解 `mergeData()` 和 `mergeDataOrFn()` 这两个函数。**
+
+```javascript
+strats.data = function (
+  parentVal: any,
+  childVal: any,
+  vm?: Component
+): ?Function {
+  if (!vm) {
+    if (childVal && typeof childVal !== 'function') {
+      process.env.NODE_ENV !== 'production' && warn(
+        'The "data" option should be a function ' +
+        'that returns a per-instance value in component ' +
+        'definitions.',
+        vm
+      )
+
+      return parentVal
+    }
+    return mergeDataOrFn(parentVal, childVal)
+  }
+
+  return mergeDataOrFn(parentVal, childVal, vm)
+}
+```
+
+**这段代码的作用是在 `strats` 策略对象上添加 `data` 策略函数，用来合并处理 `data` 选项。现在对 `data` 策略函数抽丝剥茧分析，首先是第一个判断分支：**
+
+```javascript
+if (!vm) {
+  ...
+}
+```
+
+**和 `el`、`propsData` 这两个策略函数相同，先判断是否传递了 `vm` 参数，如果没有 `vm` 参数，处理的是子组件的选项，`if` 判断语句块的代码如下：**
+
+```javascript
+if (childVal && typeof childVal !== 'function') {
+  process.env.NODE_ENV !== 'production' && warn(
+    'The "data" option should be a function ' +
+    'that returns a per-instance value in component ' +
+    'definitions.',
+    vm
+  )
+
+  return parentVal
+}
+return mergeDataOrFn(parentVal, childVal)
+```
+
+**首先判断是否传递了子组件的 `data` 选项 (即：`childVal`)，并且检测 `childVal` 的类型是不是 `function`，如果 `childVal` 的类型不是 `function` 则会给出一个警告，也就是说 `childVal` 应该是一个函数，如果不是函数会提示 `data` 的类型必须是一个函数，这就是我们之前一直知道的一个规律：子组件中的 `data` 必须是返回对象的函数。如果不是函数，除了会给出一段警告之外，还会直接返回 `parentVal`。**
+
+**如果 `childVal` 是函数类型，那么说明满足了子组件的 `data` 选项需要是一个函数的要求，那么久直接返回 `mergeDataOrFn()` 函数的执行结果：**
+
+```javascript
+return mergeDataOrFn(parentVal, childVal)
+```
+
+**上面的情况是在 `strats.data` 策略函数拿不到 `vm` 参数时的情况，如果拿到了 `vm` 参数，那么说明处理的选项不是子组件的选项，而是正常使用 `new` 操作符创建实例时的选项，这个时候则会直接返回 `mergeDataOrFn()` 函数的执行结果，但是会多传一个参数 `vm`**
+
+```javascript
+return mergeDataOrFn(parentVal, childVal, vm)
+```
+
+**通过上面的分析我们得知一件事，即 `strats.data` 策略函数无论在合并处理的是子组件的选项还是非子组件的选项，最终都是调用 `mergeDataOrFn()` 函数进行处理的，并且以 `mergeDataOrFn()` 函数的返回值作为策略函数的最终返回值。有一点不同的是在处理非子组件选项的时候调用的 `mergeDataOrFn()` 函数多传递一个参数 `vm`。所以我们紧接着就是看 `mergeDataOrFn()` 策略函数的源码，因为 `mergeDataOrFn()` 函数的返回值就等于 `strats.data` 策略函数的返回值：**
+
+```javascript
+/**
+ * Data
+ */
+export function mergeDataOrFn (
+  parentVal: any,
+  childVal: any,
+  vm?: Component
+): ?Function {
+  if (!vm) {
+    // in a Vue.extend merge, both should be functions
+    if (!childVal) {
+      return parentVal
+    }
+    if (!parentVal) {
+      return childVal
+    }
+    // when parentVal & childVal are both present,
+    // we need to return a function that returns the
+    // merged result of both functions... no need to
+    // check if parentVal is a function here because
+    // it has to be a function to pass previous merges.
+    return function mergedDataFn () {
+      return mergeData(
+        typeof childVal === 'function' ? childVal.call(this, this) : childVal,
+        typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+      )
+    }
+  } else {
+    return function mergedInstanceDataFn () {
+      // instance merge
+      const instanceData = typeof childVal === 'function'
+        ? childVal.call(vm, vm)
+        : childVal
+      const defaultData = typeof parentVal === 'function'
+        ? parentVal.call(vm, vm)
+        : parentVal
+      if (instanceData) {
+        return mergeData(instanceData, defaultData)
+      } else {
+        return defaultData
+      }
+    }
+  }
+}
+```
+
+**这个函数整体由 `if` 判断分支语句块组成，首先对 `vm` 进行判断，我们知道无论是子组件还是非子组件选项 `strats.data` 策略函数都是通过调用 `mergeDataOrFn()` 函数来完成处理的，且处理非子组件选项的时候要比处理子组件选项时多传递一个参数 `vm`，这就使得 `mergeDataOrFn()` 也能通过是否有 `vm` 来区分处理的对象是子组件选项还是非子组件选项，实际上我们可以看到这里有一段注释：**
+
+```javascript
+// in a Vue.extend merge, both should be functions
+```
+
+**这段注释的意思是：选项是在调用 `Vue.extend()` 函数时进行合并处理的时候，此时父子 `data` 选项都应该是函数。**
+
+**这里再次说明，当拿不到 `vm` 这个参数的时候，合并操作是在 `Vue.extend()` 函数中进行的，也就是处理子组件的选项。而且此时 `childVal` 和 `parentVal` 都应该是函数，这里的确可以保证 `parentVal` 和 `childVal` 都是函数，之后会讲述到。**
+
+**上面的注释之下，是一段代码：**
+
+```javascript
+if (!childVal) {
+  return parentVal
+}
+if (!parentVal) {
+  return childVal
+}
+```
+
+**第一个 `if` 语句块，如果没有 `childVal`，也就是说子组件选项中没有 `data` 选项，那么直接返回 `parentVal`，比如下方的代码：**
+
+```javascript
+Vue.extent({})
+```
+
+**我们使用 `Vue.extend()` 函数创建子类的时候传递的子组件选项时一个空对象，既没有 `data` 选项，那么此时 `parentVal` 实际上就是就是 `Vue.options`，由于此时 `Vue.options` 上也没有 `data` 这个属性，所以根本上不可能会执行 `strats.data` 策略函数，也就更加不可能会执行 `mergeDataFn()` 函数，此时可能会有一个种想法，对于子组件选项来说，这里的 `return parentVal` 是不是属于多余选项，这里其实并不多余，因为确实存在在子组件选项中，`parentVal` 存在有值的情况 (这里描述情况是：`childVal` 不存在，而 `parentVal` 存在的情况)，下面的代码将描述这种情况：**
+
+```javascript
+const Parent = Vue.extend({
+  data: function() {
+    return {
+      test: 1
+    }
+  }
+})
+
+const Child = Parent.extend({})
+```
+
+**上面的代码中 `Parent` 类继承了 `Vue`，而 `Child` 类又继承了 `Parent` 类，这里关键就在于我们使用 `Parent.extend` 创建 `Child` 子类的时候，对于 `Child` 子类来讲，`childVal` 不存在，因为我们没有传递 `data` 选项，但是 `parentVal` 的的确确是存在，这里可能会有人对 `parentVal` 为什么会存在，在哪里生成会有一个大大的黑人问号。实际上就是 `Vue.extend()` 函数内使用 `mergeOptions()` 函数生成的，所以此时的 `parentVal` 必定是一个函数，因为 `strats.data` 策略函数在处理 `data` 选项后返回的始终都是一个函数。 **
+
+**所以这里也就是解答了上边的提出的问题：”在处理子组件中的选项中，能够保证 `childVal` 和 `parentVal` 这两个属性如果存在，那么他们的存在方式必定是以 `function` 类型的方式。“也就是解答了下边的这段代码和注释的内容：**
+
+```javascript
+// in a Vue.extend merge, both should be functions
+```
+
+```javascript
+if (!childVal) {
+  return parentVal
+}
+if (!parentVal) {
+  return childVal
+}
+```
+
+**由于 `childVal` 和 `parentVal` 必定会有一个，否则就不会执行 `strats.data` 策略函数，所以上面判断的意思是：*如果没有子选项就使用父选项，如果没有父选项就使用子选项，并且这两个选项都能够保证是函数，如果父子选项都存在的话，那么代码将继续执行，执行下边的代码：***
+
+```javascript
+// when parentVal & childVal are both present,
+// we need to return a function that returns the
+// merged result of both functions... no need to
+// check if parentVal is a function here because
+// it has to be a function to pass previous merges.
+return function mergedDataFn () {
+  return mergeData(
+    typeof childVal === 'function' ? childVal.call(this, this) : childVal,
+    typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+  )
+}
+```
+
+**上方代码的意思是：*如果父子选项同时存在，则返回一个函数 `mergeDataFn()` 函数，*注意：此时代码运行就结束了，因为函数已经 `return` 了，至于 `mergeDataFn()` 函数中返回了 `mergeData()` 函数的执行结果的这一句代码并不是当前处理的。**
+
+**以上就是 `strats.data` 策略函数在处理子组件的 `data` 选项时所做的事，可以发现 `mergeDataOrFn()` 函数在处理子组件选项时总是返回一个函数，这导致了 `strats.data` 策略函数在处理子组件选项时返回的总是一个函数。**
+
+**讨论完处理子组件选项的情况，再看一下处理非子组件选项的情况，也就是使用 `new` 操作符创建 Vue 实例的情况，此时程序直接执行 `strats.data` 函数的最后一句代码：**
+
+```javascript
+return mergeDataOrFn(parentVal, childVal, vm)
+```
+
+**这里发现同样是调用 `mergeDataOrFn()` 函数，只不过这个时候传递了 `vm` 参数，也就是说这将会执行 `mergeDataOrFn()` 函数中的 `else` 分支：**
+
+```javascript
+if (!vm) {
+  ...
+}
+else {
+  return function mergedInstanceDataFn () {
+    // instance merge
+    const instanceData = typeof childVal === 'function' ? childVal.call(vm, vm) : childVal
+    const defaultData = typeof parentVal === 'function' ? parentVal.call(vm, vm) : parentVal
+    
+    if (instanceData) {
+      return mergeData(instanceData, defaultData)
+    }
+    else {
+      return defaultData
+    }
+  }
+}
+```
+
+**如果走了 `else` 分支，那么直接返回 `mergedInstanceFn()` 函数，此时 `mergedInstanceFn()` 函数同样也是还没执行，它是作为 `mergeDataOrFn()` 函数的返回值。**
+
+**所以这里得出了一个结论：*`mergeDataOrFn()` 函数永远返回一个函数。***
+
+**这里结合例子来说明：**
+
+```javascript
+let vm = new Vue({
+  el: '#app',
+  data: {
+    test: 1
+  }
+})
+```
+
+**`data` 选项在经过 `mergeOptions()` 函数处理之后就会变成一个函数，而且根据分析，他应该就是 `mergedInstanceDataFn()` 函数，在控制台打印如下信息：**
+
+```javascript
+console.log(vm.$options)
+```
+
+**输出的结果如下图：**
+
+![alt](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/IY0DRH.png)
+
+**从中确实可以看到 `data` 选项被 `mergeOptions()` 函数处理成了一个函数，并且当 `data` 选项为非子组件的选项时，该函数就是 `mergedInstanceDataFn()`。**
+
+**一个简单的总结：*`data` 选项最终被 `mergeOptions()` 函数处理成了一个函数，当合并处理的是子组件的选项时，`data` 函数可能是以下三者之一：***
+
+- **`data` 本身。因为子组件的 `data` 选项本身就是一个函数，如下 `mergeDataOrFn()` 函数的代码段所示：**
+
+  ```javascript
+  export function mergeDataOrFn (
+    parentVal: any,
+    childVal: any,
+    vm?: Component
+  ): ?Function {
+    if (!vm) {
+      ...
+      // 返回子组件的 data 选项本身
+      if (!parentVal) {
+        return childVal
+      }
+      ...
+    } else {
+      ...
+    }
+  }
+  ```
+
+- **父类的 `data` 选项。如下代码段所示：**
+
+  ```javascript
+  export function mergeDataOrFn (
+    parentVal: any,
+    childVal: any,
+    vm?: Component
+  ): ?Function {
+    if (!vm) {
+      ...
+      // 返回父类的 data 选项
+      if (!childVal) {
+        return parentVal
+      }
+      ...
+    } else {
+      ...
+    }
+  }
+  ```
+
+- **`mergedDataFn` 函数，如下代码段所示：**
+
+  ```javascript
+  export function mergeDataOrFn (
+    parentVal: any,
+    childVal: any,
+    vm?: Component
+  ): ?Function {
+    if (!vm) {
+      ...
+      // 返回 mergedDataFn 函数
+      return function mergedDataFn () {
+        return mergeData(
+          typeof childVal === 'function' ? childVal.call(this, this) : childVal,
+          typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+        )
+      }
+    } else {
+      ...
+    }
+  }
+  ```
+
+**当处理的是非子组件的选项时，`data` 函数为 `mergedInstanceDataFn()` 函数，如下代码所示：**
+
+```javascript
+export function mergeDataOrFn (
+  parentVal: any,
+  childVal: any,
+  vm?: Component
+): ?Function {
+  if (!vm) {
+    ...
+  } else {
+    // 当合并处理的是非子组件的选项时 `data` 函数为 `mergedInstanceDataFn` 函数
+    return function mergedInstanceDataFn () {
+      // instance merge
+      const instanceData = typeof childVal === 'function'
+        ? childVal.call(vm, vm)
+        : childVal
+      const defaultData = typeof parentVal === 'function'
+        ? parentVal.call(vm, vm)
+        : parentVal
+      if (instanceData) {
+        return mergeData(instanceData, defaultData)
+      } else {
+        return defaultData
+      }
+    }
+  }
+}
+```
+
+**因此，再次强调结论：*`data` 选项最终被处理成一个函数。但是根据之前的分析可以得知，函数是分为几种情况的，但是他们都有一个共同的特点：这些函数的执行结果就是最终的 `data` 数据！！！这里指的是最终数据！！！注意最终和数据这两个词语的意思！！！***
+
+**从源码处可以发现 `mergedDataFn()` 函数和 `mergedInstanceDataFn()` 函数都有一个共同的特点：*内部都调用了 `mergeData()` 处理数据并返回，先看一下 `mergedDataFn()` 函数，源码如下：***
+
+```javascript
+return function mergedDataFn () {
+  return mergeData(
+  	typeof childVal === 'function' ? childVal.call(this, this) : childVal,
+    typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+  )
+}
+```
+
+**这个函数直接返回了 `mergeData()` 函数的执行结果，再看看 `mergedInstanceDataFn()` 函数，源码如下：**
+
+```javascript
+return function mergedInstanceDataFn () {
+  // instance merge
+  const instanceData = typeof childVal === 'function'
+    ? childVal.call(vm, vm)
+    : childVal
+  const defaultData = typeof parentVal === 'function'
+    ? parentVal.call(vm, vm)
+    : parentVal
+  if (instanceData) {
+    return mergeData(instanceData, defaultData)
+  } else {
+    return defaultData
+  }
+}
+```
+
+**这里可以注意到 `mergedDataFn()` 和 `mergedInstanceDataFn()` 这两个函数都有类似这样的代码：**
+
+```javascript
+typeof childVal === 'function' ? childVal.call(this, this) : childVal
+typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+```
+
+**`childVal` 要么是子组件的选项，要么是 `new` 操作符创建实例时的选项，无论是哪种情况，`childVal` 要么是函数，要么是一个纯对象。所以如果是函数的话就通过执行该函数从而得到一个纯对象，所以类似上面那段代码中判断 `childVal` 和 `parentVal` 的类型是否是函数的目的只有一个：*获取数据对象 (纯对象)。*所以 `mergedDataFn()` 和 `mergedInstanceDataFn()` 函数内部调用 `mergeData` 方法时传递的两个参数就是两个纯对象 (简单理解就是两个 JSON 对象)**
+
+**通过看 `mergeData` 的源码，可以看到究极终极版合并策略，如下：**
+
+ 

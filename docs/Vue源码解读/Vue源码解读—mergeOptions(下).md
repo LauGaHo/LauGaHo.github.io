@@ -314,3 +314,24 @@ Vue.options = {
 }
 ```
 
+**即：*`parentVal` 是如上包含三个内置组件的对象，经过下边的这行代码后：***
+
+```javascript
+const res = Object.create(parentVal || null)
+```
+
+**你可以通过 `res.KeepAlive` 访问到 `KeepAlive` 对象，虽然 `res` 对象上自身没有 `KeepAlive`，但是他的原型上有。**
+
+**然后再经过 `return extend(res, childVal)` 这行代码后，`res` 变量就会被添加 `ChildComponent` 属性，最后 `res` 如下：**
+
+```javascript
+res = {
+  ChildComponent,
+  __proto__: {
+    KeepAlive,
+    Transition,
+    TransitionGroup
+  }
+}
+```
+

@@ -1,4 +1,4 @@
-# Vue源码解读—mergeOptions(一)
+# Vue源码解读—mergeOptions(上)
 
 ## `mergeOptions` 函数的三个参数
 

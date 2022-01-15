@@ -56,3 +56,5 @@
     - [Vue源码解读—reactive](Vue源码解读/Vue源码解读—reactive.md)
     - [Vue源码解读—mergeOptions(上)](Vue源码解读/Vue源码解读—mergeOptions(上).md)
     - [Vue源码解读—mergeOptions(下)](Vue源码解读/Vue源码解读—mergeOptions(下).md)
+    - [Vue源码解读—Vue初始化](Vue源码解读/Vue源码解读—Vue初始化.md)
+    - [Vue源码解读—解密数据响应系统](Vue源码解读/Vue源码解读—解密数据响应系统.md)

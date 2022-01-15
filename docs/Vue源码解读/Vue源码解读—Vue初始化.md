@@ -1001,3 +1001,107 @@ if (handlers) {
 ```
 
 **为了保证生命周期钩子函数内可以通过 `this` 访问实例对象，所以使用 `.call(vm)` 执行这些函数。生命周期钩子函数是开发者编写，为了捕获可能出现的错误，使用 `try...catch` 语句块，并在 `catch` 语句块中使用 `handleError` 处理错误信息。其中 `handleError` 来自于 `srr/core/util/error.js` 文件中。**
+
+**总结：*对于生命周期钩子的调用，是通过 `this.$options` 访问处理过的对应生命周期钩子函数数组，遍历并执行他们。***
+
+```javascript
+callHook(vm, 'beforeCreate')
+initInjections(vm)
+initState(vm)
+initProvide(vm)
+callHook(vm, 'created')
+```
+
+**根据上方的代码，可以知道 `beforeCreate`、`created` 两个生命周期钩子的调用时机了。其中 `initState` 中包括了：`initProps`、`initMethods`、`initData`、`initComputed`、`initWatch`。所以 `beforeCreate` 钩子被调用的时候，所有与 `props`、`methods`、`data`、`computed`、`watch` 的相关内容都不能使用，当然 `inject/provide` 也是不可用的。**
+
+**`created` 生命周期钩子则是等待 `injections`、`initState`、`initProvide` 执行完毕之后才被调用，所以在 `created` 钩子中，是完全可以使用以上提到的内容。但是此时还没有任何挂载的操作，所以在 `created` 中不可以访问 DOM，即不能访问 `$el`。**
+
+**最后在 `callHook()` 函数中有一段这样的代码：**
+
+```javascript
+if (vm._hasHookEvent) {
+  vm.$emit('hook: ' + hook)
+}
+```
+
+**其中 `vm._hasHookEvent` 是在 `initEvent` 函数中定义的，作用是判断是否存在生命周期钩子的事件侦听器，初始化值为 `false` 代表没有，当组件检测到存在生命周期钩子的事件侦听器时，会将 `vm._hasHookEvent` 设置为 `true`。关于生命周期钩子的事件侦听器，在 Vue 中的实现如下：**
+
+```html
+<child
+  @hook:beforeCreate="handleChildBeforeCreate"
+  @hook:created="handleChildCreated"
+  @hook:mounted="handleChildMounted"
+  @hook:生命周期钩子
+ />
+```
+
+
+
+## 初始化之 `initState`
+
+**根据如下代码所示：**
+
+```javascript
+callHook(vm, 'beforeCreate')
+initInjections(vm) // resolve injections before data/props
+initState(vm)
+initProvide(vm) // resolve provide after data/props
+callHook(vm, 'created')
+```
+
+**可以看到在 `initState()` 函数执行之前，先执行了 `initInjections()` 函数，也就是说 `inject` 选项要更早被初始化，不过初始化 `inject` 选项的时候涉及到了 `defineReactive()` 函数，并且调用了 `toggleObserving()` 函数操作了用于控制是否转换为响应式属性的状态标识 `observerState.shouldConvert`，所以先讲 `initState()` 函数，之后再讲 `initInjections()` 和 `initProvide()` 函数，从 Vue 的时间线来讲，`inject/provide` 选项确实是后来才添加的。**
+
+**`intiState()` 函数的源码位于 `src/core/instance/state/js` 文件中：**
+
+```javascript
+export function initState (vm: Component) {
+  vm._watchers = []
+  const opts = vm.$options
+  if (opts.props) initProps(vm, opts.props)
+  if (opts.methods) initMethods(vm, opts.methods)
+  if (opts.data) {
+    initData(vm)
+  } else {
+    observe(vm._data = {}, true /* asRootData */)
+  }
+  if (opts.computed) initComputed(vm, opts.computed)
+  if (opts.watch && opts.watch !== nativeWatch) {
+    initWatch(vm, opts.watch)
+  }
+}
+```
+
+**以上是 `initState()` 函数的源码，逐行进行分析：*首先在 Vue 实例对象上添加了一个属性 `vm._watchers = []`，初始值是一个数组，这个数组将用来存储该组件实例所有的 `watcher` 对象。随后定义了常量 `opts`，其实就是 `vm.$options` 的引用，紧接着执行了两行代码：***
+
+```javascript
+if (opts.props) initProps(vm, opts.props)
+if (opts.methods) initMethods(vm, opts.methods)
+```
+
+**如果 `opts.props` 存在，即 `vm.$options.props` 中存在 `props`，那么调用 `initProps()` 函数初始化 `props` 选项，同样如果 `opts.methods` 存在，也会调用 `initMethods()` 方法初始化 `methods` 选项。**
+
+**再往下就是这段代码：**
+
+```javascript
+if (opts.data) {
+  initData(vm)
+}
+else {
+  observe(vm._data = {}, true /*asRootData*/)
+}
+```
+
+**判断时候存在 `opts.data`，如果存在，则调用 `initData()` 方法初始化 `data` 选项，如果不存在则直接调用 `observe()` 函数观察一个空对象：`{}`。**
+
+**最后执行的是如下这段代码：**
+
+```javascript
+if (opts.computed) initComputed(vm, opts.computed)
+if (opts.watch && opts.watch !== nativeWatch) {
+  initWatch(vm, opts.watch)
+}
+```
+
+**采用一样的方式初始化 `computed` 选项，对于 `watch` 选项，除了判断 `opts.watch` 是否存在还不够的，还要判断 `opts.watch` 是否为原生的 `watch` 对象，因为在 `firefox` 中原生提供了 `Object.prototype.watch` 函数，即使没有 `opts.watch` 选项，`firefox` 还是能够通过原型链访问到原生的 `Object.prototype.watch` 属性，所以这里才要加一个判断是否为原生对象。**
+
+**总结：*`initState()` 函数中包括了 `props`、`methods`、`data`、`computed`、`watch` 等选项的初始化。***

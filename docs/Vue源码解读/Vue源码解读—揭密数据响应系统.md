@@ -938,4 +938,441 @@ const data = {
 }
 ```
 
-**属性 `a` 的 `getter/setter` 通过闭包引用了一个 `Dep` 实例对象，除此之外，还通过闭包引用着 `childOb`，且在这里有 `childOb === data.a.__ob__` 成立。由此可知，`childOb === data.a.__ob__.dep`。**
+**属性 `a` 的 `getter/setter` 通过闭包引用了一个 `Dep` 实例对象，除此之外，还通过闭包引用着 `childOb`，且在这里有 `childOb === data.a.__ob__` 成立。由此可知，`childOb === data.a.__ob__.dep`。也就是 `childOb.dep.depend()` 除了要将依赖收集到属性 `a` 闭包引用的容器 `dep` 之外，还要将同样的依赖收集到 `data.a.__ob__.dep` 容器当中。之所以会将依赖放进两个不同的容器当中，是因为这两个容器中的依赖触发的时机是不一样的。**
+
+- **属性 `a` 闭包引用的 `dep` 容器：在属性 `a` 自身的 `set()` 函数中修改了属性就会触发：`dep.notify()`。**
+
+- **`data.a.__ob__.dep` 容器：这个容器触发的时机是在使用 `$set()` 或者使用 `Vue.set()` 给数据添加新字段时触发的，因为 JS 在没有劫持数据之前是无法拦截给对象添加属性的操作的，所以这里就通过了数据对象的 `__ob__` 属性进行操作。因为 `__ob__.dep` 这个容器收集了和闭包引用的 `dep` 一样的依赖。假设 `Vue.set()` 函数代码如下：**
+
+  ```javascript
+  Vue.set = function (obj, key, val) {
+    defineReactive(obj, key, val)
+    obj.__ob__.dep.notify()
+  }
+  ```
+
+  **当使用 `Vue.set()` 为 `data.a` 对象添加新属性：**
+
+  ```javascript
+  Vue.set(data.a, 'c', 1)
+  ```
+
+  **上方代码之所以能够触发依赖，是因为 `Vue.set()` 函数中触发了 `data.a.__ob__.dep` 的这个容器中的依赖。**
+
+  ```javascript
+  Vue.set = function (obj, key, val) {
+    defineReactive(obj, key, val)
+    obj.__ob__.dep.notify() // 相当于 data.a.__ob__.dep.notify()
+  }
+  
+  Vue.set(data.a, 'c', 1)
+  ```
+
+  **所以 `__ob__` 属性以及 `__ob__.dep` 主要作用就是为了添加、删除属性的时候有能力触发依赖，这就是 `Vue.set()` 和 `Vue.delete()` 的原理。**
+
+  **在 `childOb.dep.depend()` 这句话下边还有一个 `if` 语句，如下：**
+
+  ```javascript
+  if (Array.isArray(value)) {
+    dependArray(value)
+  }
+  ```
+
+  **这里因为数组和对象的响应式处理不一样，所以需要分开来进行处理。**
+
+
+
+### 在 `set()` 函数中触发依赖
+
+**在 `get()` 函数中收集了依赖之后，需要再 `set()` 函数中触发依赖，当属性被修改的时候触发依赖：**
+
+```javascript
+set: function reactiveSetter (newVal) {
+  const value = getter ? getter.call(obj) : val
+  /* eslint-disable no-self-compare */
+  if (newVal === value || (newVal !== newVal && value !== value)) {
+    return
+  }
+  /* eslint-enable no-self-compare */
+  if (process.env.NODE_ENV !== 'production' && customSetter) {
+    customSetter()
+  }
+  if (setter) {
+    setter.call(obj, newVal)
+  } else {
+    val = newVal
+  }
+  childOb = !shallow && observe(newVal)
+  dep.notify()
+}
+```
+
+**`get()` 函数有两个工作：**
+
+- **返回正确的属性值**
+- **收集依赖**
+
+**`set()` 函数同样也有两个工作：**
+
+- **为属性设置新值**
+- **触发相应的依赖**
+
+**在 `set()` 函数中接收一个参数 `newVal`，该属性被设置的新值，在函数体内，先执行了一行：**
+
+```javascript
+const value = getter ? getter.call(obj) : val
+```
+
+**`set()` 函数中第一行代码和 `get()` 函数中第一行代码一样，都是提取属性原有的值，用属性原有的值和新的值进行一个比较，当原有的值和新设置的值不一致的时候才需要触发依赖和重新设置属性值，否则视属性值没有改变，不做处理。如下代码：**
+
+```javascript
+/* eslint-disable no-self-compare */
+if (newVal === value || (newVal !== newVal && value !== value)) {
+  return
+}
+```
+
+**`(newVal === value)` 表示新值和旧值相同，直接返回。`(newValue !== newValue && value !== value)` 表示新值和新值自身不全等，旧值和旧值自身也不全等，JS 中只有一种情况满足这种条件，那就是：**
+
+```javascript
+NaN === NaN	// false
+```
+
+**综上可知：`(newValue !== newValue && value !== value)` 表示新值是 `NaN`，旧值也是 `NaN`，即属性的值没有变化，所以直接返回了。**
+
+**紧接着是一个 `if` 语句块：**
+
+```javascript
+/* eslint-enable no-self-compare */
+if (process.env.NODE_ENV !== 'production' && customSetter) {
+  customSetter()
+}
+```
+
+**上方代码的意思：`customSetter()` 存在，那么在非生产环境下会执行 `customSetter()` 函数。其中 `customSetter()` 函数是 `defineReactive()` 函数的第四个参数。这里的 `customSetter()` 的作用是用来打印辅助信息，如下例子：**
+
+```javascript
+defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, () => {
+  !isUpdatingChildComponent && warn(`$attrs is readonly.`, vm)
+}, true)
+```
+
+**上方的代码中的箭头函数就是 `customSetter()` 函数，就是用来打印打印辅助信息的。**
+
+**紧接着就是这段代码：**
+
+```javascript
+if (setter) {
+  setter.call(obj, newVal)
+}
+else {
+  val = newVal
+}
+```
+
+**上方代码：*先判断 `setter()` 是否存在，`setter` 变量所存储的函数是属性原有的 `set()` 函数，所以如果一个属性自身原本拥有 `set()` 函数，那么应该继续使用函数来设置属性的值，从而保证属性原有的设置操作不受影响。如果属性原本没有 `set()` 函数的，那就将 `val` 设置为 `newVal` 即：`val = newVal`。***
+
+**紧接着就是最后 `set()` 函数的最后两行代码：**
+
+```javascript
+childOb = !shallow && observe(newVal)
+dep.notify()
+```
+
+**由于属性被设置了一个新的值，如果设置的新的值是一个数组或者是一个纯对象，那么该数组或纯对象是未被 Vue 观测的，因此需要对新值进行一个观察的操作，这就是第一行代码的作用，当然了这些都是在 `!shallow` 为 `true` 的情况下，即需要进行深度观察的时候才会执行。最后就是触发依赖了，这里的容器 `dep` 指代的是 `set()` 函数中闭包引用的 `dep`。而触发依赖就是将容器 `dep` 中的依赖都执行一下，也就是：`dep.notify()`。**
+
+
+
+### 保持定义相应数据行为的一致性
+
+**本小节解读 `defineReactive()` 函数中最让人迷惑的代码：**
+
+```javascript
+if ((!getter || setter) && arguments.length === 2) {
+  val = obj[key]
+}
+```
+
+**这个判断分支中的条件，有两个条件：**
+
+- **`(!getter || setter)`**
+- **`arguments.length === 2`**
+
+**只有这两个条件同时满足了，才会根据 `key` 去对象 `obj` 上取值：`val = obj[key]`，否则就不会触发取值的动作，触发不了取值的动作，就意味着 `val` 的值为 `undefined`，这会导致 `if` 语句块下方的深度观察的代码无效，即不会发生深度观察对象：**
+
+```javascript
+// val 是 undefined，不会深度观测
+let childOb = !shallow && observe(val)
+```
+
+**对于第二个条件，只要传递参数的数量为 `2` 时，说明没有传递第三个参数 `val`，那就需要通过执行 `val = obj[key]` 去获取属性值。**
+
+**对于第一个条件则比较难理解，即：`(!getter || setter)`，其实最初的 Vue 源码是没有上边的这段 `if` 代码的，在 `walk()` 函数中是这样调用 `defineReactive()` 函数的：**
+
+```javascript
+walk (obj: Object) {
+  const keys = Object.keys(obj)
+  for (let i = 0; i < keys.length; i++) {
+    // 这里传递了第三个参数
+    defineReactive(obj, keys[i], obj[keys[i]])
+  }
+}
+```
+
+**从上方的代码可以知，调用 `defineReactive()` 函数的时候传递了第三个参数，即属性值。这个是最初的实现，后来变成成下边这个样子：**
+
+```javascript
+walk (obj: Object) {
+  const keys = Object.keys(obj)
+  for (let i = 0; i < keys.length; i++) {
+    // 在 walk 函数中调用 defineReactive 函数时暂时不获取属性值
+    defineReactive(obj, keys[i])
+  }
+}
+
+// ================= 分割线 =================
+
+// 在 defineReactive 函数内获取属性值
+if (!getter && arguments.length === 2) {
+  val = obj[key]
+}
+```
+
+**在 `walk()` 函数中调用了 `defineReactive()` 函数时去掉了第三个参数，而是在 `defineReactive()` 函数中增加了一段 `if` 语句的判断体，当发现调用 `defineReactive()` 函数的时候传递了两个参数，并且在属性原本没有 `getter()` 函数的情况下，才会通过 `val = obj[key]` 取值。**
+
+**当原本的属性中存在着 `getter()` 拦截函数时，在初始化的时候不触发 `getter()` 函数，只有当真正获取该属性的值的时候，再通过缓存下来的属性原本的 `getter()` 函数进行取值即可。所以由此可知，如果数据对象上的某一个属性原本就拥有了自己的 `getter()` 函数，那么这个属性就不会被深度观察了。因为属性原本有 `getter()` 的话，`val = obj[key]` 这行代码是不会执行的。所以 `val` 是 `undefined` 了，导致后边语句传递给 `observe()` 函数的参数就是 `undefined`。**
+
+**举例说明：**
+
+```javascript
+const data = {
+  getterProp: {
+    a: 1
+  }
+}
+
+new Vue({
+  data,
+  watch: {
+    'getterProp.a': () => {
+      console.log('这句话会输出')
+    }
+  }
+})
+```
+
+**上方代码中，定义了数据对象 `data`，`data` 是一个嵌套对象，在 `watch` 选项中观察了属性 `getterProp.a`，当修改了 `getterProp.a` 的值，以上代码是能够正常输出的。**
+
+**再看如下代码：**
+
+```javascript
+const data = {}
+Object.defineProperty(data, 'getterProp', {
+  enumerable: true,
+  configurable: true,
+  get: () => {
+    return {
+      a: 1
+    }
+  }
+})
+
+const ins = new Vue({
+  data,
+  watch: {
+    'getterProp.a': () => {
+      console.log('这句话不会输出')
+    }
+  }
+})
+```
+
+**仅修改了定义数据对象 `data` 的方式，此时 `data.getterProp` 本身就已经是一个访问器属性了，并且拥有 `getter()` 方法，这个时候当修改 `getterProp` 属性的值时，在 `watch` 选项中观察 `getterProp.a` 的函数不会被执行。因为属性 `getterProp` 是一个拥有 `getter()` 的访问器属性，当 Vue 发现拥有原本的 `getter()` 时，是不会进行深度观察的。**
+
+**Vue 之所以不会对拥有 `getter()` 的访问器属性进行深度观察的原因：**
+
+- **由于当前属性存在原本的 `getter()`，在深度观察 (`let childOb = !shallow && observe(val)`) 之前不会取值，所以在深度观察语句执行之前取不到属性值，从而无法深度观察。**
+- **之所以在深度观察之前不取值是因为属性原本的 `getter()` 由开发者来定义，开发者有可能在 `getter()` 中做任何意想不到的事情，这样做是出于避免引发不可预见问题的考虑。**
+
+**现在回过头来看这段 `if` 语句块：**
+
+```javascript
+if (!getter && arguments.length === 2) {
+  val = obj[key]
+}
+```
+
+**这样做，其实同样存在一些问题的，当数据对象中的某一个属性只拥有 `getter` 而不拥有 `setter` 的时候，此时属性是不会被深度观察的，但是经过了 `defineReactive()` 函数的处理之后，在 `defineReactive()` 函数中定义的 `set()` 函数体中有那么一段代码，如下：**
+
+```javascript
+if (getter && !setter) return
+if (setter) {
+  setter.call(obj, newVal)
+}
+else {
+  val = newVal
+}
+childOb = !shallow && observe(newVal)
+```
+
+**从上方代码可以看出，如果某个属性同时存在 `getter` 和 `setter` 两者，在 `defineReactive()` 中不会对该属性进行深度观察，但是当为该属性重新赋值时，根据上方代码可知，仍然会执行 `childOb = !shallow && observe(newVal)` 这行代码，也就是会对新赋值的对象进行深度观察，那么此时问题就来了，这不就产生了矛盾了么，也就是定义响应式数据时行为不一致。为了解决这个问题，采用的方法就是当属性拥有原本的 `setter` 时，就算拥有 `getter` 也要获取属性值，并进行深度观察，和上方的代码遥相呼应，各位慢慢理解哈，这个经典之中的经典哈！改动之后的代码如下，配合上方代码食用：**
+
+```javascript
+if ((!getter || setter) && arguments.length === 2) {
+  val = obj[key]
+}
+```
+
+
+
+### 响应式数据之数组的处理
+
+**上边就是响应式数据对于纯对象的处理方式，紧接着会讨论响应式数组的处理方式，回到 `Observer` 类的 `constructor()` 函数的，看到如下代码：**
+
+```javascript
+if (Array.isArray(value)) {
+  const augment = hasProto
+    ? protoAugment
+    : copyAugment
+  augment(value, arrayMethods, arrayKeys)
+  this.observeArray(value)
+} else {
+  this.walk(value)
+}
+```
+
+**在 `if` 条件中，使用 `Array.isArray()` 函数检测被观测的值 `value` 是否为数组，如果是数组则执行 `if` 语句块中的代码，从而实现对数组的观测。处理数组和处理纯对象的方式不太一样，数组是一个特殊的数据结构，有很多实例方法，有些方法会改变数组自身的值，这些方法被称为：*变异方法，*这些方法有：`push`、`pop`、`shift`、`unshift`、`splice`、`sort` 以及 `reverse` 等。当开发者调用了这些变异方法改变数组时，需要触发依赖。所以需要知道开发者什么时候调用了这些变异方法，只有这样才能在这些方法被调用的时候做出反应。**
+
+
+
+### 拦截数组变异方法的思路
+
+**考虑一个问题，如下代码中 `sayHello()` 函数用来打印字符串 `hello`：**
+
+```javascript
+function sayHello () {
+  console.log('hello')
+}
+```
+
+**有一个需求，在不改动 `sayHello()` 函数源码情况下，在打印字符串 `'hello'` 之前先输出字符串 `'Hi'`。这时，可以这样子做：**
+
+```javascript
+const originalSayHello = sayHello
+sayHello = function () {
+  console.log('Hi')
+  originalSayHello()
+}
+```
+
+**上方的代码实现了需求，首先使用 `originalSayHello` 变量缓存原本的 `sayHello()` 函数，然后重新定义 `sayHello()` 函数，并在新定义的 `sayHello()` 函数中调用缓存下来的 `originalSayHello()` 函数，这样就保证在不改变 `sayHello()` 的前提下对其进行了功能的扩展，类似于 AOP，面向切面编程。**
+
+**Vue 正是通过这种方式实现了对数据变异方法的拦截，即保持数组变异方法原有的功能不变对其功能进行扩展。数组的变异方法是来自于数组构造函数的原型，即可得 `arr.__proto__ === Array.prototype` 为 `true`。**
+
+![alt](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/Kk45OU.png)
+
+**由此可知一个思路就是：通过设置 `__proto__` 属性的值为一个新的对象，且该新对象的原型是数组构造函数原来的原型对象。如下图所示：**
+
+![alt](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/aiwiQv.png)
+
+**数组本身也是一个对象，既然是一个对象就可以访问其 `__proto__` 属性，上图数组实例的 `__proto__` 属性所指向的就是相当于`arrayMethods` 对象，同时 `arrayMethods` 对象上的 `__proto__` 属性指向了真正的数组原型对象。并且 `arrayMethods` 对象上定义了和数组变异方法同名的函数，这样当通过数组实例调用变异方法的时候，首先执行的就是 `arrayMethods` 对象上同名的函数，这样就实现了对数组方法的拦截，同时这也是实现 AOP 的一个方式。如下：**
+
+```javascript
+// 要拦截的数组变异方法
+const mutationMethods = [
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse'
+]
+
+const arrayMethods = Object.create(Array.prototype) // 实现 arrayMethods.__proto__ === Array.prototype
+const arrayProto = Array.prototype  // 缓存 Array.prototype
+
+mutationMethods.forEach(method => {
+  arrayMethods[method] = function (...args) {
+    const result = arrayProto[method].apply(this, args)
+
+    console.log(`执行了代理原型的 ${method} 函数`)
+
+    return result
+  }
+})
+```
+
+**如上方代码所示，通过 `Object.create(Array.prototype)` 创建了 `arrayMethods` 对象，这样就保证了 `arrayMethods.__proto__ === Array.prototype`。然后通过一个循环在 `arrayMethods` 对象上定义了和数组变异方法同名的函数。并在这些函数内调用真正数组原型上的相应方法，测试代码如下：**
+
+```javascript
+const arr = []
+arr.__proto__ = arrayMethods
+
+arr.push(1)
+```
+
+**控制台中会打印一句话：`执行了代理原型的 push 函数`。但是由于低版本的 `IE` 不支持 `__proto__` 所以需要使用另外的兼容方案进行处理。**
+
+**使用比较多的兼容方案就是直接在数组实例上定义和变异方法同名的函数，如下代码：**
+
+```javascript
+const arr = []
+const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
+
+arrayKeys.forEach(method => {
+  arr[method] = arrayMethods[method]
+})
+```
+
+**上方代码中通过 `Object.getOwnPropertyNames()` 获取所有属于 `arrayMethods` 对象自身的键，然后通过一个循环在数组实例中定义和变异方法同名的函数，这样当调用 `push()` 方法的时候，就会优先执行定义在数组实例上的 `push()` 函数，这样就实现了兼容版本的拦截，不过上边这种直接在数组实例上定义的属性是可枚举的，因此更好的做法是使用 `Object.defineProperty()` 进行定义：**
+
+```javascript
+arrayKeys.forEach(method => {
+  Object.defineProperty(arr, method, {
+    enumerable: false,
+    writable: true,
+    configurable: true,
+    value: arrayMethods[method]
+  })
+})
+```
+
+
+
+### 拦截数组变异方法在 Vue 中的实现
+
+**上边小节讲解了拦截数组变异方法的思路，本小节着眼看 Vue 如何实现。**
+
+**在 `Observer` 类中的 `constructor()` 函数中：**
+
+```javascript
+constructor (value: any) {
+  this.value = value
+  this.dep = new Dep()
+  this.vmCount = 0
+  def(value, '__ob__', this)
+  if (Array.isArray(value)) {
+    const augment = hasProto
+      ? protoAugment
+      : copyAugment
+    augment(value, arrayMethods, arrayKeys)
+    this.observeArray(value)
+  } else {
+    this.walk(value)
+  }
+}
+```
+
+**有一个点需要注意：无论是纯对象还是数组，都将通过 `def()` 函数为其定义 `__ob__` 属性。紧接着查看 `if` 语句块中的代码将被执行，即如下代码：**
+
+```javascript
+const augment = hasProto
+  ? protoAugment
+  : copyAugment
+augment(value, arrayMethods, arrayKeys)
+this.observeArray(value)
+```
+
+**上方代码定义了一个 `augment` 常量，如果 `hasProto` 为 `true` 那么 `augment` 的值为 `protoAugment`，如果 `hasProto` 为 `false` 那么 `augment` 的值为 `copyAugment`。`hasProto` 是一个用于检测当前环境是否支持使用 `__proto__` 属性的值。**
+

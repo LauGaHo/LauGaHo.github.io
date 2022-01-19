@@ -1376,3 +1376,410 @@ this.observeArray(value)
 
 **上方代码定义了一个 `augment` 常量，如果 `hasProto` 为 `true` 那么 `augment` 的值为 `protoAugment`，如果 `hasProto` 为 `false` 那么 `augment` 的值为 `copyAugment`。`hasProto` 是一个用于检测当前环境是否支持使用 `__proto__` 属性的值。**
 
+**如果当前环境支持 `__proto__` 属性，`augment` 的值就为 `protoAugment`，其中 `protoAugment` 就定义在 `Observer` 类的下方。源码如下：**
+
+```javascript
+/**
+ * Augment an target Object or Array by intercepting
+ * the prototype chain using __proto__
+ */
+function protoAugment (target, src: Object, keys: any) {
+  /* eslint-disable no-proto */
+  target.__proto__ = src
+  /* eslint-enable no-proto */
+}
+```
+
+**`protoAugment` 的作用就是设置数组实例的 `__proto__` 属性，让它指向一个代理的原型，从而做到数组变异方法的拦截。而 `protoAugment` 函数的调用在如下代码中：**
+
+```javascript
+const augment = hasProto
+  ? protoAugment
+  : copyAugment
+augment(value, arrayMethods, arrayKeys)
+```
+
+**当 `hasProto` 为 `true` 调用 `protoAugment()` 函数，调用 `protoAugment()` 函数传递的参数有三个：**
+
+- **`value`：即数组实例本身。**
+
+- **`arrayMethods`：是一个代理原型对象，跟上一小节所说的 `arrayMethods` 一致。**
+
+- **`arrayKeys`：其实是所有定义在 `arrayMethods` 对象上的 `key`，也就是所有需要拦截的数组变异方法的名字，如下：**
+
+  ```javascript
+  arrayKeys = [
+    'push',
+    'pop',
+    'shift',
+    'unshift',
+    'splice',
+    'sort',
+    'reverse'
+  ]
+  ```
+
+**但实际上 `protoAugment()` 函数虽然接收第三个参数，但它没有使用第三个参数。**
+
+**回到 `protoAugment()` 函数，如下：**
+
+```javascript
+/**
+ * Augment an target Object or Array by intercepting
+ * the prototype chain using __proto__
+ */
+function protoAugment (target, src: Object, keys: any) {
+  /* eslint-disable no-proto */
+  target.__proto__ = src
+  /* eslint-enable no-proto */
+}
+```
+
+**上方函数中只有一行代码：`target.__proto__ = src`。这行代码用来将数组实例的原型对象指向代理原型，即：`arrayMethods`。下方就看一下 `arrayMethods` 的实现，打开 `src/core/observer/array.js` 文件：**
+
+```javascript
+/*
+ * not type checking this file because flow doesn't play well with
+ * dynamically accessing methods on Array prototype
+ */
+
+import { def } from '../util/index'
+
+const arrayProto = Array.prototype
+export const arrayMethods = Object.create(arrayProto)
+
+const methodsToPatch = [
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse'
+]
+
+/**
+ * Intercept mutating methods and emit events
+ */
+methodsToPatch.forEach(function (method) {
+  // cache original method
+  const original = arrayProto[method]
+  def(arrayMethods, method, function mutator (...args) {
+    const result = original.apply(this, args)
+    const ob = this.__ob__
+    let inserted
+    switch (method) {
+      case 'push':
+      case 'unshift':
+        inserted = args
+        break
+      case 'splice':
+        inserted = args.slice(2)
+        break
+    }
+    if (inserted) ob.observeArray(inserted)
+    // notify change
+    ob.dep.notify()
+    return result
+  })
+})
+```
+
+**上方代码就是 `src/core/observer/array.js` 文件的全部代码，该文件的目的就导出 `arrayMethods` 对象：**
+
+```javascript
+const arrayProto = Array.prototype
+export const arrayMethods = Object.create(arrayProto)
+```
+
+**从上方代码可知，`arrayMethods` 对象的原型是真正的数组构造函数的原型。紧接着定义了 `methodsToPatch` 常量：**
+
+```javascript
+const methodsToPatch = [
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse'
+]
+```
+
+**`methodsToPatch` 常量是一个数组，包含了所有需要拦截的数组变异方法的名字。再往下是 `forEach` 循环，用来遍历 `methodsToPatch` 数组。该循环的目的：*使用 `def()` 函数在 `arrayMethods` 对象上定义和数组变异方法同名的函数，从而做到拦截的目的，如下是简化后的代码：***
+
+```javascript
+methodsToPatch.forEach(function (method) {
+  // cache original method
+  const original = arrayProto[method]
+  def(arrayMethods, method, function mutator (...args) {
+    const result = original.apply(this, args)
+    const ob = this.__ob__
+
+    // 省略中间部分...
+
+    // notify change
+    ob.dep.notify()
+    return result
+  })
+})
+```
+
+**上方代码中，第一行代码缓存了数组原本的变异方法：**
+
+```javascript
+const original = arrayProto[method]
+```
+
+**然后使用 `def()` 函数在 `arrayMethods` 上定义和数组变异方法同名的函数，在函数体中优先调用了缓存下来的数组变异方法：**
+
+```javascript
+const result = original.apply(this, args)
+```
+
+**并将数组原本的变异方法的返回值赋值给 `result` 常量，并且函数体中最后一行代码将 `result` 作为返回值返回。这样保证了拦截函数的功能和数组原本的变异方法的功能是一致的。**
+
+**关键在这两行代码：**
+
+```javascript
+const ob = this.__ob__
+
+// 省略中间部分...
+
+// notify change
+ob.dep.notify()
+```
+
+**定义了 `ob` 常量，是 `__ob__` 的引用，其中 `this` 其实就是数组本身，无论是数组还是对象，都将会被定义一个 `__ob__` 对象，并且 `__ob__.dep` 中收集了所有该对象 (或数组) 的依赖 (观察者)。所以上方两行代码的目的很简单，当调用数组变异方法时，必然修改了数组，所以这个时候需要将该数组的所有依赖 (观察者) 全部拿出来执行，即：`ob.dep.notify()`。**
+
+**上方省略的代码如下：**
+
+```javascript
+def(arrayMethods, method, function mutator (...args) {
+  // 省略...
+  let inserted
+  switch (method) {
+    case 'push':
+    case 'unshift':
+      inserted = args
+      break
+    case 'splice':
+      inserted = args.slice(2)
+      break
+  }
+  if (inserted) ob.observeArray(inserted)
+  // 省略...
+})
+```
+
+**数组变异方法对数组的影响：*无非是增加元素，删除元素以及变更元素顺序。在这些变更中，需要重点关注增加元素，即：`push`、`unshift`、`splice` 操作，这三个变异方法都可以为数组添加新的元素，因为新添加的元素是非响应式的，所以需要获取到这些元素，然后将其变成响应式数据才可以。这就是上方代码中的目的。*下边将看一下具体实现：**
+
+***首先定义一个 `inserted` 变量，这个变量用来保存那些被新添加进来的数组元素，然后接着是一个 `switch` 语句，在 `switch` 语句中，当遇到了 `push` 和 `unshift` 操作时，那么新增的元素实际上就是传递给这两个方法的参数，所以可以直接将 `inserted` 的值设置为 `args`。当遇到了 `splice` 操作时，因为 `splice` 函数从第三个参数开始到最后一个参数都是数组的新增元素，所以直接使用 `args.slice(2)` 作为 `inserted` 的值即可。最后 `inserted` 变量中所保存的就是新增的数组元素，只需要调用 `observeArray()` 函数对其进行观察即可：***
+
+```javascript
+if (inserted) ob.observeArray(inserted)
+```
+
+**以上是当前环境支持 `__proto__` 属性的情况，如果不支持，那么 `augment` 的值为 `copyAugment()` 函数，`copyAugment()` 函数的定义在 `protoAugment()` 函数下方：**
+
+```javascript
+/**
+ * Augment an target Object or Array by defining
+ * hidden properties.
+ */
+/* istanbul ignore next */
+function copyAugment (target: Object, src: Object, keys: Array<string>) {
+  for (let i = 0, l = keys.length; i < l; i++) {
+    const key = keys[i]
+    def(target, key, src[key])
+  }
+}
+```
+
+**`copyAugment()` 函数接收的参数和 `protoAugment()` 函数相同，不同的是 `copyAugment()` 使用了全部三个参数，在拦截数组变异方法的思路一节中讲解了当前环境不支持 `__proto__` 属性时如何做兼容处理，实际上这就是 `copyAugment()` 函数的作用。**
+
+**`copyAugment()` 函数的第三个参数 `keys` 就是定义在 `arrayMethods` 对象上的所有函数的键，即所有要拦截的数组变异方法的名称。这样通过 `for` 循环对其进行遍历，并使用 `def()` 函数在数组实例上定义和数组变异方法同名的且不可以枚举的函数，这样实现了拦截操作。**
+
+**无论是 `protoAugment()` 函数还是 `copyAugment()` 函数，目的只有一个：*把数组实例和代理原型或代理原型中定义的函数联系起来，从而达到拦截数组变异方法的目的。***
+
+**回到 `constructor()` 函数中，如下代码：**
+
+```javascript
+if (Array.isArray(value)) {
+  const augment = hasProto
+    ? protoAugment
+    : copyAugment
+  augment(value, arrayMethods, arrayKeys)
+  this.observeArray(value)
+} else {
+  // 省略...
+}
+```
+
+**在 `augment()` 函数调用之后，还以该数组实例作为参数调用了 `Observer` 实例对象的 `observeArray()` 方法：**
+
+```javascript
+this.observeArray(value)
+```
+
+**当被观察的数据 (`value`) 是数组的时候，执行 `if` 语句块，调用 `augment()` 函数实现拦截数组变异方法，这样当开发者尝试通过这些变异方法修改数组时会触发相应的依赖 (观察者)，如下代码所示：**
+
+```javascript
+const ins = new Vue({
+  data: {
+    arr: [1, 2]
+  }
+})
+
+ins.arr.push(3) // 能够触发响应
+```
+
+**但是如果数组中嵌套了其他的数组或者对象，那么嵌套的对象或数组却不是响应的：**
+
+```javascript
+const ins = new Vue({
+  data: {
+    arr: [
+      [1, 2]
+    ]
+  }
+})
+
+ins.arr.push(1) // 能够触发响应
+ins.arr[0].push(3) // 不能触发响应
+```
+
+**上方代码中，直接调用 `arr` 数组中的 `push()` 方法是能够触发响应的，但是调用 `arr` 数组内嵌套数组的 `push()` 方法是不能够触发依赖的。为了让嵌套的数组或对象同样是响应式数据，需要递归观察那些类型为数组或对象的数组元素，这就是 `observeArray()` 方法的作用，如下是 `osberveArray()` 方法的全部代码：**
+
+```javascript
+/**
+  * Observe a list of Array items.
+  */
+observeArray (items: Array<any>) {
+  for (let i = 0, l = items.length; i < l; i++) {
+    observe(items[i])
+  }
+}
+```
+
+**上方代码的实现很简单：只需要对数组进行遍历，并对数组元素逐个应用 `observe()` 工厂函数即可，这样就可以递归观察数组元素了。**
+
+
+
+### 数组的特殊性
+
+**补充 `defineReactive()` 函数中的一段代码：**
+
+```javascript
+get: function reactiveGetter () {
+  const value = getter ? getter.call(obj) : val
+  if (Dep.target) {
+    dep.depend()
+    if (childOb) {
+      childOb.dep.depend()
+      if (Array.isArray(value)) {
+        dependArray(value)
+      }
+    }
+  }
+  return value
+}
+```
+
+**在上方代码中，阐述了如何收集依赖，但是留下了三行代码没有讲述，如下：**
+
+```javascript
+if (Array.isArray(value)) {
+  dependArray(value)
+}
+```
+
+**为了了解这个问题，下边举例说明：**
+
+```vue
+<div id="demo">
+  {{arr}}
+</div>
+
+const ins = new Vue({
+  el: '#demo',
+  data: {
+    arr: [
+      { a: 1 }
+    ]
+  }
+})
+```
+
+**首先观察一下数据对象：**
+
+```json
+{
+  arr: [
+    { a: 1 }
+  ]
+}
+```
+
+**数据对象中的 `arr` 属性是一个数组，并且数组中的一个元素是一个对象。上方对象经过观察之后，将会变成如下这个样子：**
+
+```javascript
+{
+  arr: [
+    {
+      a: 1,
+      __ob__	// 称该 __ob__ 为 ob2
+    },
+    __ob__	// 称该 __ob__ 为 ob1
+  ]
+}
+```
+
+**如上代码注释是为了便于区别和讲解，然后观察一下模板：**
+
+```html
+<div id="demo">
+  {{arr}}
+</div>
+```
+
+**在模板中使用了数据 `arr`，这将触发数据对象 `arr` 属性的 `get()` 函数，在 `arr` 属性中的 `get()` 函数中为两个容器进行了依赖的收集，一个是通过闭包引用定义在 `defineReactive()` 函数中的 `dep`，另外一个是 `childOb.dep` 在这个例子中，`childOb` 就相当于 `ob1`。这时依赖就会收集到这两个容器当中，此时需要注意的是：`ob2.dep` 的这个容器是没有收集到依赖的。有一种理解是：*模板中依赖的数据是 `arr`，并不是 `arr` 中的第一个元素，所以此时 `ob2` 没有收集到依赖是一件很正常的事。*但是这种理解不太正确，*因为依赖了数组 `arr` 就等于依赖了数组中的所有元素，数组中任意一个元素的改变都可以看做是数组的改变。*但是由于 `ob2` 没有收集到依赖，所以导致了如下代码无法触发依赖：**
+
+```javascript
+ins.$set(ins.$data.arr[0], 'b', 2)
+```
+
+**使用 `$set()` 函数为 `arr` 数组的第一个元素添加了一个属性 `b`，这就触发不了响应了，为了让上方一行代码能够触发响应，必须让 `ob2` 收集到依赖，这里就是 `dependArray()` 函数的作用了，如下是 `dependArray()` 函数的源码：**
+
+```javascript
+function dependArray (value: Array<any>) {
+  for (let e, i = 0, l = value.length; i < l; i++) {
+    e = value[i]
+    e && e.__ob__ && e.__ob__.dep.depend()
+    if (Array.isArray(e)) {
+      dependArray(e)
+    }
+  }
+}
+```
+
+**当读取的数据对象属性是数组时，会调用 `dependArray()` 函数，该函数通过 `for` 循环遍历数组，并取得数组每一个元素的值，如果该元素的值拥有 `__ob__` 对象和 `__ob__.dep` 对象，那么说明该元素也是一个对象或者数组，此时只需要手动执行 `__ob__.dep.depend()` 即可达到收集依赖的目的。如果发现数组的元素还是一个数组的话，那么需要递归调用 `dependArray()` 函数继续收集依赖。**
+
+**之所以数组需要这样处理，而纯对象不需要，是因为数组的索引是非响应式的。对于纯对象，只需要逐个将对象的属性重新定义为访问器属性，并且当属性的值同样为纯对象时进行递归定义既可以，而对于数组的处理则是通过拦截数组变异方法的方式，也就是下方的代码是无法触发响应的：**
+
+```javascript
+const ins = new Vue({
+  data: {
+    arr: [1, 2]
+  }
+})
+
+ins.arr[0] = 3  // 不能触发响应
+```
+
+**上方代码中，试图修改 `arr` 数组的第一个元素，是触发不了依赖的，因为对于数组来讲，索引不是访问器属性，正是因为索引不是访问器属性，所以当有观察者依赖数组的某一个元素时，是触发不了这个元素的 `get()` 函数，也就收集不了依赖。这个时候就是 `dependArray()` 函数发挥作用的时候了。**
+
+
+
+## `Vue.set($set)` 和 `Vue.delete($delete)` 的实现
+

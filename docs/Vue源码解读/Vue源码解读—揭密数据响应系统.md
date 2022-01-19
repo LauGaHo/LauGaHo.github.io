@@ -1783,3 +1783,310 @@ ins.arr[0] = 3  // 不能触发响应
 
 ## `Vue.set($set)` 和 `Vue.delete($delete)` 的实现
 
+**Vue 的数据响应系统的原理的核心是通过 `Object.defineProperty()` 函数将数据对象的属性转换为访问器属性，从而使得可以拦截属性的读取和设置，但正如官方文档所说，Vue 是没有能力拦截到为一个对象 (或数组) 添加属性 (或元素) 的，而 `Vue.set()` 和 `Vue.delete()` 就是为了这个问题诞生的。同时为了方便使用，Vue 还在实例对象上定义了 `$set()` 和 `$delete()` 函数，他们仅仅只是 `Vue.set()` 和 `Vue.delete()` 的别名。**
+
+**`$set()` 和 `$delete()` 函数的定义在 `src/core/instance/state.js` 文件中的 `stateMixin()` 函数中，如下：**
+
+```javascript
+export function stateMixin (Vue: Class<Component>) {
+  // 省略...
+
+  Vue.prototype.$set = set
+  Vue.prototype.$delete = del
+
+  Vue.prototype.$watch = function (
+    expOrFn: string | Function,
+    cb: any,
+    options?: Object
+  ): Function {
+    // 省略...
+  }
+}
+```
+
+**根据文件上方的 `import` 可知，上方代码中的 `set()` 和 `delete()` 就是来自于 `src/core/observer/index.js` 文件中函数 `set()` 和 `del()`。搞懂他们俩即可。**
+
+### 
+
+### `Vue.set()` 和 `$set()`
+
+**`set()` 函数的定义如下：**
+
+```javascript
+export function set (target: Array<any> | Object, key: any, val: any): any {
+  // 省略...
+}
+```
+
+**`set()` 函数接收三个参数：**
+
+- **`target`：将要被添加属性的对象。**
+- **`key`：要添加的属性名。**
+- **`value`：要添加的属性值。**
+
+**下面将对 `set()` 函数进行剖析。**
+
+**首先是一个 `if` 语句块：**
+
+```javascript
+if (process.env.NODE_ENV !== 'production' &&
+  (isUndef(target) || isPrimitive(target))
+) {
+  warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
+}
+```
+
+**`isUndef()` 函数用于判断函数是否为 `undefined` 或 `null`。`isPrimitive()` 函数用来判断一个值是否为原始类型。**
+
+**上方代码的意思为：如果 `set()` 函数第一个参数为 `undefined` 或 `null` 或者原始类型值，那么在非生产环境会打印警告信息。因为只能为纯对象或者数组添加属性或元素。**
+
+**紧接着是下一个 `if` 语句块：**
+
+```javascript
+if (Array.isArray(target) && isValidArrayIndex(key)) {
+  target.length = Math.max(target.length, key)
+  target.splice(key, 1, val)
+  return val
+}
+```
+
+**这段代码对 `target` 和 `key` 这两个参数做了校验，如果 `target` 是一个数组，并且 `key` 是一个有效的数组索引，就会执行 `if` 语句块中的内容。在校验有效数组索引值时使用了 `isValidArrayIndex()` 函数。详细解释在如下例子：**
+
+```javascript
+const ins = new Vue({
+  data: {
+    arr: [1, 2]
+  }
+})
+
+ins.$data.arr[0] = 3 // 不能触发响应
+ins.$set(ins.$data.arr, 0, 3) // 能够触发响应
+```
+
+**上方代码中直接修改 `arr[0]` 的值是不能触发响应的，但是如果使用 `$set()` 函数重新设置 `arr` 数组索引为 `0` 的值，这样就能够触发响应了。而使用 `$set()` 函数的实现方式如下：**
+
+```javascript
+if (Array.isArray(target) && isValidArrayIndex(key)) {
+  target.length = Math.max(target.length, key)
+  target.splice(key, 1, val)
+  return val
+}
+```
+
+**原理很简单，数组的 `splice()` 变异方法能够完成数组元素的删除、添加、替换等操作。而 `target.splice(key, 1, val)` 就利用了替换元素的能力，将指定位置元素的值替换为新值，同时由于 `splice()` 函数本身可以触发响应，所以一切就是这么简单，就问你懂不懂，反正我懂了。**
+
+**另外一个需要注意的点，在调用 `target.splice()` 方法之前，需要修改数组的长度：**
+
+```javascript
+target.length = Math.max(target.length, key)
+```
+
+**将数组的长度修改为 `target.length` 和 `key` 中的较大者，否则当要设置的元素的索引大于数组长度时 `splice()` 无效。**
+
+**再往下仍然是一个 `if` 语句块，如下：**
+
+```javascript
+if (key in target && !(key in Object.prototype)) {
+  target[key] = val
+  return val
+}
+```
+
+**如果 `target` 不是一个数组，那么必然是一个纯对象了，当给一个纯对象设置属性的时候，假设该属性已经在对象上早有定义，那么只需要直接设置该属性的值即可，这样就会自动触发响应了，因为已经存在的属性是响应式的。但是这里有一个注意的点：`if` 判断语句的两个条件：**
+
+- **`key in target`**
+- **`!(key in Object.prototype)`**
+
+**这两个条件保证了 `key` 在 `target` 对象上，或在 `target` 的原型链上，但同时不能在 `Object.prototype` 上。这里需要特别提醒，上方这段代码不能够像如下代码那样：**
+
+```javascript
+if (hasOwn(target, key)) {
+  target[key] = val
+  return val
+}
+```
+
+**接下来的代码就是 `set()` 函数仅存的代码了：**
+
+```javascript
+const ob = (target: any).__ob__
+if (target._isVue || (ob && ob.vmCount)) {
+  process.env.NODE_ENV !== 'production' && warn(
+    'Avoid adding reactive properties to a Vue instance or its root $data ' +
+    'at runtime - declare it upfront in the data option.'
+  )
+  return val
+}
+if (!ob) {
+  target[key] = val
+  return val
+}
+defineReactive(ob.value, key, val)
+ob.dep.notify()
+return val
+```
+
+**上方的这段代码表示正在给对象添加一个全新的，之前不存在的属性，上方第一行代码获取数据对象上的 `__ob__` 属性，并将其赋值给 `ob`，然后在倒数第三行中的 `defineReactive(ob.value, key, val)` 则是为了保证新添加的属性是响应式的。倒数第二行代码则是通过 `__ob__.dep.notify()` 触发了响应。这就是为全新属性触发响应式的原理。**
+
+**再看这一小段代码：**
+
+```javascript
+if (!ob) {
+  target[key] = val
+  return val
+}
+```
+
+**上方代码表示：如果 `target` 本身不是响应式的，也就是 `target.__ob__` 不存在，就简单赋值即可。**
+
+**最后看剩下的 `if` 语句：**
+
+```javascript
+const ob = (target: any).__ob__
+if (target._isVue || (ob && ob.vmCount)) {
+  process.env.NODE_ENV !== 'production' && warn(
+    'Avoid adding reactive properties to a Vue instance or its root $data ' +
+    'at runtime - declare it upfront in the data option.'
+  )
+  return val
+}
+```
+
+**这个 `if` 判断有两个条件，只要其中一个生效了，就会执行 `if` 语句块中的代码。**
+
+**第一个条件：`target._isVue`。只有 Vue 实例对象拥有 `_isVue` 属性，所以当第一个条件成立时，就说明正在使用 `Vue.set()` 或者 `$set()` 函数为 Vue 实例对象添加属性，为了避免属性覆盖的情况出现，`Vue.set()` 和 `$set()` 函数会在非生产环境下打印警告信息。**
+
+**第二个条件：`(ob && ob.vmCount)`，`ob` 就是 `target.__ob__`，为了搞懂 `vmCount` 回到 `observe()` 工厂函数中有一行一段代码如下：**
+
+```javascript
+export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 省略...
+  if (asRootData && ob) {
+    ob.vmCount++
+  }
+  return ob
+}
+```
+
+**`observe()` 函数接收两个参数，第二个参数指示被观察的数据对象是否是根数据对象，目光看到 `src/core/instance/state.js` 文件中的 `initData()` 函数如下：**
+
+```javascript
+function initData (vm: Component) {
+  let data = vm.$options.data
+  data = vm._data = typeof data === 'function'
+    ? getData(data, vm)
+    : data || {}
+  
+  // 省略...
+
+  // observe data
+  observe(data, true /* asRootData */)
+}
+```
+
+**可以看到在调用 `observe()` 函数进行观察 `data` 对象时 `asRootData` 参数为 `true`。而在后续的递归观察中调用 `observe()` 函数的时候省略了 `asRootData` 参数。所以这里所谓的根数据对象就是 `data` 对象。有了这个储备知识，再看如下代码：**
+
+```javascript
+export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 省略...
+  if (asRootData && ob) {
+    ob.vmCount++
+  }
+  return ob
+}
+```
+
+**可以发现，根数据对象有一个特质，即：`target.__ob__.vmCount > 0`，这样条件 `(ob && ob.vmCount)` 是成立的。换句话来说：*当使用 `Vue.set()` 或者 `$set()` 函数为根数据对象添加属性时，是不被允许的。***
+
+**之所以不允许在根数据对象上添加属性，是因为这样永远无法触发依赖，原因就是根对象的 `Observer` 实例收集不到依赖的，如下：**
+
+```javascript
+const data = {
+  obj: {
+    a: 1
+    __ob__ // ob2
+  },
+  __ob__ // ob1
+}
+new Vue({
+  data
+})
+```
+
+**如上代码中，`ob1` 属于根数据的 `Observer` 对象，如果想在根数据上使用 `Vue.set()` 或者 `$set()` 并触发响应：**
+
+```javascript
+Vue.set(data, 'someProperty', 'someVal')
+```
+
+**要实现上边的美梦，有一个前提，那就是 `data` 是一个响应式的数据才可以，这样当 `data` 字段被依赖了，才能够收集依赖 (观察者) 到两个容器中，即：`data.__ob__.dep` 和 `data` 属性的 `get()` 函数闭包引用的 `dep`，但是事实证明，`data` 并不是响应式的。所以做梦吧各位哈哈哈！**
+
+
+
+### `Vue.delete()` 和 `$delete()`
+
+**接着再看一下 `Vue.delete()` 和 `$delete()` 的实现，仍然在 `src/core/observer/index.js` 文件中：**
+
+```javascript
+export function del (target: Array<any> | Object, key: any) {
+  // 省略...
+}
+```
+
+**`del()` 函数接收两个参数：**
+
+- **`target`：要删除属性的目标对象。**
+- **`key`：要删除的键名。**
+
+**函数体的开头如下：**
+
+```javascript
+if (process.env.NODE_ENV !== 'production' &&
+  (isUndef(target) || isPrimitive(target))
+) {
+  warn(`Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`)
+}
+```
+
+**跟上一小节的 `set()` 函数类似，不再赘述。**
+
+**紧接着是：**
+
+```javascript
+if (Array.isArray(target) && isValidArrayIndex(key)) {
+  target.splice(key, 1)
+  return
+}
+```
+
+**如果是删除一个数组的索引，上方这段代码会被执行，移除数组元素使用了数组的变异方法，所以能够有效触发依赖。**
+
+**再来就是：**
+
+```javascript
+const ob = (target: any).__ob__
+if (target._isVue || (ob && ob.vmCount)) {
+  process.env.NODE_ENV !== 'production' && warn(
+    'Avoid deleting properties on a Vue instance or its root $data ' +
+    '- just set it to null.'
+  )
+  return
+}
+```
+
+**上方代码也是不允许删除 Vue 实例的属性，这里是出于安全考虑，而不能够删除根数据对象的属性，是因为就算你删除了，你也触发不了依赖，所以不给你这样干，原因上一小节已经讲述了。**
+
+**最后一段代码：**
+
+```javascript
+if (!hasOwn(target, key)) {
+  return
+}
+delete target[key]
+if (!ob) {
+  return
+}
+ob.dep.notify()
+```
+
+**判断要删除的 `key` 是否存在于 `target` 当中，如果不存在，直接返回，如果存在，则直接将其删除，然后看 `target` 中是否有 `__ob__` 属性，如果没有，说明数据打从一开始就不是响应式的，所以直接返回，如果存在 `__ob__`，说明数据是响应式的，那么直接触发依赖即可。讲完睡觉，拜拜👋🏻！**

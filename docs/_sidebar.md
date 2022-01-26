@@ -58,3 +58,4 @@
     - [Vue源码解读—mergeOptions(下)](Vue源码解读/Vue源码解读—mergeOptions(下).md)
     - [Vue源码解读—Vue初始化](Vue源码解读/Vue源码解读—Vue初始化.md)
     - [Vue源码解读—揭密数据响应系统](Vue源码解读/Vue源码解读—揭密数据响应系统.md)
+    - [Vue源码解读—渲染函数的观察者和进阶的数据响应系统](Vue源码解读/Vue源码解读—渲染函数的观察者和进阶的数据响应系统.md)

@@ -1195,4 +1195,158 @@ if (this.user) {
 }
 ```
 
-**在调用回调函数的时候，如果观察者实例对象的 `this.user` 为 `true` 意味着**
+**在调用回调函数的时候，如果观察者实例对象的 `this.user` 为 `true` 意味着这个观察者实例对象是开发者定义的，所谓开发者定义就是指通过 `watch` 选项或者 `$watch()` 函数定义的观察者，这些观察者的特点就是回调函数由开发者编写的，所以这些回调函数在执行的过程中其行为是不可预见的，所以很有可能会出现错误，这时将其放在一个 `try...catch` 语句块中，这样当错误发生时，就能够给开发者一个友好的提示。并且提示信息中包含了 `this.expression` 属性，前边说过该属性是被观察目标 (`expOrFn`) 的字符串表示，这样开发者就能够清楚哪里发生了错误了。**
+
+
+
+## 异步更新队列
+
+### 异步更新的意义
+
+**接着讨论一下 Vue 中的异步更新队列，上一节中讲解了触发依赖的过程，举例说明：**
+
+```vue
+<div id="app">
+  <p>{{name}}</p>
+</div>
+
+<script>
+  new Vue({
+    el: '#app',
+    data: {
+      name: ''
+    },
+    mounted () {
+      this.name = 'hcy'
+    }
+  })
+</script>
+```
+
+**如上代码所示，在模板中使用了数据对象中的 `name` 属性，意味着 `name` 属性将会收集渲染函数的观察者作为依赖，接着在 `mounted()` 钩子中修改了 `name` 属性的值，这样就会触发响应：*渲染函数的观察者会重新求值，完成重渲染。***
+
+**如果采用 *同步更新* 会导致每次属性值的变化都会引发一次重新渲染，假设需要修改两个属性值，那么同步更新就会导致两次重渲染。**
+
+**这其实是一个致命缺陷，如果有一个复杂的业务场景，可能会同时修改多个属性值，如果每次属性值的变化都要重新渲染，就会导致出现严重的性能问题，而异步更新队列就是来解决这个问题的。**
+
+**异步更新和同步更新的不同之处在于，每次修改属性的值之后并没有立即重新求值，而是将需要执行更新操作的观察者放到一个队列当中，当我们修改了 `name` 属性值时，由于 `name` 属性收集了渲染函数的观察者实例对象 (后面简称为 `renderWatcher`) 作为依赖，所以此时 `renderWatcher` 会被添加到队列当中，紧接着修改了 `age` 属性的值，由于 `renderWatcher` 已经存在于队列中，所以并不会重复添加，这样队列中将只会存在一个 `renderWatcher`。当所有的突变完成之后，再一次性执行队列中所有观察者的更新函数，同时清空队列，这样就达到了优化的目的。**
+
+**阐述完简单的思路之后，紧接着将会从源码出发看一下具体实现，当修改了一个属性的值时，会通过执行该属性所收集的所有观察者实例对象的 `update()` 函数进行更新，`update()` 函数源码如下：**
+
+```javascript
+update () {
+  /* istanbul ignore else */
+  if (this.computed) {
+    // 省略...
+  } else if (this.sync) {
+    this.run()
+  } else {
+    queueWatcher(this)
+  }
+}
+```
+
+**如果没有指定观察者是同步更新 (`this.sync` 为 `false`)，这个观察者的更新就是异步的，这时调用观察者实例对象的 `update()` 函数，在 `update()` 函数中就会调用 `queueWatcher()` 函数，并将当前观察者实例对象作为参数传递，`queueWatcher()` 函数的作用就是将观察者实例对象放到一个队列中，等所有的突变都完成了，统一执行更新操作。**
+
+**`queueWatcher()` 函数来自 `src/core/observer/scheduler.js` 文件，如下是 `queueWatcher()` 函数的全部代码：**
+
+```javascript
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    has[id] = true
+    if (!flushing) {
+      queue.push(watcher)
+    } else {
+      // if already flushing, splice the watcher based on its id
+      // if already past its id, it will be run next immediately.
+      let i = queue.length - 1
+      while (i > index && queue[i].id > watcher.id) {
+        i--
+      }
+      queue.splice(i + 1, 0, watcher)
+    }
+    // queue the flush
+    if (!waiting) {
+      waiting = true
+
+      if (process.env.NODE_ENV !== 'production' && !config.async) {
+        flushSchedulerQueue()
+        return
+      }
+      nextTick(flushSchedulerQueue)
+    }
+  }
+}
+```
+
+**`queueWatcher()` 函数接收观察者实例对象作为参数，首先定义了 `id` 常量，其值是观察者实例对象的唯一 `id`，然后执行 `if` 判断语句，如下是简化版代码：**
+
+```javascript
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    has[id] = true
+    // 省略...
+  }
+}
+```
+
+**其中 `has` 变量定义在 `scheduler.js` 文件头部，是一个空对象：**
+
+```javascript
+let has: { [key: number]: ?true } = {}
+```
+
+**当 `queueWatcher()` 函数被调用之后，会尝试将该观察者实例对象放到队列中，并将该观察者的 `id` 值登记到 `has` 对象上作为 `has` 对象的属性同时将该属性值设置为 `true`。该 `if` 语句以及 `has` 变量的作用就是用来避免将相同的观察者实例对象重复放进队列中，在 `if` 语句块中执行了真正的添加到队列的操作，如下方代码所示：**
+
+```javascript
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    has[id] = true
+    if (!flushing) {
+      queue.push(watcher)
+    } else {
+      // 省略...
+    }
+    // 省略...
+  }
+}
+```
+
+**`queue.push(watcher)` 就是将观察者实例对象添加到队列的真正操作。其中 `queue` 常量也定义在 `scheduler.js` 文件的头部：**
+
+```javascript
+const queue: Array<Watcher> = []
+```
+
+**`queue` 常量是一个数组，添加到队列就直接调用该数组的 `push()` 函数将观察者实例对象添加到数组的尾部。在添加到队列之前有一个 `flushing` 变量的判断，`flushing` 变量的定义也在 `scheduler.js` 文件的头部，初始值是 `false`：**
+
+```javascript
+let flushing = false
+```
+
+**`flushing` 变量是一个标志，放进队列 `queue` 中的所有观察者将会在突变完成之后统一执行更新，当更新开始时会将 `flushing` 变量的值设置为 `true`，代表此时正在执行更新，所以根据判断条件 `if (!flushing)` 可知只有当队列没有执行更新时才会简单地将观察者实例对象追加到队列的尾部，实际上，在队列执行更新的时候还会有观察者进入队列的操作，最典型就是计算属性，比如队列执行更新时常常会执行渲染函数观察者实例对象的更新，渲染函数中很可能有计算属性的存在，由于计算属性在实现方式上和普通响应式属性有所不同，所以当触发计算属性的 `get()` 拦截器函数时会有观察者入队的行为，这个时候就需要特殊处理，也就是 `else` 分支的代码，如下：**
+
+```javascript
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    has[id] = true
+    if (!flushing) {
+      queue.push(watcher)
+    } else {
+      // if already flushing, splice the watcher based on its id
+      // if already past its id, it will be run next immediately.
+      let i = queue.length - 1
+      while (i > index && queue[i].id > watcher.id) {
+        i--
+      }
+      queue.splice(i + 1, 0, watcher)
+    }
+    // 省略...
+  }
+}
+```
+

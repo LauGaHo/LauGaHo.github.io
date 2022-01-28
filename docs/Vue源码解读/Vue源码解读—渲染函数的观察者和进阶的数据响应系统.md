@@ -1350,3 +1350,282 @@ export function queueWatcher (watcher: Watcher) {
 }
 ```
 
+**如上代码所示，当变量 `flushing` 为 `true` 时，说明队列正在执行更新，这时如果有观察者实例对象进入队列则会执行 `else` 分支中的代码，这段代码的作用是为了保证观察者实例对象的执行顺序，现在只需要知道观察者实例对象会被放进 `queue` 队列即可，其他的后边再讨论。**
+
+**接着看如下代码：**
+
+```javascript
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    has[id] = true
+    // 省略...
+    // queue the flush
+    if (!waiting) {
+      waiting = true
+      if (process.env.NODE_ENV !== 'production' && !config.async) {
+        flushSchedulerQueue()
+        return
+      }
+      nextTick(flushSchedulerQueue)
+    }
+  }
+}
+```
+
+**如上代码中有这样一段 `if` 条件语句：**
+
+```javascript
+if (process.env.NODE_ENV !== 'production' && !config.async) {
+  flushSchedulerQueue()
+  return
+}
+```
+
+**下边的讲解会先忽略掉这段代码，之后的讲解再进行补充。**
+
+**回到上方的代码，这段代码是一个 `if` 语句块，其中变量 `waiting` 变量同样是一个标志，它也是定义在 `scheduler.js` 文件的头部，初始值为 `false`：**
+
+```javascript
+let waiting = false
+```
+
+**在 `if` 语句块中先将 `waiting` 变量的值设置为 `true`，这意味着无论调用多少次 `queueWatcher()` 函数，该 `if` 语句块中的代码都只会执行一次。紧接着调用 `nextTick()` 并以 `flushSchedulerQueue` 函数作为参数，其中 `flushSchedulerQueue` 函数的作用之一就是用来将队列中的观察者实例对象统一执行更新的。对于 `nextTick()` 函数最好的理解方式，就是把它当做 `setTimeout(fn, 0)`，如下：**
+
+```javascript
+export function queueWatcher (watcher: Watcher) {
+  const id = watcher.id
+  if (has[id] == null) {
+    has[id] = true
+    // 省略...
+    // queue the flush
+    if (!waiting) {
+      waiting = true
+      if (process.env.NODE_ENV !== 'production' && !config.async) {
+        flushSchedulerQueue()
+        return
+      }
+      setTimeout(flushSchedulerQueue, 0)
+    }
+  }
+}
+```
+
+**在这里完全可以使用 `setTimeout` 来替换 `nextTick`，只需要执行一次 `setTimeout` 语句即可，而在这里 `waiting` 变量就保证了 `setTimeout` 语句只会执行一次，这样 `flushSchedulerQueue` 函数将会在下一次事件循环开始时立即调用，但是这里依然不使用 `setTimeout` 代替 `nextTick`，因为 `setTimeout` 不是一个最优选择，`nextTick` 的意义在于他会选择一条最优的解决方案，紧接着会讨论 `nextTick` 如何实现。**
+
+**提醒：*根据上边的代码，这里提出一个需要注意的点。当 `setTimeout` 或者 `nextTick` 执行的之前，会将 `waiting` 置为 `true` 保证 `setTimeout` 或者 `nextTick` 只执行一次，当 `flushSchedulerQueue` 执行的时候会将 `flushing` 置为 `true`。这就是两个变量的不同之处。***
+
+
+
+### `nextTick` 的实现
+
+**`nextTick()` 函数来自于 `src/core/util/next-tick.js` 文件，`$nextTick()` 函数实际上就是对 `nextTick()` 函数的封装，如下：**
+
+```javascript
+export function renderMixin (Vue: Class<Component>) {
+  // 省略...
+  Vue.prototype.$nextTick = function (fn: Function) {
+    return nextTick(fn, this)
+  }
+  // 省略...
+}
+```
+
+**`$nextTick()` 函数是在 `renderMixin()` 函数中挂载到 Vue 原型上的，可以看到 `$nextTick()` 函数体中只有一行调用 `nextTick()` 的代码，这说明 `$nextTick()` 确实是对 `nextTick()` 函数的简单包装。**
+
+**前边提到过，`nextTick()` 函数的作用相当于 `setTimeout(fn, 0)`，这里有几个概念需要了解一下，即调用栈、任务队列、事件循环，JS 是一种单线程的语言，一切都建立在这三个概念为基础之上。**
+
+**任务队列中并非只有一个队列，任务队列中可以分为 `microtask` 和 `(macro)task`，并且这两个队列的行为还要依据不同的浏览器的具体实现来进行讨论。这里只讨论被广泛认同和接受的队列执行行为。当调用栈空闲后每次事件循环只会从 `(macro)task` 中读取一个任务并执行，而在同一次事件循环中，会将 `microtask` 队列中所有的任务全部执行完毕，且要先于 `(macro)task`。另外 `(macro)task` 中两个不同的任务之间可能会穿插着 UI 的重渲染，那么只需要在 `microtask` 中把所有在 UI 重渲染之前需要更新的数据全部更新，这样只需要一次重渲染就能够得到最新的 DOM 了。恰好 Vue 是一个数据驱动的框架，如果能在 UI 重渲染之前更新所有数据状态，这对性能的提升是一个很大的帮助，所以要优先使用 `microtask` 去更新数据状态而不是 `(macro)task`，这就是不使用 `setTimeout` 的原因，因为 `setTimeout` 会将回调放到 `(macro)task` 队列中，而不是 `microtask` 队列，所以理论上最优的选择是使用 `Promise`，当浏览器不支持 `Promise` 时再降级为 `setTimeout`，如下是 `next-tick.js` 文件中的一段代码：**
+
+```javascript
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  const p = Promise.resolve()
+  microTimerFunc = () => {
+    p.then(flushCallbacks)
+    // in problematic UIWebViews, Promise.then doesn't completely break, but
+    // it can get stuck in a weird state where callbacks are pushed into the
+    // microtask queue but the queue isn't being flushed, until the browser
+    // needs to do some other work, e.g. handle a timer. Therefore we can
+    // "force" the microtask queue to be flushed by adding an empty timer.
+    if (isIOS) setTimeout(noop)
+  }
+} else {
+  // fallback to macro
+  microTimerFunc = macroTimerFunc
+}
+```
+
+**其中变量 `microTimeFunc` 定义在文件头部，初始值为 `undefined`，上方代码中首先检测当前宿主环境是否支持原生的 `Promise`，如果支持则优先使用 `Promise` 注册 `microtask`，做法很简单，首先定义一个常量 `p`，它的值是一个立即 `resolve` 的 `Promise` 实例对象，接着将变量 `microTimeFunc` 定义为一个箭头函数，这个箭头函数的执行将会把 `flushCallbacks` 函数注册为 `microtask`。另外注意这行代码：**
+
+```javascript
+if (isIOS) setTimeout(noop)
+```
+
+**注释上讲述：*这是一个解决怪异问题的变通方法，在一些 `UIWebViews` 中存在很奇怪的问题，即 `microtask` 没有被刷新，对于这个问题的解决方案就是让浏览器做一些其他的事情，比如注册一个 `(macro)task` 即使这个 `(macro)task` 什么都不做，这样就能够简洁触发 `microtask` 的刷新。***
+
+**使用 `Promise` 是最理想的方案，但是如果宿主环境不支持 `Promise`，就需要降级处理，即注册 `(macro)task`，这就是 `else` 语句块中的所做的事情：**
+
+```javascript
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  // 省略...
+} else {
+  // fallback to macro
+  microTimerFunc = macroTimerFunc
+}
+```
+
+**将 `macroTimerFunc` 的值赋值给 `microTimerFunc`。`microTimerFunc` 用来将 `flushCallbacks` 函数注册成 `microtask`，而 `macroTimerFunc` 则是用来将 `flushCallbacks` 函数注册成 `(macro)task` 的，来看如下代码：**
+
+```javascript
+if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  macroTimerFunc = () => {
+    setImmediate(flushCallbacks)
+  }
+} else if (typeof MessageChannel !== 'undefined' && (
+  isNative(MessageChannel) ||
+  // PhantomJS
+  MessageChannel.toString() === '[object MessageChannelConstructor]'
+)) {
+  const channel = new MessageChannel()
+  const port = channel.port2
+  channel.port1.onmessage = flushCallbacks
+  macroTimerFunc = () => {
+    port.postMessage(1)
+  }
+} else {
+  /* istanbul ignore next */
+  macroTimerFunc = () => {
+    setTimeout(flushCallbacks, 0)
+  }
+}
+```
+
+**将一个回调函数注册成 `(macro)task` 的方式有很多，如：`setTimeout`、`setInterval` 以及 `setImmediate` 等，但不同方案之间有区别，通过上方的代码可以看到 `setTimeout` 被作为最后的备选方案，如下：**
+
+```javascript
+if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  // 省略...
+} else if (typeof MessageChannel !== 'undefined' && (
+  isNative(MessageChannel) ||
+  // PhantomJS
+  MessageChannel.toString() === '[object MessageChannelConstructor]'
+)) {
+  // 省略...
+} else {
+  /* istanbul ignore next */
+  macroTimerFunc = () => {
+    setTimeout(flushCallbacks, 0)
+  }
+}
+```
+
+**而首选方案是 `setImmediate`：**
+
+```javascript
+if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  macroTimerFunc = () => {
+    setImmediate(flushCallbacks)
+  }
+} else if (typeof MessageChannel !== 'undefined' && (
+  isNative(MessageChannel) ||
+  // PhantomJS
+  MessageChannel.toString() === '[object MessageChannelConstructor]'
+)) {
+  // 省略...
+} else {
+  // 省略...
+}
+```
+
+**如果宿主环境支持原生的 `setImmediate` 函数，则使用 `setImmediate` 注册 `(macro)task`，之所以首选 `setImmediate` 是因为 `setImmediate` 拥有比 `setTimeout` 更好的性能。`setTimeout` 在将回调注册为 `(macro)task` 之前要不停地做超时检测，而 `setImmediate` 则不需要。但是 `setImmediate` 的缺陷也很明显，就是他的兼容性问题，到目前为止只有 IE 浏览器实现了它，所以为了兼容非 IE 浏览器，需要做兼容处理，不过此时还没轮到 `setTimeout` 登场，而是使用 `MessageChannel`：**
+
+```javascript
+if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  // 省略...
+} else if (typeof MessageChannel !== 'undefined' && (
+  isNative(MessageChannel) ||
+  // PhantomJS
+  MessageChannel.toString() === '[object MessageChannelConstructor]'
+)) {
+  const channel = new MessageChannel()
+  const port = channel.port2
+  channel.port1.onmessage = flushCallbacks
+  macroTimerFunc = () => {
+    port.postMessage(1)
+  }
+} else {
+  // 省略...
+}
+```
+
+**这里对 `MessageChannel` 进行科普：一个 `MessageChannel` 实例对象拥有两个属性 `port1` 和 `port2`，只需要让其中一个 `port` 监听 `onmessage` 事件，然后使用另外一个 `port` 的 `postMessage` 向前一个 `port` 发送消息即可，这样一个 `port` 的 `onmessage` 回调就会被注册为 `(macro)task`，由于它不需要做任何检测工作，所以性能也会优于 `setTimeout`。总而言之，`macroTimerFunc` 函数的作用就是将 `flushCallbacks` 注册为 `(macro)task`。**
+
+**现在对 `nextTick()` 进行一下剖析，为了更融入理解 `nextTick()` 函数，需要从 `$nextTick()` 函数入手，如下：**
+
+```javascript
+export function renderMixin (Vue: Class<Component>) {
+  // 省略...
+  Vue.prototype.$nextTick = function (fn: Function) {
+    return nextTick(fn, this)
+  }
+  // 省略...
+}
+```
+
+**`$nextTick()` 函数只接收一个回调函数作为参数，但在内部调用 `nextTick()` 函数的时候，除了把回调函数 `fn` 传进去之外，第二个参数是硬编码为当前组件实例对象 `this`。使用 `$nextTick()` 函数时是可以省略回调函数这个参数，这时 `$nextTick()` 函数会返回一个 `Promise` 实例对象。这些功能实际上都是由 `nextTick()` 函数提供的，如下是 `nextTick()` 函数的签名：**
+
+```javascript
+export function nextTick (cb?: Function, ctx?: Object) {
+  // 省略...
+}
+```
+
+**`nextTick()` 函数接收两个参数，第一个参数是一个回调函数，第二个参数指定一个作用域。接下来逐个分析传递回调函数和不传回调函数这两种使用场景的场景，先看传递回调函数的情况，此时参数 `cb` 就是回调函数，如下代码：**
+
+```javascript
+export function nextTick (cb?: Function, ctx?: Object) {
+  let _resolve
+  callbacks.push(() => {
+    if (cb) {
+      try {
+        cb.call(ctx)
+      } catch (e) {
+        handleError(e, ctx, 'nextTick')
+      }
+    } else if (_resolve) {
+      _resolve(ctx)
+    }
+  })
+  // 省略
+}
+```
+
+**`nextTick()` 函数会在 `callbacks` 数组中添加一个新的函数，`callbacks` 数组定义在文件头部：`const callbacks = []`。这里需要注意：*并不是将 `cb` 回调函数直接添加到 `callbacks` 数组中，但这个被添加到 `callbacks` 数组中的函数的执行会间接调用 `cb` 回调函数，并且可以看到在调用 `cb` 函数时使用 `.call()` 方法将函数 `cb` 的作用域设置为 `ctx`，也就是 `nextTick()` 函数的第二个参数。所以对于 `$nextTick()` 函数来讲，传递给 `$nextTick()` 函数的回调函数的作用域就是当前组件实例对象，前提是回调函数不能是箭头函数，其实在平时使用时，回调函数使用箭头函数也没关系，只要能够达到目的即可。*这里需要强调：*此时回调函数并没有执行，当调用 `$nextTick()` 函数并传递回调函数时，会使用一个新的函数包裹回调函数并将新函数添加到 `callbacks` 数组中。***
+
+**继续看 `nextTick()` 函数的代码，如下：**
+
+```javascript
+export function nextTick (cb?: Function, ctx?: Object) {
+  // 省略...
+  if (!pending) {
+    pending = true
+    if (useMacroTask) {
+      macroTimerFunc()
+    } else {
+      microTimerFunc()
+    }
+  }
+  // 省略...
+}
+```
+
+**在将回调函数添加到 `callbacks` 数组中，会进行一个 `if` 条件判断，判断变量 `pending` 的真假，`pending` 变量也定义在文件头部：`let pending = false`，它是一个标识，代表回调队列是否处于等待刷新的状态，初始值是 `false` 代表回调队列为空不需要等待刷新，加入此时在某个地方调用了 `$nextTick()` 函数，那么 `if` 语句块中的代码将会被执行，在 `if` 语句块中优先将变量 `pending` 的值设置为 `true`，代表此时回调队列不为空，正在等待刷新。这个时候刷新队列就用到了前边所讲的 `microTimerFunc` 或者 `macroTimerFunc` 函数，这两个函数的作用就是将 `flushCallbacks` 函数分别注册为 `microtask` 和 `(macro)task`。但是无论哪种任务类型，他们都会等待调用栈清空之后才执行。如下：**
+
+```javascript
+created () {
+  this.$nextTick(() => { console.log(1) })
+  this.$nextTick(() => { console.log(2) })
+  this.$nextTick(() => { console.log(3) })
+}
+```
+

@@ -1,4 +1,4 @@
-# Vue源码解读—渲染函数的观察者和进阶的数据响应系统
+# Vue源码解读—渲染函数的观察者和进阶的数据响应系统 (上)
 
 ## `$mount()` 挂载函数
 
@@ -1628,4 +1628,126 @@ created () {
   this.$nextTick(() => { console.log(3) })
 }
 ```
+
+**上方代码中，在 `create()` 钩子中连续调用了三次 `$nextTick()` 函数，但只有第一次调用 `$nextTick()` 函数时才会执行 `microTimerFunc` 函数将 `flushCallbacks` 注册为 `microtask`，但此时 `flushCallbacks` 函数并不会执行，因为它需要等待接下来的两次 `$nextTick()` 函数的调用语句执行完之后才会执行，或者准确的说，是等待调用栈被清空之后才会执行。也就说，当 `flushCallbacks` 函数执行的时候，`callbacks` 回调队列中将包含本次事件循环中通过 `$nextTick()` 函数注册的回调函数，而接下来的任务就是在 `flushCallbacks` 函数中将这些回调全部执行并清空。如下是 `flushCallbacks` 函数的源码：**
+
+```javascript
+function flushCallbacks () {
+  pending = false
+  const copies = callbacks.slice(0)
+  callbacks.length = 0
+  for (let i = 0; i < copies.length; i++) {
+    copies[i]()
+  }
+}
+```
+
+**上方 `flushCallbacks` 的源码很好理解，首先将变量 `pending` 重置为 `false`，接着开始执行回调，但需要注意的是在执行 `callbacks` 队列的回调函数时没有直接遍历 `callbacks` 数组，而是使用 `copies` 常量保存一份 `callbacks` 的复制，然后遍历 `copies` 数组，并且在遍历 `copies` 数组之前将 `callbacks` 数组清空：`callbacks.length = 0`。这样做的原因将在下边这个例子中阐明：**
+
+```javascript
+created () {
+  this.name = 'HcySunYang'
+  this.$nextTick(() => {
+    this.name = 'hcy'
+    this.$nextTick(() => { console.log('第二个 $nextTick') })
+  })
+}
+```
+
+**上方代码中在外层的 `$nextTick()` 函数中再次调用了 `$nextTick()` 函数，理论上外层的 `nextTick()` 函数中的回调函数不应该跟内层的 `$nextTick()` 函数中的回调函数在同一个 `microtask` 任务中被执行，而是两个不同的 `microtask` 任务，虽然在结果上看或许没有什么差别，但是从设计角度上就应该这样做。**
+
+**上方代码中修改了两次 `name` 属性的值 (假设他是响应式数据)，首先将 `name` 属性的值改为字符串 `HcySunYang`，前边讲述过，这样会导致依赖于 `name` 属性的渲染函数观察者被添加到 `queue` 队列中，这个过程是通过调用 `src/core/observer/scheduler.js` 文件中的 `queueWatcher()` 函数完成的。同时在 `queueWatcher()` 函数中会使用 `nextTick()` 函数将 `flushSchedulerQueue` 函数添加到 `callbacks` 数组中，所以此时 `callbacks` 数组如下：**
+
+```javascript
+callbacks = [
+  flushSchedulerQueue // queue = [renderWatcher]
+]
+```
+
+**同时会将 `flushCallbacks` 函数注册成 `microtask`，所以此时 `microtask` 队列如下：**
+
+```javascript
+// microtask 队列
+[
+  flushCallbacks
+]
+```
+
+**接着会调用第一个 `$nextTick()` 函数，`$nextTick()` 函数会将其回调函数添加到 `callbacks` 数组中，此时的 `callbacks` 数组将如下：**
+
+```javascript
+callbacks = [
+  flushSchedulerQueue, // queue = [renderWatcher]
+  () => {
+    this.name = 'hcy'
+    this.$nextTick(() => { console.log('第二个 $nextTick') })
+  }
+]
+```
+
+**接下来主线程处于空闲状态 (调用栈清空)，开始执行 `microtask` 队列中的任务，即执行 `flushCallbacks()` 函数，`flushCallbacks()` 函数会按照顺序执行 `callbacks` 数组中的函数，首先会执行 `flushSchedulerQueue()` 函数，这个函数会遍历 `queue` 中的所有观察者并重新求值，完成重新渲染 (`re-render`)，在完成渲染之后，本次更新队列已经清空，`queue` 会被重置为空数组，一切状态还原。接着还会执行如下函数：**
+
+```javascript
+() => {
+  this.name = 'hcy'
+  this.$nextTick(() => { console.log('第二个 $nextTick') })
+}
+```
+
+**这个函数是第一个 `$nextTick()` 函数中的回调函数，由于在执行该回调函数之前已经完成了重新渲染，所以该回调函数内的代码是能够访问更新后的 DOM 的，到目前为止一切都很正常，继续往下看，在该回调函数中再次修改了 `name` 属性的值为字符串 `hcy`，这会再次触发响应，同样的会调用 `nextTick()` 函数将 `flushSchedulerQueue` 添加到 `callbacks` 数组中，但是由于在执行中的 `flushCallbacks()` 函数将 `pending` 变量置为了 `false`，所以 `nextTick()` 函数会将 `flushCallbacks()` 函数注册为一个新的 `microtask`，此时 `microtask` 队列将包含两个 `flushCallbacks` 函数：**
+
+```javascript
+// microtask 队列
+[
+  flushCallbacks, // 第一个 flushCallbacks
+  flushCallbacks  // 第二个 flushCallbacks
+]
+```
+
+**现在目的达到了，拥有了两个 `microtask` 任务。**
+
+**关于 `flushCallbacks()` 函数需要了解：*除了将 `pending` 的值重置为 `false` 之外，`flushCallbacks()` 函数遍历的不是 `callbacks` 数组本身，而是它的复制品 `copies` 数组，并且 `flushCallbacks()` 函数一开头就把 `callbacks` 数组清空了。所以上边的代码中，第一个 `flushCallbacks()` 和第二个流程上是一样的。***
+
+**接着讲述，当调用 `$nextTick()` 函数不传递回调函数时，是如何实现返回 `Promise` 实例对象的，实现在 `nextTick()` 函数的源码，如下：**
+
+```javascript
+export function nextTick (cb?: Function, ctx?: Object) {
+  let _resolve
+  // 省略...
+  // $flow-disable-line
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(resolve => {
+      _resolve = resolve
+    })
+  }
+}
+```
+
+**如上代码所示，当 `nextTick()` 函数没有接收到 `cb` 参数时，会检测当前宿主环境是否支持 `Promise`，如果支持则直接返回一个 `Promise` 实例对象，并且将 `resolve` 函数赋值给 `_resolve` 变量，`_resolve` 变量声明在 `nextTick()` 函数的顶部。同时再来看如下代码：**
+
+```javascript
+export function nextTick (cb?: Function, ctx?: Object) {
+  let _resolve
+  callbacks.push(() => {
+    if (cb) {
+      try {
+        cb.call(ctx)
+      } catch (e) {
+        handleError(e, ctx, 'nextTick')
+      }
+    } else if (_resolve) {
+      _resolve(ctx)
+    }
+  })
+  // 省略...
+  // $flow-disable-line
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(resolve => {
+      _resolve = resolve
+    })
+  }
+}
+```
+
+**当 `flushCallbacks` 函数开始执行 `callbacks` 数组中的函数时，如果没有传递 `cb` 参数，则直接调用 `_resolve` 函数，这个函数就是返回的 `Promise` 实例对象的 `resolve` 函数。这样就实现了 `Promise` 方式的 `$nextTick()` 函数。**
 

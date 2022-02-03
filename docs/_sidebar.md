@@ -11,6 +11,7 @@
     - [词法环境](JS/JS：深入理解JavaScript-词法环境.md)
     - [展开运算符](JS/JS：展开运算符.md)
     - [Map和Set](JS/JS：Map和Set.md)
+    - [Promise实现原理](JS/JS：Promise实现原理.md)
 
 - CSS
     - [Flex布局](CSS/CSS：Flex布局.md)

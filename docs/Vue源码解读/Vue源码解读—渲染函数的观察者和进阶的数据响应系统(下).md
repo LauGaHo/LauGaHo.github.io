@@ -783,3 +783,332 @@ sharedPropertyDefinition = {
 }
 ```
 
+**举例说明，计算属性的定义如下：**
+
+```javascript
+computed: {
+  someComputedProp () {
+    return this.a + this.b
+  }
+}
+```
+
+**从上方代码可知，定义 `someComputedProp` 访问器属性时的配置对象为：**
+
+```javascript
+sharedPropertyDefinition = {
+  enumerable: true,
+  configurable: true,
+  get: createComputedGetter(key),
+  set: noop // 没有指定 userDef.set 所以是空函数
+}
+```
+
+**对于 `createComputedGetter` 函数，它的返回值显然需要是一个函数，`createComputedGetter` 函数定义在 `defineComputed` 函数下方，如下：**
+
+```javascript
+function createComputedGetter (key) {
+  return function computedGetter () {
+    const watcher = this._computedWatchers && this._computedWatchers[key]
+    if (watcher) {
+      watcher.depend()
+      return watcher.evaluate()
+    }
+  }
+}
+```
+
+**从上方代码可知，`createComputedGetter` 函数只是返回一个叫做 `computedGetter` 的函数，并没有做任何其他事情。计算属性真正的 `get` 拦截器函数就是 `computedGetter` 函数，如下：**
+
+```javascript
+sharedPropertyDefinition = {
+  enumerable: true,
+  configurable: true,
+  get: function computedGetter () {
+    const watcher = this._computedWatchers && this._computedWatchers[key]
+    if (watcher) {
+      watcher.depend()
+      return watcher.evaluate()
+    }
+  },
+  set: noop // 没有指定 userDef.set 所以是空函数
+}
+```
+
+**最后再 `defineComputed()` 函数中还有一段代码没有讲到，如下：**
+
+```javascript
+if (process.env.NODE_ENV !== 'production' &&
+    sharedPropertyDefinition.set === noop) {
+  sharedPropertyDefinition.set = function () {
+    warn(
+      `Computed property "${key}" was assigned to but it has no setter.`,
+      this
+    )
+  }
+}
+```
+
+**这时一段 `if` 条件语句块，在非生产环境下如果发现 `sharedPropertyDefinition.set` 的值是一个空函数，那么说明开发者并没有为计算属性定义相应的 `set` 拦截器函数，这时会重写 `sharedPropertyDefinition.set` 函数，这样当代码尝试修改一个没有指定 `set` 拦截器函数的计算属性的值时，会得到一个警告信息。**
+
+
+
+### 计算属性的实现
+
+**以上关于计算属性的初始化工作，初始化计算属性的过程中主要创建了计算属性观察者以及将计算属性定义到组件实例对象上，接下来将通过一些例子来分析计算属性时如何实现的，举例说明：**
+
+```javascript
+data () {
+  return {
+    a: 1
+  }
+},
+computed: {
+  compA () {
+    return this.a + 1
+  }
+}
+```
+
+**如上代码中，定义了本地数据 `data`，其拥有一个响应式的属性 `a`，还定义了计算属性 `compA`，它的值将依据 `a` 的值来计算得到。另外还有如下模板：**
+
+```html
+<div>
+  {{compA}}
+</div>
+```
+
+**模板中使用到了计算属性，模板会被编译成渲染函数，渲染函数的执行将触发计算属性 `compA` 的 `get` 拦截器函数。`compA` 的拦截器函数就是 `sharedPropertyDefinition.get` 函数，在非服务端渲染的情况下，这个函数为：**
+
+```javascript
+sharedPropertyDefinition.get = function computedGetter () {
+  const watcher = this._computedWatchers && this._computedWatchers[key]
+  if (watcher) {
+    if (watcher.dirty) {
+      watcher.evaluate()
+    }
+    if (Dep.target) {
+      watcher.depend()
+    }
+    return watcher.value
+  }
+}
+```
+
+**首先这里先从组件中已有的 `this._computedWatchers`，也就是计算属性观察者数组中，根据给定的 `key`，查看是否存在对应的 `watcher`，如果存在，则会进入到 `if` 语句块中。**
+
+**这里首先做一个小科普，上边代码中的 `dirty` 属性是针对计算属性的观察者，他的意义在于：标识计算属性的值是否发生了变化，如果 `dirty == true` 则说明计算属性的值发生了变化，需要重新求值，如果 `dirty == false` 则说明计算属性的值没有变化，直接使用已经缓存好的值，也就是 `watcher.value` 即可。初始化计算属性观察者的时候，不会立即求值，而是将 `dirty` 设为 `true`。**
+
+**当获取到对应 `key` 的 `Watcher` 实例之后，就进行第一个判断，判断 `watcher` 是否需要重新求值，如果需要重新求值，则会进入到 `Watcher` 类中的 `evaluate()` 函数中。`evaluate()` 函数源码如下：**
+
+```javascript
+evaluate () {
+  this.value = this.get()
+  this.dirty = false
+}
+```
+
+**在 `evaluate()` 函数中，做了两件事情：**
+
+- **通过调用 `get()` 函数，对被观察的对象进行求值，这里就是指的是计算属性定义的函数**
+- **通过设置 `this.dirty` 属性值为 `false`，告知其他使用者，当前被观察对象的值已经是最新的值了，`dirty` 这个属性十分关键。正如上边小科普中所说的一样。**
+
+**接着来看 `this.get()` 函数的源码，如下：**
+
+```javascript
+get () {
+  pushTarget(this)
+  let value
+  const vm = this.vm
+  try {
+    value = this.getter.call(vm, vm)
+  } catch (e) {
+    if (this.user) {
+      handleError(e, vm, `getter for watcher "${this.expression}"`)
+    } else {
+      throw e
+    }
+  } finally {
+    // "touch" every property so they are all tracked as
+    // dependencies for deep watching
+    if (this.deep) {
+      traverse(value)
+    }
+    popTarget()
+    this.cleanupDeps()
+  }
+  return value
+}
+```
+
+**上方源码中，首先将当前观察者实例对象，也就是计算属性的观察者实例对象设置为 `Dep.target`，然后对开发者定义的计算属性的函数进行调用求值，这个时候举例说明，假设有如下代码：**
+
+```javascript
+const vm = new Vue({
+  data () {
+    return {
+      name: 'Jason',
+      age: 24
+    }
+  },
+  computed: {
+    describe () {
+      return `my name is ${this.name}, my age is ${this.age}`
+    }
+  }
+})
+```
+
+**当调用计算属性中的求值函数 `this.getter.call(vm, vm)` 也就是相当于调用 `computed` 中的 `describe()` 函数，这个时候避免不了会访问 `this.name` 和 `this.age`，换言之就会触发 `this.name` 和 `this.age` 的拦截器函数 `get()` 从而会触发依赖收集，不过需要注意这里有一个地方跟渲染函数的求值不一样：*当前的 `Dep.target` 对应的观察者实例对象中的被观察者不是渲染函数，而是计算属性，所以此时触发的依赖收集过程中，`this.name` 和 `this.age` 中的拦截器函数中的 `dep` 收集到的依赖并不是渲染函数的观察者实例对象，而是计算属性的观察者实例对象！！！而且在这里依赖收集，会使得计算属性的观察者实例对象中的 `deps` 数组中拥有了 `this.name` 和 `this.age` 拦截器函数中的 `dep` 实例对象。***
+
+**接下来继续看计算属性的 `get()` 函数，如下：**
+
+```javascript
+sharedPropertyDefinition.get = function computedGetter () {
+  const watcher = this._computedWatchers && this._computedWatchers[key]
+  if (watcher) {
+    if (watcher.dirty) {
+      watcher.evaluate()
+    }
+    if (Dep.target) {
+      watcher.depend()
+    }
+    return watcher.value
+  }
+}
+```
+
+**执行完了 `watcher.evaluate()` 函数之后，`watcher.deps` 数组，这里的 `watcher` 指的是计算属性的观察者实例对象的状态就变成了如下：**
+
+```javascript
+computedWatcher.deps = [nameDep, ageDep]
+```
+
+**而 `this.name` 和 `this.age` 属性拦截器函数 `get()` 中的 `Dep` 实例中的 `subs` 数组则是相同的，而且状态如下：**
+
+```javascript
+dep.subs = [computedWatcher]
+```
+
+**此时进入下一个 `if` 语句块，在这个语句块中，对当前的 `Dep.target` 的值进行了一个判断，判断是否为空，若不为空，则执行 `if` 语句块中的代码。这个时候需要注意，此时的 `Dep.target` 属性所指的不再是计算属性的观察者实例对象，而是渲染函数的观察者实例对象。因为一切的入口都是从渲染函数开始，所以一开始还没对计算属性求值的时候，`Dep.target` 的值为 `renderWatcher`，直到后边对计算属性求值的时候，才将 `computedWatcher` 设为 `Dep.target` 从而可以进行依赖收集，当计算属性的求值完成之后，这个时候又将 `Dep.target` 重新设置为 `renderWatcher`。**
+
+**注意此时的 `Dep.target` 指代的是 `renderWatcher`。这时进入到了 `watcher.depend()` 函数中，`watcher.depend()` 函数的源码如下：**
+
+```javascript
+depend () {
+  let i = this.deps.length
+  while (i--) {
+    this.deps[i].depend()
+  }
+}
+```
+
+**在这段代码中，会遍历 `watcher.deps` 中的 `Dep` 实例对象并调用其 `depend()` 函数。这时转过目光看 `Dep` 实例对象中的 `depend()` 函数源码如下：**
+
+```javascript
+depend () {
+  if (Dep.target) {
+    Dep.target.addDep(this)
+  }
+}
+```
+
+**在 `Dep` 实例对象中的 `depend()` 函数中，获取当前的 `Dep.target` 中的 `Watcher` 实例对象，然后将当前的 `Dep` 实例对象添加到 `Dep.target` 所指代的 `Watcher` 实例中的 `deps` 数组中。并且将 `Dep.target` 所指向的 `Watcher` 实例对象放到上方代码中的 `this.dep[i]` 所指代的 `Dep` 实例对象中的 `subs` 数组中。**
+
+**用上方例子进行说明，经过上述过程后，渲染函数观察者实例对象中的 `deps` 数组状态如下：**
+
+```javascript
+renderWatcher = [nameDep, ageDep]
+```
+
+**而 `this.name` 和 `this.age` 的属性拦截器函数 `get()` 中的 `Dep` 实例对象中的 `subs` 数组状态如下：**
+
+```javascript
+dep.subs = [computedWatcher, renderWatcher]
+```
+
+**至此，计算属性的求值算是完成了，此时将计算属性求值结果返回，就算是完成了。**
+
+**重新回到上方的例子中，代码如下：**
+
+```javascript
+const vm = new Vue({
+  data () {
+    return {
+      name: 'Jason',
+      age: 24
+    }
+  },
+  computed: {
+    describe () {
+      return `my name is ${this.name}, my age is ${this.age}`
+    }
+  }
+})
+```
+
+**这个时候，如果对 `this.name` 进行修改，从之前的章节的学习可以得知会触发遍历 `this.name` 属性拦截器中闭包引用的 `Dep` 实例对象，也就是 `dep` 属性的 `notify()` 函数，`notify()` 函数源码如下：**
+
+```javascript
+notify () {
+  // stabilize the subscriber list first
+  const subs = this.subs.slice()
+  if (process.env.NODE_ENV !== 'production' && !config.async) {
+    // subs aren't sorted in scheduler if not running async
+    // we need to sort them now to make sure they fire in correct
+    // order
+    subs.sort((a, b) => a.id - b.id)
+  }
+  for (let i = 0, l = subs.length; i < l; i++) {
+    subs[i].update()
+  }
+}
+```
+
+**`notify()` 函数所做的事情就是遍历当前 `Dep` 实例对象中的 `subs` 数组，然后对 `subs` 数组中每一个元素都执行其 `update()` 方法。而此时 `this.name` 属性拦截器函数中的 `Dep` 实例对象中的 `subs` 数组状态如下：**
+
+```javascript
+subs = [computedWatcher, renderWatcher]
+```
+
+**`update()` 函数源码如下：**
+
+```javascript
+update () {
+  /* istanbul ignore else */
+  if (this.lazy) {
+    this.dirty = true
+  } else if (this.sync) {
+    this.run()
+  } else {
+    queueWatcher(this)
+  }
+}
+```
+
+**这里补充一个小知识：*所有计算属性的 `Watcher` 实例对象中的 `lazy` 属性都是为 `true` 的。***
+
+**上方代码就是通过对上方的 `subs` 进行遍历后执行 `update()` 操作，这个时候，第一个 `computedWatcher` 是一个计算属性的观察者实例对象，所以此时会走第一个分支，也就是将 `this.dirty` 的值设置为 `true`。然后到了第二个 `renderWatcher` 是一个渲染函数的观察者实例对象，此时他将走第三个 `else` 分支，将自己放到需要异步更新操作中的队列中。**
+
+**然后主流程上的代码就会执行结束，这个时候就轮到浏览器再逐一取出微任务队列中的任务，然后逐一执行，第一个任务就是执行刚刚放进异步队列中的渲染函数的观察者实例对象的求值函数，然而这个渲染函数中引用了计算属性，这个时候就会访问到了计算属性的 `get()` 属性拦截器函数，源码如下：**
+
+```javascript
+function computedGetter () {
+  const watcher = this._computedWatchers && this._computedWatchers[key]
+  if (watcher) {
+    if (watcher.dirty) {
+      watcher.evaluate()
+    }
+    if (Dep.target) {
+      watcher.depend()
+    }
+    return watcher.value
+  }
+}
+```
+
+**这个时候就会检测当前计算属性的观察者实例对象 `this.dirty` 是否为 `true`，如果为 `true` 就会重新对计算属性的观察者实例对象重新求值。从而达到获取最新值的诉求。**
+
+**总结：*网上很多文章中，经常说计算属性是惰性求值的，道理就在这里，首先假设一个计算属性依赖着两个普通属性，那么在计算属性的观察者实例对象中的 `deps` 中必定存在两个普通属性的属性访问拦截函数闭包引用的 `dep` 属性，其次，在两个普通属性中的属性访问拦截函数中闭包引用的 `Dep` 实例对象 `dep` 中的 `subs` 也必定存在该计算属性的观察者实例对象。所以当那两个普通属性的值更新了，就会通知对应的观察者实例对象，这时计算属性的观察者实例对象收到了通知之后，只会将 `this.dirty` 设置为 `true`，这里意思就是说，现在计算属性所依赖的值发生了改变，需要对该计算属性重新求值，但是此时不会立马求值。然后当有渲染函数的观察者实例对象重新求值的时候引用到对应的计算属性的时候，这个时候就会访问计算属性的属性拦截器函数，也就是上方的代码，就会通过判断 `this.dirty` 的值来判断当前计算属性的值是否需要重新计算。若需要重新求值，则直接调用 `watcher.evaluate()` 函数即可。***
+
+**所以这里所指的惰性求值：指的就是当计算属性所依赖的值发生了变化，不会立刻求值，只会将计算属性的观察者实例对象的 `this.dirty` 设置为 `true`，当有人用到才会重新求值。**

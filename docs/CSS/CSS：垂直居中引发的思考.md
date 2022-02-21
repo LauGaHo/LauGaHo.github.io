@@ -113,3 +113,4 @@
 
 - 纵向格式化属性
   - 在纵向同样也是存在一个式子：`top + margin-top + border-top-width + padding-top + height + padding-bottom + border-bottom-width + margin-bottom + bottom = father-height ` 在前方的式子中，top 和 bottom 都被设置为了 0，margin 等于 auto，这时候浏览器为了满足这个等式会把上下的距离均匀分给 margin，即达到我们想要的居中效果。同时横向也是一样的道理，所以我们可以看到其实这个元素时水平垂直居中的，如果此时存在过约束，一般会忽略 right 属性。
+

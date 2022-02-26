@@ -7,6 +7,7 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="//unpkg.com/gitalk/dist/gitalk.css">
 </head>
 <body>
   <div id="app"></div>
@@ -44,5 +45,20 @@
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <!-- 统计字数 -->
   <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+  <!-- 评论模块 -->
+  <script src="//unpkg.com/docsify/lib/plugins/gitalk.min.js"></script>
+  <script src="//unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="js/md5.min.js"></script>
+  <script>
+    const gitalk = new Gitalk({
+      clientID: '25ab86a6c25ef747b6c3',
+      clientSecret: '4adf86eee816b4557731dceb18fb5314463c6665',
+      repo: 'LauGaHo.github.io',
+      owner: 'LauGaHo',
+      admin: ['LauGaHo'],
+      id: location.pathname,      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+  </script>
 </body>
 </html>

@@ -12,7 +12,6 @@
 </head>
 <body>
   <div id="app"></div>
-  <div id="gitalk-container"></div>
   <script>
     window.$docsify = {
       name: '',
@@ -54,7 +53,7 @@
   <script src="//unpkg.com/gitalk/dist/gitalk.min.js"></script>
   <script src="js/md5.min.js"></script>
   <script>
-    var gitalk = new Gitalk({
+    let gitalk = new Gitalk({
       clientID: '25ab86a6c25ef747b6c3',
       clientSecret: '4adf86eee816b4557731dceb18fb5314463c6665',
       repo: 'LauGaHo.github.io',
@@ -62,7 +61,20 @@
       admin: ['LauGaHo'],
       id: decodeURI(window.location.hash),      // Ensure uniqueness and length less than 50
       distractionFreeMode: false  // Facebook-like distraction free mode
-    })
+    });
+
+    // 检测到 hash 值发生变化后，直接重新创建一个 gitalk
+    window.onhashchange = function (e) {
+      gitalk = new Gitalk({
+        clientID: '25ab86a6c25ef747b6c3',
+        clientSecret: '4adf86eee816b4557731dceb18fb5314463c6665',
+        repo: 'LauGaHo.github.io',
+        owner: 'LauGaHo',
+        admin: ['LauGaHo'],
+        id: decodeURI(window.location.hash),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      });
+    }
   </script>
 </body>
 </html>

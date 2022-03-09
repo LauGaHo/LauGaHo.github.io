@@ -322,3 +322,18 @@
    ```
 
 2. 运行指令：`npx webpack-dev-server`
+
+
+
+## 提取 CSS 成单独文件
+
+1. 下载并安装对应依赖：`yarn add mini-css-extract-plugin -dev`
+
+2. 修改配置文件：
+
+   ```javascript
+   const { resolve } = require('path')
+   const {}
+   ```
+
+   

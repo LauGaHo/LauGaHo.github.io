@@ -19,7 +19,7 @@
       // 使用_coverpage.md来自定义封面
       coverpage: true,
       // 使用history路由模式
-      routerMode: 'history',
+      // routerMode: 'history',
       // 使用_sidebar.md来自定义侧边栏
       loadSidebar: true,
       // 配置显示目录的层级，数字表示可以显示副标题的级数
@@ -59,7 +59,7 @@
       repo: 'LauGaHo.github.io',
       owner: 'LauGaHo',
       admin: ['LauGaHo'],
-      id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: location.hash,      // Ensure uniqueness and length less than 50
       distractionFreeMode: false  // Facebook-like distraction free mode
     })
   </script>

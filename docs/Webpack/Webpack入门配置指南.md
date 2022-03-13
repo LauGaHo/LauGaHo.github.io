@@ -111,7 +111,7 @@
      mode: 'development',
      // mode: 'production'
    }
-
+	
 	4. 运行指令：`webpack`
 
 
@@ -333,7 +333,41 @@
 
    ```javascript
    const { resolve } = require('path')
-   const {}
+   const HtmlWebpackPlugin = require('html-webpack-plugin')
+   const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+   
+   module.exports = {
+     entry: './src/js/index.js',
+     output: {
+       filename: 'built.js',
+       path: resolve(__dirname, 'build/js')
+     },
+     module: {
+       rules: [
+         {
+           test: /\.css$/,
+           use: [
+             // 创建 style 标签，并将样式放入内
+             // 'style-loader'
+             // 这个 loader 会取代 style-loader。作用：提取 js 中的 css 成单独的文件
+             MiniCssExtractPlugin.loader,
+             // 将 css 文件整合到 js 文件中
+             'css-loader'
+           ]
+         }
+       ]
+     },
+     plugins: [
+       new HtmlWebpackPlugin([
+         template: './src/index.html'
+       ]),
+       new MiniCssExtractPlugin({
+         // 对输出的 css 文件进行重命名
+         filename: 'css/built.css'
+       })
+     ],
+     mode: 'development'
+   }
    ```
-
+   
    

@@ -55,6 +55,7 @@
 - Vue
     - [Vue知识总结](Vue/Vue笔记.md)
     - [Provide/Inject](Vue/Provide%3AInject.md)
+    - [$attrs/$listeners](Vue/%24attrs%3A%24listeners.md)
 
 - Vue源码解读
     - [Vue源码解读—patch](Vue源码解读/Vue源码解读—patch.md)

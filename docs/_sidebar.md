@@ -56,6 +56,7 @@
     - [Vue知识总结](Vue/Vue笔记.md)
     - [Provide/Inject](Vue/Provide%3AInject.md)
     - [$attrs/$listeners](Vue/%24attrs%3A%24listeners.md)
+    - [Vue动态组件<component>的思考](Vue/Vue%E5%8A%A8%E6%80%81%E7%BB%84%E4%BB%B6%3Ccomponent%3E%E7%9A%84%E6%80%9D%E8%80%83.md)
 
 - Vue源码解读
     - [Vue源码解读—patch](Vue源码解读/Vue源码解读—patch.md)

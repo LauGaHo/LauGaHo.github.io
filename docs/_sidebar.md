@@ -57,6 +57,7 @@
     - [Provide/Inject](Vue/Provide%3AInject.md)
     - [$attrs/$listeners](Vue/%24attrs%3A%24listeners.md)
     - [Vue动态组件<component>的思考](Vue/Vue%E5%8A%A8%E6%80%81%E7%BB%84%E4%BB%B6%3Ccomponent%3E%E7%9A%84%E6%80%9D%E8%80%83.md)
+    - [Vue计算属性computed的妙用](Vue/Vue%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7computed%E7%9A%84%E5%A6%99%E7%94%A8.md)
 
 - Vue源码解读
     - [Vue源码解读—patch](Vue源码解读/Vue源码解读—patch.md)

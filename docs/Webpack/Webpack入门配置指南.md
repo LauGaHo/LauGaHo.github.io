@@ -112,9 +112,12 @@
      // mode: 'production'
    }
 	
-	4. 运行指令：`webpack`
+	4. 运行指令：`webpack`	
 
+上方使用了两个 `loader` 对 `CSS` 文件进行一个解析操作：
 
+- **`css-loader`：**处理 `css` 文件之间的 `@import`、`require()` 等关系，并将其作为 JS 模块的导出内容。
+- **`style-loader`：**经过 `css-loader` 的转译，得到了完整的 `css` 样式代码，`style-loader` 的作用就是将结果以 `style` 标签的方式插入 `DOM` 树中。
 
 ## 打包 HTML 资源
 
@@ -370,4 +373,194 @@
    }
    ```
    
+
+
+
+## CSS 兼容性处理
+
+1. 下载依赖：`yarn add postcss-loader postcss-preset-env -dev`
+
+2. 修改配置文件 `webpack.config.js`
+
+   ```javascript
+   const { resolve } = require('path');
+   const HtmlWebpackPlugin = require('html-webpack-plugin');
+   const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+   
+   // 设置 node.js 的环境变量
+   process.env.NODE_ENV = 'production';
+   
+   module.exports = {
+     entry: './src/js/index.js',
+     output: {
+       filename: 'js/built.js'
+       path: resolve(__dirname, 'build')
+     },
+     module: {
+       rules: [
+         {
+           test: /\.css$/,
+           use: [
+             MiniCssExtractPlugin.loader,
+             'css-loader',
+             {
+               loader: 'postcss-loader',
+               options: {
+                 ident: 'postcss',
+                 plugins: () => [
+                   // postcss 的插件
+                   // postcss-preset-env 的作用：帮 postcss 找到 package.json 中 browserslist 里边的配置，通过配置加载指定的的 CSS 兼容性样式
+                   require('postcss-preset-env')()
+                 ]
+               }
+             }
+           ]
+         }
+       ],
+       plugins: [
+         new HtmlWebpackPlugin({
+           template: './src/index.html'
+         }),
+         new MiniCssExtractPlugin({
+           filename: 'css/built.css'
+         })
+       ],
+       mode: 'development'
+     }
+   }
+   ```
+
+3. 修改配置文件 `package.json`
+
+   ```javascript
+   "browserslist": {
+   	// 开发环境下的兼容性列表
+     // 这里的环境是跟随 node 的环境变量
+     // 只能这么设置：process.env.NODE_ENV = development
+     "development": [
+       "last 1 chrome version",
+       "last 1 firefox version",
+       "last 1 safari version"
+     ],
+     // 生产环境下的兼容性选项
+     "production": [
+       ">0.2%",
+       "not dead",
+       "not op_mini all"
+     ]
+   }
+   ```
+
+
+
+## 压缩 CSS
+
+1. 下载依赖：`yarn add optimize-css-assets-webpack-plugin -dev`
+
+2. 修改配置文件 `webpack.config.js`：
+
+   ```javascript
+   const { resolve } = require('path');
+   const HtmlWebpackPlugin = require('html-webpack-plugin');
+   const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin')
+   
+   module.exports = {
+     entry: './src/js/index.js',
+     output: {
+       filename: 'js/built.js',
+       path: resolve(__dirname, 'build')
+     },
+     module: {
+       rules: [
+         {
+           test: /\.css$/,
+           use: [
+             MiniCssExtractPlugin.loader,
+             'css-loader',
+             {
+               loader: 'postcss-loader',
+               options: {
+                 ident: 'postcss',
+                 plugins: () => [
+                   // postcss 的插件
+                   require('postcss-preset-env')()
+                 ]
+               }
+             }
+           ]
+         }
+       ]
+     },
+     plugins: [
+       new HtmlWebpackPlugin({
+         template: './src/index.html'
+       }),
+       new MiniCssExtractPlugin({
+         filename: 'css/built.css'
+       }),
+       // 压缩 css
+       new OptimizeCssAssetsWebpackPlugin()
+     ],
+     mode: 'development'
+   }
+   ```
+
+
+
+## JS 语法检查
+
+1. 下载依赖：`yarn add eslint-loader eslint-config-airbnb-base eslint-plugin-import`
+
+2. 修改配置文件
+
+   ```javascript
+   const { resolve } = require('path');
+   const HtmlWebpackPlugin = require('html-webpack-plugin');
+   const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+   const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin')
+   
+   module.exports = {
+     entry: './src/js/index.js',
+     output: {
+       filename: 'js/built.js',
+       path: resolve(__dirname, 'build')
+     },
+     module: {
+       rules: [
+         {
+           test: /\.js$/,
+           exclude: /node_modules/,
+           loader: "eslint-loader",
+           options: {
+             // 自动修复 eslint 的错误
+             fix: true
+           }
+         }
+       ]
+     },
+     plugins: [
+       new HtmlWebpackPlugin({
+         template: './src/index.html'
+       }),
+       new MiniCssExtractPlugin({
+         template: 'css/built.css'
+       }),
+       // 压缩 css
+       new OptimizeCssAssetsWebpackPlugin()
+     ],
+     mode: 'development'
+   }
+   ```
+
+3. 配置 `package.json` 文件
+
+   ```javascript
+   "eslintConfig": {
+     "extends": "airbnb-base",
+     "env": {
+       "browser": true
+     }
+   }
+   ```
+
    

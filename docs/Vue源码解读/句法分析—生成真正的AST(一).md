@@ -2086,3 +2086,1177 @@ function processRawAttrs (el) {
 }
 ```
 
+假如 `el.attrsList` 数组的长度为 `0`，则会进入 `else...if` 分支的判断，检查该元素是否使用了 `v-pre` 指令，如果没有使用 `v-pre` 指令才会执行 `else...if` 语句块的代码，思考一下，首先具备一个大前提，即 `processRawAttrs` 函数的执行说明当前解析必然处于 `v-pre` 环境，要么是使用 `v-pre` 指令的标签本身，要么就是其子节点。同时 `el.attrsList` 数组的长度为 `0` 说明该元素没有任何属性，而且 `else...if` 条件的成立也说明该元素没有使用 `v-pre` 指令，这说明该元素一定是使用了 `v-pre` 指令的标签的子标签，如下：
+
+```html
+<div v-pre>
+  <span></span>
+</div>
+```
+
+如上 `html` 字符串所示，当解析 `span` 标签时，由于 `span` 标签没有任何属性，并且 `span` 标签也没有使用 `v-pre` 指令，所以此时会在 `span` 标签的元素描述对象上添加 `.plain` 属性并将其设置为 `true`，用来标识哪些元素是纯的，在代码生成的部分将看到一个被标识为 `plain` 的元素将有哪些不同。
+
+最后对使用了 `v-pre` 指令的标签所生成的元素描述对象做一个总结：
+
+- 如果标签使用了 `v-pre` 指令，则该标签的元素描述对象的 `element.pre` 属性将为 `true`。
+- 对于使用了 `v-pre` 指令的标签以及其子代标签，它们的任何属性都将会被作为原始属性处理，即使用 `processRawAttrs` 函数处理。
+- 经过 `processRawAttrs` 函数的处理，会在元素的描述对象上添加 `element.attrs` 属性，它与 `element.attrsList` 数组结构相同，不同的是 `element.attrs` 数组中每个对象的 `value` 值都会经过 `JSON.stringify` 函数处理。
+- 如果一个标签没有任何属性，并且该标签时使用了 `v-pre` 指令标签的子代标签，那么该标签的元素描述对象将被添加 `element.plain` 属性，并且其值为 `true`。
+
+以上就是生成 AST 过程中对于使用了 `v-pre` 指令标签的元素描述对象的处理。
+
+## 处理使用了 `v-for` 指令的元素
+
+接下来回到如下这段代码：
+
+```javascript
+if (inVPre) {
+  // 省略...
+} else if (!element.processed) {
+  // 省略...
+}
+```
+
+如果一个标签使用了 `v-pre` 指令，那么该标签及其子标签的解析都会由 `if` 语句块内的 `processRawAttrs` 函数来完成，反之将会执行 `else...if` 条件语句的判断，可以看到其判断条件为 `!element.processed`，这里要补充一下元素描述对象的 `element.processed` 属性是一个布尔值，它标识着当前元素是否已经被解析过了，或许大家会对 `element.processed` 属性有疑问，实际上 `element.processed` 属性是在元素描述对象应用 `preTransforms` 数组中的处理函数时被添加的，可以打开 `src/platforms/web/compiler/modules/model.js` 文件找到 `preTransformNode` 函数，该函数中有这样一段代码，如下：
+
+```javascript
+processFor(branch0)
+addRawAttr(branch0, 'type', 'checkbox')
+processElement(branch0, options)
+branch0.processed = true // prevent it from double-processed
+```
+
+由于还没有对 `preTransforms` 前置处理函数进行讲解，所以大家看不明白上方代码是没有关系的，只需要知道如上代码的处理之后，由于元素已经被处理过了，所以这里会通过 `.processed` 做一个标识，以防止被重复处理。再回到如下这段代码：
+
+```javascript
+if (inVPre) {
+  // 省略...
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  // 省略...
+}
+```
+
+如果元素没有被处理过，那么 `else...if` 语句块内的代码将会被执行，可以看到对元素描述对象应用的第一个处理函数是 `processFor` 函数，接下来的目标就是研究 `processFor` 函数对元素描述对象做了怎么样的处理。
+
+找到 `processFor` 函数，如下是其源码：
+
+```javascript
+export function processFor (el: ASTElement) {
+  let exp
+  if ((exp = getAndRemoveAttr(el, 'v-for'))) {
+    const res = parseFor(exp)
+    if (res) {
+      extend(el, res)
+    } else if (process.env.NODE_ENV !== 'production') {
+      warn(
+        `Invalid v-for expression: ${exp}`
+      )
+    }
+  }
+}
+```
+
+`processFor` 函数接收元素描述对象作为参数，在 `processFor` 函数内部首先定义了 `exp` 变量，接着是一个 `if` 条件语句块。在判断条件中首先通过 `getAndRemoveAttr` 函数从元素描述对象中获取 `v-for` 属性对应的属性值，并将值赋值给 `exp` 变量，如果标签的 `v-for` 属性值存在则会执行 `if` 语句块内的代码，否则什么都不会做。
+
+对于 `getAndRemoveAttr` 函数前面已经讲过了这里就不再补充了。现在假设当前元素是一个使用了 `v-for` 指令的 `div` 标签，如下：
+
+```html
+<div v-for="obj in list"></div>
+```
+
+那么 `exp` 变量的值将是字符串 `'obj in list'`，此时 `if` 语句块内的代码将会执行，在 `if` 语句块内一上来就通过 `parseFor` 函数对 `v-for` 属性的值做解析，把目光转移到 `parseFor` 函数上，细看 `parseFor` 函数是如何解析字符串 `'obj in list'` 的。
+
+`parseFor` 函数的源码如下：
+
+```javascript
+export function parseFor (exp: string): ?ForParseResult {
+  const inMatch = exp.match(forAliasRE)
+  if (!inMatch) return
+  const res = {}
+  res.for = inMatch[2].trim()
+  const alias = inMatch[1].trim().replace(stripParensRE, '')
+  const iteratorMatch = alias.match(forIteratorRE)
+  if (iteratorMatch) {
+    res.alias = alias.replace(forIteratorRE, '')
+    res.iterator1 = iteratorMatch[1].trim()
+    if (iteratorMatch[2]) {
+      res.iterator2 = iteratorMatch[2].trim()
+    }
+  } else {
+    res.alias = alias
+  }
+  return res
+}
+```
+
+`parseFor` 函数接收 `v-for` 指令的值作为参数，现在假设参数 `exp` 的值为字符串 `'obj in list'`。在 `parseFor` 函数开头首先使用字符串 `exp` 去匹配正则 `forAliasRE`，并将匹配的结果保存在 `inMatch` 常量中，该正则的作用在本章开头讲过，所以这里不做过多讲解，如果 `exp` 字符串为 `'obj in list'`，那么最终 `inMatch` 常量则是一个数组，如下：
+
+```javascript
+const inMatch = [
+  'obj in list',
+  'obj',
+  'list'
+]
+```
+
+如果匹配失败则 `inMatch` 常量的值将为 `null`。可以看到在 `parseFor` 函数内部如果匹配失败则函数直接返回 `undefined`：
+
+```javascript
+export function parseFor (exp: string): ?ForParseResult {
+  const inMatch = exp.match(forAliasRE)
+  if (!inMatch) return
+  // 省略...
+}
+```
+
+可以回到 `processFor` 函数，注意以下代码：
+
+```javascript
+export function processFor (el: ASTElement) {
+  let exp
+  if ((exp = getAndRemoveAttr(el, 'v-for'))) {
+    const res = parseFor(exp)
+    if (res) {
+      extend(el, res)
+    } else if (process.env.NODE_ENV !== 'production') {
+      warn(
+        `Invalid v-for expression: ${exp}`
+      )
+    }
+  }
+}
+```
+
+可以看到在 `processFor` 函数内部定义了 `res` 常量接收 `parseFor` 函数对 `exp` 字符串的解析结果，如果解析失败则 `res` 常量的值将为 `undefined`，所以在非生产环境下会打印警告信息提示开发者所编写的 `v-for` 指令的值为无效的。
+
+再回到 `parseFor` 函数中，如果对 `exp` 字符串解析成功，则如下的第三、第四两行代码将被执行：
+
+```javascript
+export function parseFor (exp: string): ?ForParseResult {
+  const inMatch = exp.match(forAliasRE)
+  if (!inMatch) return
+  const res = {}
+  res.for = inMatch[2].trim()
+  // 省略...
+  return res
+}
+```
+
+定义了 `res` 常量，它的初始值是一个空对象，可以看到最后 `parseFor` 函数会将 `res` 对象作为返回值返回。接着在 `res` 对象上添加 `res.for` 属性，它的值为 `inMatch` 数组的第三个元素，假如 `exp` 字符串的值为 `'obj in list'`，则 `res.for` 属性的值将是字符串 `'list'`，所以大家应该能够猜测到 `res.for` 属性所存储的值应该是被遍历的目标变量的名字。
+
+再往下将会执行如下第二第三两行代码：
+
+```javascript
+export function parseFor (exp: string): ?ForParseResult {
+  // 省略...
+  res.for = inMatch[2].trim()
+  const alias = inMatch[1].trim().replace(stripParensRE, '')
+  const iteratorMatch = alias.match(forIteratorRE)
+  // 省略...
+  return res
+}
+```
+
+定义了 `alias` 常量，它的值比较复杂，一点点来看，假设字符串 `exp` 的值为 `'obj in list'`，则 `inMatch[1]` 的值应该是字符串 `'obj'`，如果 `exp` 字符串的值 `'(obj, index) in list'`，那么 `inMatch[1]` 的值应该是字符串 `'(obj, index)'`，当然了，如果在编写 `v-for` 指令时存在多余空格，比如：
+
+```html
+<div v-for="  obj in list"></div>
+```
+
+则 `exp` 字符串也会有多余的空格：`'  obj in list'`，这时就会导致 `inMatch[1]` 的值中也会包含多余的空格：`'  obj'`。理想的做法是此时将多余的空格去掉，然后再做下一步处理，这就是 `parseFor` 函数中对 `inMatch[1]` 字符串使用 `trim()` 函数的原因。去掉空格之后，可以看到紧接着使用该字符串的 `replace` 方法匹配正则 `stripParenRE`，并将匹配的内容替换成空字符串，最终的结果是将 `inMatch[1]` 中的左右圆括号移除，本章开头讲解了正则 `stripParensRE` 的作用，它用来匹配字符串中的左右圆括号。
+
+如下是 `v-for` 指令的值和 `alias` 常量值的对应关系：
+
+- 如果 `v-for` 指令的值为 `'obj in list'`，则 `alias` 的值为字符串 `'obj'`
+- 如果 `v-for` 指令的值为 `(obj, index) in list`，则 `alias` 的值为字符串 `obj, index`
+- 如果 `v-for` 指令的值为 `(obj, key, index) in list`，则 `alias` 的值为字符串 `'obj, key, index'`
+
+了解了 `alias` 常量的值之后，再来看如下这行代码：
+
+```javascript
+const iteratorMatch = alias.match(forIteratorRE)
+```
+
+这里定义了 `iteratorMatch` 常量，它的值是使用 `alias` 字符串的 `match` 方法匹配正则 `forIteratorRE` 得到的，其中正则 `forIteratorRE` 在前面的章节中讲过了，这里总结一下对于不同的 `alias` 字符串其对应的匹配结果：
+
+- 如果 `alias` 字符串的值为 `'obj'`，则匹配结果 `iteratorMatch` 常量的值为 `null`
+- 如果 `alias` 字符串的值为 `'obj, index'`，则匹配结果 `iteratorMatch` 常量的值是一个包含两个元素的数组 `[', index', 'index']`
+- 如果 `alias` 字符串的值为 `obj, key, value`，则匹配结果 `iteratorMatch` 常量的值是一个包含三个元素的数组：`[', key, index', 'key', 'index']`
+
+明白了这些，继续看 `parseFor` 函数的代码，接下来要看的是如下这段代码：
+
+```javascript
+export function parseFor (exp: string): ?ForParseResult {
+  // 省略...
+  const iteratorMatch = alias.match(forIteratorRE)
+  if (iteratorMatch) {
+    res.alias = alias.replace(forIteratorRE, '')
+    res.iterator1 = iteratorMatch[1].trim()
+    if (iteratorMatch[2]) {
+      res.iterator2 = iteratorMatch[2].trim()
+    }
+  } else {
+    res.alias = alias
+  }
+  return res
+}
+```
+
+如上代码所示，可以知道如果 `alias` 常量的值为字符串 `'obj'` 时，则匹配结果 `iteratorMatch` 常量的值会是 `null`，所以此时 `if` 条件语句判断失败，`else` 语句块的代码将被执行，即在 `res` 对象上添加 `res.alias` 属性，其值就是 `alias` 常量的值，也就是字符串 `'obj'`。
+
+如果 `alias` 常量的值为字符串 `'obj, index'`，则匹配结果 `iteratorMatch` 常量将会是一个拥有两个元素的数组，此时 `if` 语句块内的代码将被执行，在 `if` 语句块内首先执行的是如下代码：
+
+```javascript
+res.alias = alias.replace(forIteratorRE, '')
+```
+
+使用 `alias` 字符串的 `replace` 方法去匹配正则 `forIteratorRE`，并将匹配到的内容替换成空字符串，最后将结果赋给 `res.alias` 属性。如果字符串 `alias` 的值为 `'obj, index'`，则替换后的结果应该为字符串 `'obj'`。所以 `res.alias` 属性的值就是字符串 `'obj'`。
+
+接着执行的是这行代码：
+
+```javascript
+res.iterator1 = iteratorMatch[1].trim()
+```
+
+在 `res` 对象上定义 `res.iterator1` 属性，它的值是匹配结果 `iteratorMatch` 数组第二个元素去除前后空白之后的值。假设 `alias` 字符串为 `'obj, index'`，则 `res.iterator1` 的值应该为字符串 `'index'`。
+
+再往下会进入另外一个 `if` 条件语句：
+
+```javascript
+if (iteratorMatch[2]) {
+  res.iterator2 = iteratorMatch[2].trim()
+}
+```
+
+由于 `alias` 字符串的值为 `'obj, index'`，对应的匹配结果 `iteratorMatch` 数组只有两个元素，所以 `iteratorMatch[2]` 的值为 `undefined`，此时如上 `if` 语句块内的代码不会被执行，但是如果 `alias` 字符串的值为 `obj, key, index`，则匹配结果 `iteratorMatch[2]` 的值将会是字符串 `'index'`，此时 `if` 语句块内的代码将会被执行，可以看到 `res` 对象上定义了 `res.iterator2` 属性，其值就是字符串 `iteratorMatch[2]` 去掉前后空白后的结果。
+
+以上就是 `parseFor` 函数的全部实现，它的作用是解析 `v-for` 指令的值，并创建一个包含解析结果的对象，最后将该对象返回。来做一个简洁的总结：
+
+- 如果 `v-for` 指令的值为字符串 `'obj in list'`，则 `parseFor` 函数的返回值为：
+
+  ```javascript
+  {
+    for: 'list',
+    alias: 'obj'
+  }
+  ```
+
+- 如果 `v-for` 指令的值为字符串 `'(obj, index) in list'`，则 `parseFor` 函数的返回值为：
+
+  ```javascript
+  {
+    for: 'list',
+    alias: 'obj',
+    iterator1: 'index'
+  }
+  ```
+
+- 如果 `v-for` 指令的值为字符串 `'(obj, key, index) in list'`，则 `parseFor` 函数的返回值为：
+
+  ```javascript
+  {
+    for: 'list',
+    alias: 'obj',
+    iterator1: 'key',
+    iterator2: 'index'
+  }
+  ```
+
+最后再回到 `processFor` 函数，看如下这段代码：
+
+```javascript
+export function processFor (el: ASTElement) {
+  let exp
+  if ((exp = getAndRemoveAttr(el, 'v-for'))) {
+    const res = parseFor(exp)
+    if (res) {
+      extend(el, res)
+    } else if (process.env.NODE_ENV !== 'production') {
+      warn(
+        `Invalid v-for expression: ${exp}`
+      )
+    }
+  }
+}
+```
+
+可以看到如果 `parseFor` 函数对 `v-for` 指令的值解析成功，则会将解析结果保存在 `res` 常量中，并使用 `extend` 函数将 `res` 常量中的属性混入当前元素的描述对象中。
+
+以上就是解析器对于使用了 `v-for` 指令的标签的解析过程，以及对该元素描述对象的补充。
+
+## 处理使用条件指令和 `v-once` 指令的元素
+
+在使用 `processFor` 函数处理完元素描述对象之后，紧接着使用了 `processIf` 函数继续对元素的描述对象进行处理，如下代码所示：
+
+```javascript
+if (inVPre) {
+  processRawAttrs(element)
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  processIf(element)
+  // 省略...
+}
+```
+
+`processIf` 函数用来处理那些使用了条件指令的标签的元素描述对象，所谓条件指令指的是 `v-if`、`v-else-if`、`v-else` 这三个指令。找到 `processIf` 函数，源码如下：
+
+```javascript
+function processIf (el) {
+  const exp = getAndRemoveAttr(el, 'v-if')
+  if (exp) {
+    el.if = exp
+    addIfCondition(el, {
+      exp: exp,
+      block: el
+    })
+  } else {
+    if (getAndRemoveAttr(el, 'v-else') != null) {
+      el.else = true
+    }
+    const elseif = getAndRemoveAttr(el, 'v-else-if')
+    if (elseif) {
+      el.elseif = elseif
+    }
+  }
+}
+```
+
+`processIf` 函数接收元素描述对象作为参数，在 `processIf` 函数内部首先通过 `getAndRemoveAttr` 函数从该元素描述对象的 `attrsList` 属性中获取并移除 `v-if` 指令的值，并将属性赋值给 `exp` 常量，这里需要注意的是如何判断是否使用了 `v-if` 指令，如上代码是这样判断的：
+
+```javascript
+function processIf (el) {
+  const exp = getAndRemoveAttr(el, 'v-if')
+  if (exp) {
+    // 省略...
+  } else {
+    // 省略...
+  }
+}
+```
+
+能不能改成如下这种判断方式呢？实际上下边的这种判断方式已经见过很多次了：
+
+```javascript
+function processIf (el) {
+  if (getAndRemoveAttr(el, 'v-if') != null) {
+    // 省略...
+  } else {
+    // 省略...
+  }
+}
+```
+
+如上这种比较方式实际上是把 `v-if` 指令的值和 `null` 做对比，只要不等于 `null` 则条件就会成立，所以如果在编写 `v-if` 指令时没有写属性值，则通过 `getAndRemoveAttr` 函数获取到的 `v-if` 属性值将是一个空字符串，由于空字符串不等于 `null`，所以如上条件会成立。但是源码中的比较方式不会这样，如果在编写 `v-if` 指令时没有写属性，则 `exp` 常量就是空字符串，所以 `if` 条件语句不会执行。实际上源码的实现方式更合理，源码的逻辑只要没有写 `v-if` 指令的属性，那么就当做你根本没有使用 `v-if` 指令，不然的话元素永远不会渲染。
+
+假设读取到了 `v-if` 指令的值，此时 `if` 语句块内的代码将被执行，如下：
+
+```javascript
+function processIf (el) {
+  const exp = getAndRemoveAttr(el, 'v-if')
+  if (exp) {
+    el.if = exp
+    addIfCondition(el, {
+      exp: exp,
+      block: el
+    })
+  } else {
+    // 省略...
+  }
+}
+```
+
+在 `if` 语句块内首先在元素描述对象上定义了 `el.if` 属性，并且该属性的值就是 `v-if` 指令的属性值，注意目前所说的属性值都指的是字符串，比如 `html` 字符串如下：
+
+```html
+<div v-if="a && b"></div>
+```
+
+则该元素描述对象的 `el.if` 的值为字符串 `'a && b'`。在设置完 `el.if` 属性之后，紧接着调用了 `addIfCondition` 函数，可以看到第一个参数就是当前元素描述对象本身，所以如果一个元素使用了 `v-if` 指令，那么它会把自身作为一个条件对象添加到自身元素描述的 `ifConditions` 数组中，补充一下这里所说的条件对象指的是形如 `addIfCondition` 函数第二个参数的对象结构：
+
+```javascript
+{
+  exp: exp,
+  block: el
+}
+```
+
+这一点在前边分析 `processIfConditions` 函数时有提到过。
+
+再回到 `processIf` 函数中，如下：
+
+```javascript
+function processIf (el) {
+  const exp = getAndRemoveAttr(el, 'v-if')
+  if (exp) {
+    // 省略...
+  } else {
+    if (getAndRemoveAttr(el, 'v-else') != null) {
+      el.else = true
+    }
+    const elseif = getAndRemoveAttr(el, 'v-else-if')
+    if (elseif) {
+      el.elseif = elseif
+    }
+  }
+}
+```
+
+如果没有获取到 `v-if` 指令的属性值，则 `else` 语句块的代码将被执行，可以看到在 `else` 语句块内分别处理了 `v-else` 指令以及 `v-else-if` 指令。首先先来看对于 `v-else` 指令的处理，如下：
+
+```javascript
+if (getAndRemoveAttr(el, 'v-else') != null) {
+  el.else = true
+}
+```
+
+通过 `getAndRemoveAttr` 函数获取并移除元素描述对象的 `attrsList` 数组中名字为 `v-else` 的属性值，可以看到和 `v-if` 指令的判断条件不同，这里是将属性值和 `null` 做比较，这说明 `v-else` 指令时即使不写属性值也会当做使用了 `v-else` 指令，很显然 `v-else` 指令根本就不需要属性值。如果该元素使用了 `v-else` 指令则会在该元素的描述对象上添加 `el.else` 属性，并将其设置为 `true`。
+
+接着还要处理使用了 `v-else-if` 指令的标签，如下：
+
+```javascript
+const elseif = getAndRemoveAttr(el, 'v-else-if')
+if (elseif) {
+  el.elseif = elseif
+}
+```
+
+很简单，和处理 `v-if` 指令的方式相同，唯一不同的就是此时会在元素描述对象上添加 `el.elseif` 属性，并且它的值为 `v-else-if` 的属性值。
+
+最后大家注意一件事，就是对于使用了 `v-else` 和 `v-else-if` 这两个条件指令的标签，经过 `processIf` 函数的处理之后仅仅是在元素描述对象上添加了 `el.else` 属性和 `el.elseif` 属性，并没有做额外的工作。但是在前面分析 `processIfConditions` 函数时能够知道，当一个元素描述对象存在 `el.else` 属性或 `el.elseif` 属性时，该元素描述对象不会作为 AST 中的一个普通节点，而是会被添加到与之相符带有 `v-if` 指令的元素描述对象的 `ifConditions` 数组中。
+
+按照惯例做一个简短的总结：
+
+- 如果标签使用了 `v-if` 指令，则该标签的元素描述对象的 `el.if` 属性存储着 `v-if` 指令的属性值
+- 如果标签使用了 `v-else` 指令，则该标签的元素描述对象的 `el.else` 属性值为 `true`
+- 如果标签使用了 `v-else-if` 指令，则该标签的元素描述对象的 `el.elseif` 属性值存储着 `v-else-if` 指令的属性值
+- 如果标签使用了 `v-if` 指令，则该标签的元素描述对象的 `ifConditions` 数组中包含自己
+- 如果标签使用了 `v-else` 或 `v-else-if` 指令，则该标签的元素描述对象会被添加到与之相符的带有 `v-if` 指令的元素描述对象的 `ifConditions` 数组中。
+
+讲解完 `processIf` 函数之后，再来看一下在 `processIf` 函数之后执行的 `processOnce` 函数：
+
+```javascript
+if (inVPre) {
+  processRawAttrs(element)
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  processIf(element)
+  processOnce(element)
+  // element-scope stuff
+  processElement(element, options)
+}
+```
+
+`processOnce` 函数用来处理使用了 `v-once` 指令的标签，处理方式很简单，如下：
+
+```javascript
+function processOnce (el) {
+  const once = getAndRemoveAttr(el, 'v-once')
+  if (once != null) {
+    el.once = true
+  }
+}
+```
+
+首先通过 `getAndRemoveAttr` 函数获取并移除描述对象的 `attrsList` 数组中名字为 `v-once` 的属性值，并将获取到的属性值赋给 `once` 常量，接着使用 `if` 条件语句，如果 `once` 常量不等于 `null`，则说明使用了 `v-once` 指令，此时会在元素描述对象上添加 `el.once` 属性并将其设置为 `true`。
+
+## 处理使用了 `key` 属性的元素
+
+再往下是 `processElement` 函数了，如下：
+
+```javascript
+if (inVPre) {
+  processRawAttrs(element)
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  processIf(element)
+  processOnce(element)
+  // element-scope stuff
+  processElement(element, options)
+}
+```
+
+实际上 `processElement` 函数是其他一系列 `process*` 函数的集合，如下：
+
+```javascript
+export function processElement (element: ASTElement, options: CompilerOptions) {
+  processKey(element)
+
+  // determine whether this is a plain element after
+  // removing structural attributes
+  element.plain = !element.key && !element.attrsList.length
+
+  processRef(element)
+  processSlot(element)
+  processComponent(element)
+  for (let i = 0; i < transforms.length; i++) {
+    element = transforms[i](element, options) || element
+  }
+  processAttrs(element)
+}
+```
+
+如上是 `processElement` 函数的全部代码，可以看到在 `processElement` 函数内确实调用了很多其他的 `process*` 函数，除此之外在 `processComponent` 函数与 `processAttrs` 函数之间应用了 `transforms` 数组中的转换函数，一点点来分析，首先看 `processElement` 函数内执行的第一个函数，即 `processKey` 函数，如下是 `processKey` 函数的源码：
+
+```javascript
+function processKey (el) {
+  const exp = getBindingAttr(el, 'key')
+  if (exp) {
+    if (process.env.NODE_ENV !== 'production' && el.tag === 'template') {
+      warn(`<template> cannot be keyed. Place the key on real elements instead.`)
+    }
+    el.key = exp
+  }
+}
+```
+
+`processKey` 函数接收元素的描述对象作为参数，在 `processKey` 函数内部首先调用了 `getBindingAttr` 函数，这个函数目前还是第一次遇到，尽管将它当做和 `getAndRemoveAttr` 函数的作用相同即可，后面会详细讲解。`getBindingAttr` 函数和 `getAndRemoveAttr` 函数接收的前两个参数是一样的，并且也会返回第二个参数指定的属性值，所以如上代码中通过 `getBindingAttr` 函数从元素描述对象的 `attrsList` 数组中获取到属性名字为 `key` 的属性值，并将值赋值给 `exp` 常量。接着用一个 `if` 条件语句检查 `exp` 是否存在，如果不存在则说明没有为该标签的 `key` 属性指定属性值，如果属性值存在则会为元素描述对象添加 `el.key` 属性，且它的值就是 `key` 属性的值。另外能够看到在为 `el.key` 属性赋值之前还有一个 `if` 条件语句，如下：
+
+```javascript
+if (process.env.NODE_ENV !== 'production' && el.tag === 'template') {
+  warn(`<template> cannot be keyed. Place the key on real elements instead.`)
+}
+```
+
+在非生产环境下会检测该标签是否是 `<template>` 标签，如果是 `template` 标签则会提示开发者不要在 `<template>` 标签上使用 `key` 属性。
+
+以下是对使用了 `key` 属性的标签的解析总结：
+
+- `key` 属性不能被应用到 `<template>` 标签
+- 使用了 `key` 属性的标签，其元素描述对象的 `el.key` 属性保存着 `key` 属性的值
+
+## 获取绑定的属性值以及过滤器的解析
+
+在讲解 `processKey` 函数时遇到了 `getBindingAttr` 函数，当时没有仔细讲解，并且让大家理解为它的作用和 `getAndRemoveAttr` 函数的作用相同。接下来仔细研究 `getBindingAttr` 函数，如下是其源码：
+
+```javascript
+export function getBindingAttr (
+  el: ASTElement,
+  name: string,
+  getStatic?: boolean
+): ?string {
+  const dynamicValue =
+    getAndRemoveAttr(el, ':' + name) ||
+    getAndRemoveAttr(el, 'v-bind:' + name)
+  if (dynamicValue != null) {
+    return parseFilters(dynamicValue)
+  } else if (getStatic !== false) {
+    const staticValue = getAndRemoveAttr(el, name)
+    if (staticValue != null) {
+      return JSON.stringify(staticValue)
+    }
+  }
+}
+```
+
+如上代码，可以发现在 `getBindingAttr` 函数内部多次调用了 `getAndRemoveAttr` 函数。实际上 `getBindingAttr` 函数的作用就像它的名字一样，用来获取绑定属性的值。绑定属性就是通过 `v-bind:` 或其缩写 `:` 所定义的属性。`getBindingAttr` 函数接收三个参数，前两个参数和 `getAndRemoveAttr` 函数相同，分别是元素的描述对象和要获取的属性的名字。在 `getBindingAttr` 函数内部首先执行的是如下这段代码：
+
+```javascript
+const dynamicValue =
+  getAndRemoveAttr(el, ':' + name) ||
+  getAndRemoveAttr(el, 'v-bind:' + name)
+```
+
+可以看到这段代码首先通过 `getAndRemoveAttr` 函数获取名字为 `':' + name` 的属性值，如果传递给 `getBindingAttr` 函数的第二个参数为字符串 `'key'`，则表达式 `':' + name` 的值就是 `':key'`，如果获取不到属性名为 `:key` 的属性的值，则会继续使用 `getAndRemoveAttr` 获取 `v-bind:key` 属性的值，这是因为没有办法保证开发者到底通过 `v-bind:` 还是通过其缩写 `:` 来绑定属性，所以两种方式都要尝试。最后将获取到的属性值赋值给 `dynamicValue` 常量。
+
+获取到了绑定的属性值之后，将会执行如下代码：
+
+```javascript
+if (dynamicValue != null) {
+  return parseFilters(dynamicValue)
+} else if (getStatic !== false) {
+  const staticValue = getAndRemoveAttr(el, name)
+  if (staticValue != null) {
+    return JSON.stringify(staticValue)
+  }
+}
+```
+
+这段代码是一段 `if...else` 添加语句块，这里再次强调 `if` 语句的条件是在判断绑定的属性是否存在，而非判断属性值 `dynamicValue` 是否存在，因为即使获取到的属性值为空字符串，但由于空字符串不与 `null` 相等，所以 `if` 条件语句成立。只有当绑定属性本身不存在时，此时获取到的属性值为 `undefined`，与 `null` 相等，这时才会执行 `elseif` 分支的判断。
+
+假设成功得到了获取绑定的属性值，那么 `if` 语句块内的代码将被执行，可以看到在 `if` 语句块内直接调用了 `parseFilters` 函数并将该函数的返回值作为 `getBindingAttr` 函数的返回值。其中 `parseFilters` 函数是接下来需要重点讲解的函数，不过现在仍需要将目光聚焦在 `getBindingAttr` 函数上。
+
+如果获取绑定的值失败，则会执行 `else if` 分支的判断，可以看到 `else if` 分支检测了 `getBindingAttr` 函数的第三个参数 `getStatic` 是否和 `false` 不全等，这里的关键是一定是不全等才行，也就是说如果调用 `getBindingAttr` 函数时不传递第三个参数，则参数 `getStatic` 的值为 `undefined`，它不全等于 `false`，所以可以理解为当不传递第三个参数时 `elseif` 分支的条件默认成立。`else if` 语句块内的代码的作用是用来获取非绑定的属性值，因为代码既然执行到了 `else if` 分支，则说明此时获取绑定的属性值失败，可以知道当为元素或组件添加属性时，这个属性可以是绑定的也可以是非绑定的，所以当获取绑定的属性失败时，不能够武断地认为开发者没有编写该属性，而是应该继续尝试获取非绑定的属性值，如下代码所示：
+
+```javascript
+if (dynamicValue != null) {
+  return parseFilters(dynamicValue)
+} else if (getStatic !== false) {
+  const staticValue = getAndRemoveAttr(el, name)
+  if (staticValue != null) {
+    return JSON.stringify(staticValue)
+  }
+}
+```
+
+非绑定属性值的获取方式同样是使用 `getAndRemoveAttr` 函数，只不过此时传递给该函数的第二个参数是原始的属性名字，不带有 `v-bind` 或 `:`。同时将获取结果保存在 `staticValue` 常量中，接着进入一个条件判断，如果属性值存在则使用 `JSON.stringify` 函数对属性值进行处理后将其返回。
+
+`JSON.stringify` 函数对属性值的处理至关重要，这么做能够保证对于非绑定的属性来讲，总是会将该属性的值作为字符串处理，为了更好理解，举个例子，编译器生成的渲染函数其实是字符串形式的渲染函数，该字符串要通过 `new Function(str)` 之后才能变成真正的函数，对比如下代码：
+
+```javascript
+// 代码一
+const fn1 = new Function('console.log(1)')
+
+// 代码二
+const fn2 = new Function(JSON.stringify('console.log(1)'))
+```
+
+当执行 `fn1` 函数时，在控制台中会得到输出数字 `1`，而当执行 `fn2` 函数时则不会得到任何输出，实际上下面的代码和如上代码等价：
+
+```javascript
+// 代码一
+const fn1 = function () {
+  console.log(1)
+}
+
+// 代码二
+const fn2 = function () {
+  'console.log(1)'
+}
+```
+
+实际上 `JSON.stringify('console.log(1)')` 的结果等价于 `"'console.log(1)'"`。
+
+现在应该明白为什么对于非绑定的属性，需要使用 `JSON.stringify` 函数处理其属性值的原因，目的就是确保非绑定的属性值作为字符串处理，而不是变量或表达式。
+
+讲完了非绑定属性值的获取及处理方式，回过头来看对于绑定的属性值应该如何处理，可以知道非绑定的属性值始终会被作为字符串对待，但是对于绑定的值则需要将其作为一个表达式对待才可以，如下代码所示：
+
+```javascript
+if (dynamicValue != null) {
+  return parseFilters(dynamicValue)
+} else if (getStatic !== false) {
+  const staticValue = getAndRemoveAttr(el, name)
+  if (staticValue != null) {
+    return JSON.stringify(staticValue)
+  }
+}
+```
+
+可见，对于绑定的属性值需要通过 `parseFilters` 函数处理，并将处理后的值作为最终的返回结果。`parseFilters` 函数的作用就像它的名字一样，是用来解析过滤器的，换句话来说在编写绑定的属性可以使用过滤器，也许大家在平时开发中使用过滤器更多的场景是如下这种方式：
+
+```html
+<div>{{ date | format('yy-mm-dd') }}</div>
+```
+
+实际上对于绑定的属性值同样可以使用过滤器，如下：
+
+```html
+<div :key="id | featId"></div>
+```
+
+不过这只是从技术上讲，实际开发中更合适的方案是使用计算属性。总之对于绑定的属性值，为了让其拥有使用过滤器的能力，就需要使用 `parseFilters` 函数处理。`parseFilters`  函数来自于 `src/compiler/parser/filter-parser.js` 文件，它的作用简单来说就是将绑定的值分为两部分，一部分称之为表达式，另一部分是过滤器函数，然后将这两部分结合在一起，举个例子，如下代码所示：
+
+```html
+<div :key="id | featId"></div>
+```
+
+如上 `div` 标签拥有一个绑定的属性 `key`，它的值为 `id | featId`。对于这个值可以把它分为两部分：
+
+- 第一部分，表达式：`id`
+- 第二部分，过滤器：`featId`
+
+现在假如给一个字符串 `'id | featId'`，如何将这个字符串分为上述的两部分，有人说可以以管道符 `|` 为分界，左边是表达式，右边就是过滤函数，接着看如下代码：
+
+```html
+<div :key="'id | featId'"></div>
+```
+
+如上代码和之前相比，不同的地方在于绑定属性 `key` 的值就是一个单纯的字符串，它没有过滤器，因为管道符是在单引号 `''` 之内的。不仅仅是单引号，以下代码中出现的管道符都不应该被作为过滤器的分界线：
+
+```html
+<div :key="'id | featId'"></div>  <!-- 单引号内的管道符 -->
+<div :key='"id | featId"'></div>  <!-- 双引号内的管道符 -->
+<div :key="`id | featId`"></div>  <!-- 模板字符串内的管道符 -->
+```
+
+这三种情况之外还有一种比较特殊的情况，就是正则表达式的管道符，如下：
+
+```html
+<div :key="/id|featId/.test(id).toString()"></div>  <!-- 正则表达式内的管道符 -->
+```
+
+以上代码中绑定属性 `key` 的属性值是一个表达式：`/id|featId/.test(id).toString()`，该表达式存在一个正则，可以知道正则表达式中管道符是由特殊用途的，所以在解析字符串 `'/id|featId/.test(id).toString()'` 时不能单纯的认为管道符为表达式与过滤器的而分界线。
+
+还有一种最常见的情况，如下：
+
+```html
+<div :key="id || featId"></div>  <!-- 逻辑或运算符内的管道符 -->
+```
+
+如上代码所示，绑定属性 `key` 的属性值是一个表达式，该表达式里的 `||` 符号代表的是逻辑或运算符，而逻辑或运算符是由两个管道符 `|` 组成的，所以不能把这两个管道符中的任何一个作为过滤器的分界线。
+
+实际上除了以上五种情况之外，管道符存在歧义的地方还有 **按位或** 运算符，它是位运算符中的一个运算符，该运算符就是由一个管道符组成的，所以它与过滤器的分界线完全一样，这时必须做出选择：既然希望管道符用来作为过滤器的分界线那就抛弃它按位或运算符的意义。有的人说，这不是得不到完全的语言能力了吗？实际上问题一点都不大，因为任何绑定属性的值理论上都可以通过计算属性实现，而不是直接将表达式写在属性值的位置。话虽这么说，但是还是需要做一些基本的处理，比如以上列出的五种管道符存在歧义的地方都是有能力处理的。
+
+接下来思考如何判断一个管道符到底是不是表达式与过滤器的分界线，依据五种情况逐个分析，首先对于单引号的管道符：
+
+```html
+<div :key="'id | featId'"></div>  <!-- 单引号内的管道符 -->
+```
+
+思路是如果发现管道符存在于由两个单引号组成的字符串内，则认为其只是一个普通字符串而非过滤器的分界线。对于双引号 (`""`) 和模板字符串内的管道符也是同样的道理。所以问题的关键在于要能够识别单引号、双引号、模板字符串才行，这部分内容放到后边的 `parseFilters` 函数时再仔细讲解。
+
+对于存在于正则表达式中的管道符，如下：
+
+```html
+<div :key="/id|featId/.test(id).toString()"></div>  <!-- 正则表达式内的管道符 -->
+```
+
+这种情况会比较复杂，因为要有能力识别出管道符是否存在于正则表达式中才行，难点就在于如何识别正则表达式，可以知道正则表达式由斜杠 (`/`) 开头，并以斜杠 (`/`) 结尾，但不要忘了斜杠在 JS 这门语言中还被用作除法运算符。所以归根结底难点在于需要识别一个斜杠它所代表的意义到底是除法还是正则。
+
+实际上，这是一个相当复杂的事情，引用一个例子：
+
+```javascript
+a = b
+/hi/g.exec(c).map(d)
+```
+
+思考一个问题，上方代码中第二行代码开头的斜杠 (`/`) 是除法运算符还是正则表达式的开头？答案是除法，因为如上代码等价于：
+
+```javascript
+a = b / hi / g.exec(c).map(d)
+```
+
+除此之外再来看一个例子：
+
+```javascript
+// 第一段代码
+function f() {}
+/1/g
+
+// 第二段代码
+var a = {}
+/1/g
+```
+
+如上两段代码所示，这两段代码具有相同的特点，即第一行代码的最后一个字符为 `}`，第二句代码的第一个字符为 `/`。思考一下哪一段代码中的斜杠是除法运算符，哪一段代码中的斜杠是正则表达式的开头？实际上第一段代码中的斜杠是正则，因为该斜杠之前的语境是函数定义，而第二段代码中的斜杠是除法，因为该斜杠之前的语境为表达式并且花括号 `{}` 的意义为对象字面量。
+
+实际上判断一个斜杠到底代表什么意义，应该综合考虑上下文语境，ECMA 规范中清楚的已经告诉大家需要多种标志符号类型 `goal symbols` 来综合判断，并且还要考虑 JS 这门语言的自动插入分号机制，以及其他可能产生歧义的地方。
+
+如果要实现一个完整的能够精确识别斜杠意义的解析器需要花费大量的精力并且编写大量的代码，但对于 Vue 来讲，去实现一个完整的解析器是一个收入和回报完全不对等的事情。后面在分析 `parseFilters` 函数时可以看到，`parseFilters` 函数对于正则的处理仅仅考虑了很小的一部分，但对于 Vue 来讲已经足够了。还是那句话：**为什么一定要在绑定的表达式中写正则呢？用计算属性就可以了**。
+
+以上就是对 `parseFilters` 函数的作用和一些基本实现思路的讲解，接下来就会具体到 `parseFilters` 函数中去，看看真正的实现和最终的效果。
+
+打开 `src/compiler/parser/filter-parser.js` 文件找到 `parseFilters` 函数，如下时其函数的签名：
+
+```javascript
+export function parseFilters (exp: string): string {}
+```
+
+`parseFilters` 函数接收绑定的属性值作为参数，在 `parseFilters` 函数的开头定义了一些变量，先看如下这组变量：
+
+```javascript
+let inSingle = false
+let inDouble = false
+let inTemplateString = false
+let inRegex = false
+```
+
+这里定义了四个变量，分别是 `inSingle`、`inDouble`、`inTemplateString` 以及 `inRegex`，并且它们的出事值都为 `false`。大家需要知道的是，大部分解析器在解析一段字符串的时候，都会将字符串当做一个字符流，从头到尾逐个字符读取。`parseFilters` 函数也不例外，`parseFilters` 函数会把接收到的字符串从头到尾逐个字符串读取，当读取到字符 `'` 并且该字符串前不是 `\` 时，则会将这个单引号字符作为字符串的开始，这时会把 `inSingle` 变量设置为 `true`，代表当前解析进入了单引号包裹的字符串。所以对于后续读取的任何字符来讲，由于 `inSingle` 变量为 `true`，所以这些字符都会被当做普通字符串的一部分来处理，直到解析器遇到了下一个能够代表字符串结束的单引号为止，此时会重新将 `inSingle` 变量的值设置为 `false`。
+
+所以可以理解为 `inSingle` 变量的作用是用来标识当前读取的字符是否在单引号包裹的字符串中。同样的：
+
+- `inDouble` 变量是用来标识当前读取字符是否在由 **双引号** 包裹的字符串中。
+- `inTemplateString` 变量用来标识当前读取的字符是否在 **模板字符串** 中。
+- `inRegex` 变量是用来标识当前读取的字符是否在 **正则表达式** 中。
+
+接着再来看如下这三个变量：
+
+```javascript
+let curly = 0
+let square = 0
+let paren = 0
+```
+
+如上三个变量的初始值都为 `0`，其作用如下：
+
+- 在解析绑定的属性值时，每遇到一个左花括号 `{`，则 `curly` 变量的值就会加一，每遇到一个右花括号 `}`，则 `curly` 变量的值就会减一。
+- 在解析绑定的属性值时，每遇到一个左方括号 `[`，则 `square` 变量的值就会加一，每遇到一个右方括号 `]`，则 `square` 变量的值就会减一。
+- 在解析绑定的属性值时，每遇到一个左圆括号 `(`，则 `paren` 变量的值就会加一，每遇到一个右圆括号 `)`，则 `paren` 变量的值就会减一。
+
+当 `parseFilters` 函数在解析属性值字符串并遇到一个管道符时，该管道符应不应该作为过滤器的分界线还要看以上三个变量是否为 `0`，如果以上三个变量至少有一个不为 `0`，则说明该管道符存在于花括号或方括号或圆括号之内，这时该管道符是不会作为过滤器的分界线的，如下：
+
+```html
+<div :key="(aa | bb)"></div>
+```
+
+以上代码中绑定属性 `key` 的属性值中包含一个管道符，但是由于该管道符存在于圆括号内，所以它不会被作为过滤器的分界线。
+
+再往下定义了如下这些变量：
+
+```javascript
+let lastFilterIndex = 0
+let c, prev, i, expression, filters
+```
+
+这里简单介绍一下这些变量的作用，更具体的会在源码中讲解。`lastFilterIndex` 变量的初始值为 `0`，它的值是属性值字符串中字符的索引，将会被用来确定过滤器的位置。变量 `c` 为当前字符对应的 `ASCII` 码，我们知道在解析属性值时会以字符流的方式逐个字符读入，而变量 `c` 就是当前读入字符所对应的 `ASCII` 码。变量 `prev` 保存的则是当前字符的前一个字符所对应的 `ASCII` 码。变量 `i` 为当前读入字符的位置索引。变量 `expression` 将是 `parseFilters` 函数的返回值。变量 `filters` 将来会是一个数组，它保存着所有过滤器函数名。
+
+再往下将进入一个 `for` 循环：
+
+```javascript
+for (i = 0; i < exp.length; i++) {
+  // 省略...
+}
+```
+
+这个 `for` 循环是整个 `parseFilters` 函数的核心，它的作用就是将属性值字符串作为字符读入，从第一个字符开始一直读到字符串的末尾，在 `for` 循环的开头执行的是如下两行代码：
+
+```javascript
+for (i = 0; i < exp.length; i++) {
+  prev = c
+  c = exp.charCodeAt(i)
+  // 省略...
+}
+```
+
+可以看到每次循环的开始，都会将上一次读取的字符所对应的 `ASCII` 码赋值给 `prev` 变量，然后再将变量 `c` 的值设置为当前读取字符所对应的 `ASCII` 码。所以说 `prev` 变量中保存的是上一个字符的 `ASCII` 码。
+
+在这两行代码的下面是一连串的 `if...elseif...else` 语句，如下：
+
+```javascript
+for (i = 0; i < exp.length; i++) {
+  prev = c
+  c = exp.charCodeAt(i)
+  if (inSingle) {
+    // 如果当前读取的字符存在于由单引号包裹的字符串内，则会执行这里的代码
+  } else if (inDouble) {
+    // 如果当前读取的字符存在于由双引号包裹的字符串内，则会执行这里的代码
+  } else if (inTemplateString) {
+    // 如果当前读取的字符存在于模板字符串内，则会执行这里的代码
+  } else if (inRegex) {
+    // 如果当前读取的字符存在于正则表达式内，则会执行这里的代码
+  } else if (
+    c === 0x7C && // pipe
+    exp.charCodeAt(i + 1) !== 0x7C &&
+    exp.charCodeAt(i - 1) !== 0x7C &&
+    !curly && !square && !paren
+  ) {
+    // 如果当前读取的字符是过滤器的分界线，则会执行这里的代码
+  } else {
+    // 当不满足以上条件时，执行这里的代码
+  }
+}
+```
+
+首先来看第一段 `if` 条件语句的判断：
+
+```javascript
+if (inSingle) {
+  if (c === 0x27 && prev !== 0x5C) inSingle = false
+}
+```
+
+该条件检测了 `inSingle` 变量是否为 `true`，如果为 `true` 则说明当前读入的字符存在于由单引号包裹的字符串内，此时会执行 `if` 语句块内的代码，可以看到在 `if` 条件语句块内的同样是一个 `if` 判断语句，它的判断条件为：
+
+```javascript
+c === 0x27 && prev !== 0x5C
+```
+
+可以看到如上判断条件中有两个十六进制的数字：`0x27` 和 `0x5C`，这两个十六进制的数字实际上就是字符的 `ASCII` 码，其中 `0x27` 为字符单引号 (`'`) 所对应的 `ASCII` 码，而 `0x5C` 则是字符反斜杠 (`\`) 所对应的 `ASCII` 码。所以如上判断条件翻译过来就是：当前字符是单引号 (`'`)，并且当前字符的前一个字符不是反斜杠 (`\`)，也就是说当前字符 (`单引号`) 就是字符串的结束。该判断条件的关键在于不仅要当前字符串时单引号 (`'`)，同时前一个字符也一定不能够是反斜杠才行，这时因为反斜杠在字符串内具有转义的作用，如果判断条件成立，则将 `inSingle` 变量的值设置为 `false`，代表接下来的解析工作已经不处于由单引号所包裹的字符串环境中了。
+
+再来看下一个 `else if` 判断分支：
+
+```javascript
+else if (inDouble) {
+  if (c === 0x22 && prev !== 0x5C) inDouble = false
+}
+```
+
+和单引号的情况类似，该 `else if` 条件语句检查了变量 `inDouble` 是否为 `true`，如果为 `true` 则说明当前字符处于由双引号包裹的字符串中，此时会检查当前字符所对应的 `ASCII` 码是否等于 `0x22`，这里的数字 `0x22` 就是字符双引号 (`"`) 所对应的 `ASCII` 码。所以如上判断语句则等价于：当前字符是双引号，并且前一个字符不是转义字符 (`\`)。这说明当前字符 (`双引号`) 就应该是字符串的结束，此时会将变量 `inDouble` 的值设置为 `false`，代表接下来的解析工作已经不处于由双引号所包裹的字符串环境中了。
+
+再接着就是如下判断分支，它同时是一个 `else if` 语句块：
+
+```javascript
+else if (inTemplateString) {
+  if (c === 0x60 && prev !== 0x5C) inTemplateString = false
+}
+```
+
+这个判断语句和前两个判断语句类似，如果该 `else if` 语句的条件成立，则说明当前字符处于模板字符串中，此时会继续检查当前字符所对应的 `ASCII` 码是否等于 `0x60`，这里的数字 `0x60` 就是模板引用字符的 `ASCII` 码，所以如上判断语句成立则等价于：当前字符是 \`，并且前一个字符不是转义字符 `\`。这说明当前字符 \` 就应该是模板字符串的结束，此时会将变量 `inTemplateString` 的值设置为 `false`，代表接下来的解析工作已经不处于模板字符串环境中了。
+
+再来看下一个 `else if` 条件语句块：
+
+```javascript
+else if (inRegex) {
+  if (c === 0x2f && prev !== 0x5C) inRegex = false
+}
+```
+
+如果该 `else if` 语句的条件成立，则说明当前字符处于正则表达式中，此时会继续检测当前字符所对应的 `ASCII` 码是否等于 `0x2f`，这里的数字 `0x2f` 就是字符 `/` 所对应的 `ASCII` 码。所以如上判断语句成立则等价于：当前字符是 `/`，并且前一个字符不是转义字符 `\`，这说明当前字符 `/` 就应该是正则表达式的结束，此时会将变量 `inRegex` 的值设置为 `false`，代表接下来的解析工作已经不处于正则表达式的环境中了。
+
+再往下的一个 `else if` 条件语句的判断条件稍微复杂一些，如下：
+
+```javascript
+else if (
+  c === 0x7C && // pipe
+  exp.charCodeAt(i + 1) !== 0x7C &&
+  exp.charCodeAt(i - 1) !== 0x7C &&
+  !curly && !square && !paren
+)
+```
+
+如上判断条件中的数字 `0x7C` 为管道符 (`|`) 所对应的 `ASCII` 码，如果以上条件成立，则说明当前字符为管道符，实际上这个判断条件是用来检测当前遇到的管道符是否是过滤器的分界线。如果一个管道符是过滤器的分界线则必须满足以上条件，即：
+
+- 当前字符所对应的 `ASCII` 码必须是 `0x7C`，即当前字符必须是管道符
+- 该字符的后一个字符不能是管道符
+- 该字符的前一个字符不能是管道符
+- 该字符不能处于花括号、方括号、圆括号之内
+
+如果一个字符满足以上条件，则说明该字符就是用来作为过滤器分界线的管道符。此时该 `else if` 语句块的代码将被执行，不过暂时跳过，来看最后一个 `else` 语句。
+
+当以上所有判断分支全部失效之后，代码会来到 `else` 分支，假设有如下代码：
+
+```html
+<div :key="'id'"></div>
+```
+
+此时传递给 `parseFilters` 函数的字符串应该是 `'id'`，该字符串有四个字符，第一个字符为单引号，我们尝试按照 `parseFilters` 函数的执行过程多该字符串进行解析。首先读取该字符串的第一个字符，即单引号 `'`，接着会判断 `inSingle` 变量是否为 `true`，由于 `inSingle` 变量的初始值为 `false`，所以会继续判断下一个条件分支，同样地由于 `inDouble`、`inTemplateString`、`inRegex` 等变量的初始值都为 `false`，并且该字符是单引号而不是管道符，所以接下来的任何一个 `else if` 分支语句块内的代码都不会执行。所以最终 `else` 语句块内的代码将被执行。
+
+在 `else` 语句块内，首先执行的是一段 `switch` 语句，如下：
+
+```javascript
+switch (c) {
+  case 0x22: inDouble = true; break         // "
+  case 0x27: inSingle = true; break         // '
+  case 0x60: inTemplateString = true; break // `
+  case 0x28: paren++; break                 // (
+  case 0x29: paren--; break                 // )
+  case 0x5B: square++; break                // [
+  case 0x5D: square--; break                // ]
+  case 0x7B: curly++; break                 // {
+  case 0x7D: curly--; break                 // }
+}
+```
+
+这段 `switch` 语句的作用总结如下：
+
+- 如果当前字符为双引号 (`"`)，则将 `inDouble` 变量的值设置为 `true`
+- 如果当前字符为单引号 (`'`)，则将 `inSingle` 变量的值设置为 `true`
+- 如果当前字符为模板字符串的定义字符 \`，则将 `inTemplateString` 变量的值设置为 `true`
+- 如果当前字符是左圆括号 (`(`)，则将 `paren` 变量的值加一
+- 如果当前字符是右圆括号 (`)`)，则将 `paren` 变量的值减一
+- 如果当前字符是左方括号 (`[`)，则将 `square` 变量的值加一
+- 如果当前字符是右方括号 (`]`)，则将 `square` 变量的值减一
+- 如果当前字符是左花括号 (`{`)，则将 `curly` 变量的值加一
+- 如果当前字符是右花括号 (`}`)，则将 `curly` 变量的值减一
+
+假设还是解析字符串 `'id'`，该字符串的第一个字符为单引号，可以知道当解析字符串的第一个字符时会执行 `else` 语句块内的代码，所以如上 `switch` 语句将被执行，并且 `inSingle` 变量的值被设置为 `true`。接着会解析第二个字符 `i`，由于此时 `inSingle` 变量的值已经为真，所以如下代码将被执行：
+
+```javascript
+if (inSingle) {
+  if (c === 0x27 && prev !== 0x5C) inSingle = false
+}
+```
+
+显然字符 `i` 所对应的 `ASCII` 码不等于 `0x27`，所以这里直接跳过解析下一个字符。下一个字符是 `d`，它的情况和字符 `i` 一样，也会被跳过。直到遇到最后一个字符 `'`，该字符同样是单引号，所以此时会将 `inSingle` 变量的值设置为 `false`，意味着由单引号包裹着的字符串结束了。所以通过以上的分析可以知道一件事情，即只要存在于单引号包裹的字符串内的字符都被跳过。这样做的目的就是为了避免误把存在于字符串中的管道符当做过滤器的分界线，如下代码所示：
+
+```html
+<div :key="'id|featId'"></div>
+```
+
+可看到绑定属性 `key` 的属性值为 `'id|featId'`，由于管道符 `|` 存在于由单引号所包裹的字符串内，所以该管道符不会作为过滤器的分界线，这时非常合理的。
+
+同样的道理，对于存在于双引号包裹的字符串中或模板字符串中或正则表达式中的管道符，也不会作为过滤器的分界线。对于双引号和模板字符串的判断是很容易的，它们的原理和单引号类似。难点在于如何判断正则，或者换句话说应该在什么情况下才能将 `inRegex` 变量的值设置为 `true`。如下是 `else` 语句块内用来判断是否即将进入正则环境的代码：
+
+```javascript
+if (c === 0x2f) { // /
+  let j = i - 1
+  let p
+  // find first non-whitespace prev char
+  for (; j >= 0; j--) {
+    p = exp.charAt(j)
+    if (p !== ' ') break
+  }
+  if (!p || !validDivisionCharRE.test(p)) {
+    inRegex = true
+  }
+}
+```
+
+如上代码是一个 `if` 判断语句，用来判断当前字符所对应的 `ASCII` 码是否等于数字 `0x2f`，其中数字 `0x2f` 就是字符 `/` 所对应的 `ASCII` 码。可以知道正则表达式就是以字符 `/` 开头的，所以当遇到字符 `/` 时，则说明该字符有可能就是正则的开始。但是至于到底是不是正则的开始还真不一定，前面已经提到过了，字符 `/` 还有除法的意义。而判断字符 `/` 到底是正则的开始还是除法却是一件不容易的事情。实际上如上代码根本不足以保证所遇到的字符 `/` 就是正则表达式，但还是那句话，这对于 Vue 而言已经足够了，没有必要花大力气在收益很小的地方。
+
+来看如上代码是如何确定字符 `/` 正则的开始的，首先要明确如果上方这段 `if` 条件语句成立，则说明当前字符为 `/`，此时 `if` 语句块内的代码将被执行，在 `if` 语句块内定义了变量 `j`，它的值为 `i - 1`，也就是说变量 `j` 是 `/` 字符的前一个字符的索引。然后又定义了变量 `p`，接着开启一个 `for` 循环，这个 `for` 循环的作用是找到 `/` 字符之前第一个不为空的字符。如果没找到则说明字符 `/` 之前的所有字符都是空格，或根本没有字符，如下：
+
+```html
+<div :key="/a/.test('abc')"></div>      <!-- 第一个 `/` 之前就没有字符  -->
+<div :key="    /a/.test('abc')"></div>  <!-- 第一个 `/` 之前都是空格  -->
+```
+
+所以以上两种情况，第一个 `/` 都应该是正则的开始，而非除法。
+
+但是假如字符 `/` 之前有非空的字符，则只有在该字符不满足正则 `validDivisionCharRE` 的情况下，才会认为字符 `/` 为正则的开始。`validDivisionCharRE` 正则常量定义在 `parseFilters` 函数的前面，如下：
+
+```javascript
+const validDivisionCharRE = /[\w).+\-_$\]]/
+```
+
+该正则用来匹配一个字符，这个字符应该是字母、数字、`)`、`.`、`+`、`-`、`_`、`$`、`]` 之一。再看如下代码：
+
+```javascript
+if (c === 0x2f) { // /
+  let j = i - 1
+  let p
+  // find first non-whitespace prev char
+  for (; j >= 0; j--) {
+    p = exp.charAt(j)
+    if (p !== ' ') break
+  }
+  if (!p || !validDivisionCharRE.test(p)) {
+    inRegex = true
+  }
+}
+```
+
+可以看到如果条件 `!validDivisionCharRE.test(p)` 成立则也会认为当前字符 `/` 是正则的开始。条件 `!validDivisionCharRE.test(p)` 成立说明字符 `/` 之前的字符不能是正则 `validDivisionCharRE` 所匹配的任何一个字符，否则当前字符 `/` 就不被认为是正则的开始。
+
+以上是 Vue 的做法，但之前已经说过了，这不足以对字符 `/` 的意义做出精准的判断，但是对 Vue 而言够了，其实很容易可以找到反例，如下：
+
+```html
+<div :key="a + /a/.test('abc')"></div>
+```
+
+实际上在表达式 `a + /a/.test('abc')` 中出现的斜杠 (`/`) 的确是定义了正则，但 Vue 却不认为它是正则，因为第一个斜杠之前的第一个不为空的字符为加号 `+`。加号存在于正则 `validDivisionCharRE` 中，所以 Vue 不认为这里的斜杠是正则的定义。但实际上如上代码简直就是没有任何意义的，假如非得这么写，那也可以完全使用计算属性替代。
+
+了解了这些，可以发现 `else` 语句块内的代码就是用来检查环境的，这些环境指的是字符串环境或正则环境，或圆括号、方括号以及花括号等环境，这些环境信息将会被用到其他判断分支的条件语句。
+
+接着看一下之前没有讲解的一段 `else if` 语句块，如下：
+
+```javascript
+else if (
+  c === 0x7C && // pipe
+  exp.charCodeAt(i + 1) !== 0x7C &&
+  exp.charCodeAt(i - 1) !== 0x7C &&
+  !curly && !square && !paren
+) {
+  if (expression === undefined) {
+    // first filter, end of expression
+    lastFilterIndex = i + 1
+    expression = exp.slice(0, i).trim()
+  } else {
+    pushFilter()
+  }
+}
+```
+
+在本节的前边，已经讲解过了该条件语句块的判断条件，如果以上条件成立，则说明当前字符为管道符，并且该管道符就是过滤器的分界线。接着来看 `else if` 语句块内的代码，首先判断了 `expression` 变量是否存在，可以知道 `expression` 变量的初始值为 `undefined`，所以当程序在解析字符串时第一次遇到作为过滤器分界线的管道符时，将会执行如下：
+
+```javascript
+if (expression === undefined) {
+  // first filter, end of expression
+  lastFilterIndex = i + 1
+  expression = exp.slice(0, i).trim()
+} else {
+  // 省略...
+}
+```
+
+如上两行代码所示，首先将变量 `lastFilterIndex` 的值设置为 `i + 1`，变量 `i` 就是当前遇到的管道符的位置索引，所以 `i + 1` 就应该是管道符下一个字符的位置索引，所以可以把 `lastFilterIndex` 变量理解为过滤器的开始。接着对字符串 `exp` 进行截取，其截取的位置恰好是索引为 `i` 的字符，也就是管道符，当然了截取后生成的新字符串是不包含管道符的，同时对截取后生成的新字符串使用 `trim` 方法去除前后空格，最后将处理后的结果赋值给 `expression` 表达式。
+
+为了更直观理解 `lastFilterIndex` 变量和 `expression` 变量，举个例子，假设有如下代码：
+
+```html
+<div :key="id | featId"></div>
+```
+
+对于字符串 `'id | featId'` 来讲，其中的管道符是过滤器的分界线，其位置索引为 `3`，所以 `lastFilterIndex` 的值应该是管道符后一个字符的位置索引 `4`。此时 `expression` 变量的值就应该是 `exp.slice(0, 3).trim`，所以 `expression` 的值就应该是字符串 `'id'`，这样就把表达式提取了出来了，并使用 `expression` 变量保存。
+
+此时对于管道符的解析工作就结束了，`for` 循环开始解析下一个字符，知道所有字符解析完毕。当 `for` 循环结束时，变量 `i` 的值应该是字符串的长度。同时 `expression` 变量中保存着过滤器分界线之前的字符串，也就是表达式。接下来看 `for` 循环之后的这段代码，如下：
+
+```javascript
+if (expression === undefined) {
+  expression = exp.slice(0, i).trim()
+} else if (lastFilterIndex !== 0) {
+  pushFilter()
+}
+```
+
+在 `for` 循环结束之后将会执行如上代码，这段代码由 `if...else if` 条件语句块组成，首先检查 `expression` 是否存在，还是拿如下这个例子来说：
+
+```html
+<div :key="id | featId"></div>
+```
+
+可以知道在解析字符串 `'id | featId'` 之后，`expression` 的值应该是字符串 `'id'`，所以 `if` 条件语句块的内容不会被执行，此时会进入 `else if` 条件语句的判断，即：`lastFilterIndex !== 0`，还是拿上例来说，此时 `lastFilterIndex` 变量的值应该是作为过滤器分界线的管道符后一个字符的位置索引，所以 `lastFilterIndex` 变量的值为 `4`，由于它不等于 `0`，所以 `else if` 语句块内的代码将被执行，可以看到在 `else if` 语句块内直接调用了 `pushFilter` 函数。该函数的源码如下：
+
+```javascript
+function pushFilter () {
+  (filters || (filters = [])).push(exp.slice(lastFilterIndex, i).trim())
+  lastFilterIndex = i + 1
+}
+```
+
+首先检查变量 `filters` 是否存在，如果不存在则将其初始化为空数组，接着使用 `slice` 方法对字符串 `exp` 进行截取，截取的开始和结束位置恰好是 `lastFilterIndex` 和 `i`。还是拿之前的例子来说，`lastFilterIndex` 指向的是管道符后面的空格，这里大家需要注意的是变量 `i` 指向的既不是字符 `d` 也不是引号 `"`，而是字符 `d` 后面的字符，这个字符是不存在的。知道了这些，就可以知道如下表达式的值：
+
+```javascript
+exp.slice(lastFilterIndex, i).trim()
+```
+
+该表达式的值就应该是字符串 `'featId'`，而这个字符串就代表着过滤器函数的名字，它将被添加到数组 `filters` 中。不过可以看到 `pushFilter` 函数的第二行代码：`lastFilterIndex = i + 1`，这里又将 `lastFilterIndex` 变量的值设置为 `i + 1`，实际上之前所举的例子不足以体现这行代码的作用，接着看如下的例子：
+
+```html
+<div :key="id | featId | featId2"></div>
+```
+
+如上代码所示，不仅仅拥有一个过滤器，而是有两个过滤器，分别是 `featId` 和 `featId2`。当 `parseFilters` 函数在解析字符串 `'id | featId | featId2'` 时，会遇到两个被作为过滤器分界线的管道符，再来看如下代码：
+
+```javascript
+else if (
+  c === 0x7C && // pipe
+  exp.charCodeAt(i + 1) !== 0x7C &&
+  exp.charCodeAt(i - 1) !== 0x7C &&
+  !curly && !square && !paren
+) {
+  if (expression === undefined) {
+    // first filter, end of expression
+    lastFilterIndex = i + 1
+    expression = exp.slice(0, i).trim()
+  } else {
+    pushFilter()
+  }
+}
+```
+
+当遇到第一个管道符时 `lastFilterIndex` 变量是第一个管道符后一个字符的索引。当遇到第二个管道符时由于此时变量 `expression` 已经保存了表达式字符串 `'id'`，所以将会执行 `else` 分支的代码，即调用 `pushFilter` 函数，要知道此时变量 `i` 已经是第二个管道符的位置索引了。再来看 `pushFilter` 函数：
+
+```javascript
+function pushFilter () {
+  (filters || (filters = [])).push(exp.slice(lastFilterIndex, i).trim())
+  lastFilterIndex = i + 1
+}
+```
+
+在 `pushFilter` 函数内会先将字符串 `'featId'` 添加到数组，接着设置 `lastFilterIndex` 变量的值为 `i + 1`，由于此时变量 `i` 已经是第二个管道符的位置索引，所以此时 `i + 1` 就应该是第二个管道符后一个字符串的位置索引。
+
+接着解析工作会继续进行，知道解析结束，当解析结束时变量 `i` 的值就应该是字符串的长度。此时 `for` 循环也将结束，会继续执行 `for` 循环之后的代码，如下：
+
+```javascript
+if (expression === undefined) {
+  expression = exp.slice(0, i).trim()
+} else if (lastFilterIndex !== 0) {
+  pushFilter()
+}
+```
+
+此时代码依然会执行 `else if` 分支，再次调用 `pushFilter` 函数，可以知道到目前为止我们只将字符串 `'featId'` 添加到了 `filters` 数组中，但此时是拥有两个过滤器，所以还需要将字符串 `'featId2'` 也添加到 `filters` 数组才行，所以这里需要再次执行 `pushFilter` 函数，不过不同的是，此时在 `pushFilter` 函数中，`lastFilterIndex` 变量已经指向了第二个管道符的后一个字符，而变量 `i` 的值也变成了字符串的长度，所以此时被添加到 `filters` 数组的字符串将会是 `'featId2'`。这样两个过滤器的名字就都被添加到了 `filters` 数组了。
+
+经过以上代码的处理，对我们来说最重要的两个变量分别是 `expression` 和 `filters`，前者保存着表达式，后者则保存着所有过滤器的名字，假设有如下代码：
+
+```html
+<div :key="id | a | b | c"></div>
+```
+
+那么经过解析，变量 `expression` 的值将是字符串 `'id'`，且 `filters` 数组中将包含三个元素：`['a', 'b', 'c']`。
+
+有了这些基础，代码将来到最关键的一步，即如下代码：
+
+```javascript
+if (filters) {
+  for (i = 0; i < filters.length; i++) {
+    expression = wrapFilter(expression, filters[i])
+  }
+}
+```
+

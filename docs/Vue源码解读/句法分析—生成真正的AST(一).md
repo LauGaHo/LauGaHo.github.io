@@ -3260,3 +3260,705 @@ if (filters) {
 }
 ```
 
+这段代码检查了 `filters` 是否存在，实际上如果绑定的值没有过滤器，则整个字符串都会被作为表达式的值，此时变量 `filters` 将为 `undefined`，代表着没有过滤器。当有过滤器时，该 `if` 语句块内的代码将被执行，在 `if` 语句块内使用 `filters` 数组进行了遍历，在循环内部调用了 `wrapFilter` 函数，如下是该函数的源码：
+
+```javascript
+function wrapFilter (exp: string, filter: string): string {
+  const i = filter.indexOf('(')
+  if (i < 0) {
+    // _f: resolveFilter
+    return `_f("${filter}")(${exp})`
+  } else {
+    const name = filter.slice(0, i)
+    const args = filter.slice(i + 1)
+    return `_f("${name}")(${exp}${args !== ')' ? ',' + args : args}`
+  }
+}
+```
+
+`wrapFilter` 函数接收两个参数，第一个参数是表达式字符串，第二个参数是过滤器名字，假设有如下代码：
+
+```html
+<div :key="id | a | b"></div>
+```
+
+此时表达式字符串应该是 `'id'`，并且 `wrapFilter` 应该会被调用两次，第一次被调用时过滤器的名字为 `'a'`，来看 `wrapFilter` 函数内部的第一段代码：
+
+```javascript
+function wrapFilter (exp: string, filter: string): string {
+  const i = filter.indexOf('(')
+  // 省略...
+}
+```
+
+使用 `indexOf` 方法检查过滤器的名字中是否包含左圆括号，可以知道过滤函数是可以以函数调用的方式编写的，并且可以为其传递参数，但上例中两个过滤器 `a` 和 `b` 都不是函数调用，所以此时变量 `i` 等于 `-1`，这时 `if` 语句块内的代码将被执行，如下代码所示：
+
+```javascript
+function wrapFilter (exp: string, filter: string): string {
+  const i = filter.indexOf('(')
+  if (i < 0) {
+    // _f: resolveFilter
+    return `_f("${filter}")(${exp})`
+  } else {
+    // 省略...
+  }
+}
+```
+
+可知 `wrapFilter` 函数返回了字符串：`'_f("a")(id)'`。接着会进行第二次对 `wrapFilter` 函数的调用，此时传递给 `wrapFilter` 函数的参数都会有变化，其中表达式 `exp` 已经变成了 `'f("a")(id)'`。注意如下代码：
+
+```javascript
+if (filters) {
+  for (i = 0; i < filters.length; i++) {
+    expression = wrapFilter(expression, filters[i])
+  }
+}
+```
+
+可以看到表达式字符串 `expression` 每次都会被 `wrapFilter` 函数的返回值重写，所以当第二次调用 `wrapFilter` 函数时，第一个参数已经变成了 `'_f("a")(id)'`，并且第二个；应该是 `'b'`，由于字符 `'b'` 依然不是函数调用，所以会执行 `wrapFilter` 函数内的 `if` 条件语句块，这时 `wrapFilter` 将会返回字符串 `'_f("b")(_f("a")(id))'`，以此类推如果还有第三个过滤器 `c`，则最终生成的表达式应该是 `'_f("c")(_f("b")(_f("a")(id)))'`。
+
+实际上 `_f` 函数来自于 `src/core/instance/render-helpers/resolve-filter.js` 文件，这个函数的作用就是接收一个过滤器的名字作为参数，然后找到相应的过滤器函数，这个内容放到后面详细讲解。当找到相应的过滤器函数之后会将表达式的值作为参数传递给该过滤器函数，同时该过滤器会返回经过处理之后的值，这个处理之后的值将作为下一个过滤器函数的参数。
+
+最终表达式字符串 `expression` 的值就应该是一个类似 `'_f("c")(_f("b")(_f("a")(id)))'` 的一个字符串。当然了这是在存在过滤器的情况，假如没有过滤器的话，则 `expression` 变量的值就是表达式字符串本身，如下：
+
+```html
+<div :key="id"></div>
+```
+
+如上代码中没有使用过滤器，所以此时 `expression` 变量的值就是字符串 `'id'`。最后 `parseFilters` 函数会将 `expression` 变量作为返回值返回：
+
+```javascript
+export function parseFilters (exp: string): string {
+  // 省略...
+  return expression
+}
+```
+
+以上就是对 `parseFilters` 函数的讲解，它的作用是用来解析模板中出现的表达式和过滤器，并将它们处理成合适的表达式字符串。
+
+再回到 `getBindingAttr` 函数，看如下代码：
+
+```javascript
+export function getBindingAttr (
+  el: ASTElement,
+  name: string,
+  getStatic?: boolean
+): ?string {
+  const dynamicValue =
+    getAndRemoveAttr(el, ':' + name) ||
+    getAndRemoveAttr(el, 'v-bind:' + name)
+  if (dynamicValue != null) {
+    return parseFilters(dynamicValue)
+  } else if (getStatic !== false) {
+    const staticValue = getAndRemoveAttr(el, name)
+    if (staticValue != null) {
+      return JSON.stringify(staticValue)
+    }
+  }
+}
+```
+
+可知 `getBindingAttr` 函数会先获取绑定属性的属性值，如果获取成功，则会使用 `parseFilters` 函数解析该属性值，并将 `parseFilters` 函数处理后的结果作为整个函数的返回值。
+
+接着回到 `processKey` 函数，如下：
+
+```javascript
+function processKey (el) {
+  const exp = getBindingAttr(el, 'key')
+  if (exp) {
+    if (process.env.NODE_ENV !== 'production' && el.tag === 'template') {
+      warn(`<template> cannot be keyed. Place the key on real elements instead.`)
+    }
+    el.key = exp
+  }
+}
+```
+
+如上代码所示，如果一个标签使用了 `key` 属性，则该标签的元素描述对象上将被添加 `el.key` 属性，为了更直观理解 `el.key` 属性的值，来做一些总结：
+
+- 例子一：
+
+  ```html
+  <div key="id"></div>
+  ```
+
+  上例中 `div` 标签的属性 `key` 是非绑定属性，所以会将它的值作为普通字符串处理，这时 `el.key` 属性的值为：
+
+  ```javascript
+  el.key = JSON.stringify('id')
+  ```
+
+- 例子二：
+
+  ```html
+  <div :key="id"></div>
+  ```
+
+  上例中 `div` 标签的属性 `key` 是绑定属性，所以会将它的值作为表达式处理，而非普通字符串，这时 `el.key` 属性的值为：
+
+  ```javascript
+  el.key = 'id'
+  ```
+
+- 例子三：
+
+  ```html
+  <div :key="id | featId"></div>
+  ```
+
+  上例中 `div` 标签的属性 `key` 是绑定属性，并且应用了过滤器，所以会将它的值和过滤器整合在一起产生一个新的表达式，这时 `el.key` 属性的值为：
+
+  ```javascript
+  el.key = '_f("featId")(id)'
+  ```
+
+  以上就是 `el.key` 属性的所有可能值。
+
+## 处理使用了 `ref` 属性的元素
+
+接下来讲解对于使用了 `ref` 属性的标签是如何处理的，即 `processRef` 函数，如下代码所示：
+
+```javascript
+export function processElement (element: ASTElement, options: CompilerOptions) {
+  processKey(element)
+
+  // determine whether this is a plain element after
+  // removing structural attributes
+  element.plain = !element.key && !element.attrsList.length
+
+  processRef(element)
+  processSlot(element)
+  processComponent(element)
+  for (let i = 0; i < transforms.length; i++) {
+    element = transforms[i](element, options) || element
+  }
+  processAttrs(element)
+}
+```
+
+不过在讲解 `processRef` 函数之前，注意到在该函数的上面，有这样一行代码：
+
+```javascript
+// determine whether this is a plain element after
+// removing structural attributes
+element.plain = !element.key && !element.attrsList.length
+```
+
+根据注释可知，这句代码的作用是：**当结构化的属性 (`structural attributes`) 被移除之后，检查该元素是否是“纯”的**。关于什么是结构化的属性，来看一下 `parseHTML` 函数中 `start` 钩子函数内的一段代码：
+
+```javascript
+if (inVPre) {
+  processRawAttrs(element)
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  processIf(element)
+  processOnce(element)
+  // element-scope stuff
+  processElement(element, options)
+}
+```
+
+注意如上代码中高亮的那行注释，可以知道 `v-for`、`v-if/v-else-if/v-else`、`v-once` 等指令会被认为是结构化的指令。这些指令在经过了 `processFor`、`processIf`、`processOnce` 等函数处理之后，会把这些指令从元素描述对象的 `attrsList` 数组中移除。
+
+再来看如下代码：
+
+```javascript
+// determine whether this is a plain element after
+// removing structural attributes
+element.plain = !element.key && !element.attrsList.length
+```
+
+这段代码判断了元素描述对象的 `key` 属性是否存在，同时检查了元素描述对象的 `attrsList` 数组是否为空。通过如上条件可以知道，**只有当标签没有使用 `key` 属性，并且标签只使用了结构化指令的情况下才被认为是“纯”的**，此时会将元素描述对象的 `plain` 属性设置为 `true`。暂且记住这一点，当后面讲解静态优化和代码生成时会看到 `plain` 属性的作用。
+
+接着回到了 `processRef` 函数，如下是 `processRef` 函数的源码：
+
+```javascript
+function processRef (el) {
+  const ref = getBindingAttr(el, 'ref')
+  if (ref) {
+    el.ref = ref
+    el.refInFor = checkInFor(el)
+  }
+}
+```
+
+`processRef` 函数接收元素描述对象作为参数，在 `processRef` 函数内部首先通过 `getBindingAttr` 函数解析并获取元素 `ref` 属性的值，则将结果赋值给 `ref` 常量，如果解析并获取成功则会执行 `if` 语句块内的代码，在 `if` 语句块内为元素描述对象添加了 `el.ref` 属性，它的值就是通过 `getBindingAttr` 函数解析后最终生成的表达式。由于在讲解 `el.key` 属性时已经讲解过 `getBindingAttr` 函数可能产生的返回值，这里不做过多解释了。
+
+除了在元素描述对象上添加 `el.ref` 属性，还会在元素描述对象上添加 `el.refInFor` 属性，该属性是一个布尔值，标识着这个使用了 `ref` 属性的标签是否存在于 `v-for` 指令之内。检查方式是通过调用 `checkInFor` 函数，如下是 `checkInFor` 的代码：
+
+```javascript
+function checkInFor (el: ASTElement): boolean {
+  let parent = el
+  while (parent) {
+    if (parent.for !== undefined) {
+      return true
+    }
+    parent = parent.parent
+  }
+  return false
+}
+```
+
+`checkInFor` 函数接收元素的描述对象作为参数，在具体讲解 `checkInFor` 函数的实现之前，需要确定的是：什么情况下应该认为 `ref` 属性的使用是在 `v-for` 指令之内？如下两段代码中的 `ref` 属性都被认为是在 `v-for` 指令之内的：
+
+```html
+<!-- 代码段一 -->
+<div v-for="obj of list" :ref="obj.id"></div>
+
+<!-- 代码段二 -->
+<div v-for="obj of list">
+  <div :ref="obj.id"></div>
+</div>
+```
+
+可以发现，如果一个标签使用了 `ref` 属性，并且该标签或该标签的父代标签使用 `v-for` 指令，则认为 `ref` 属性是在 `v-for` 指令之内的。所以要想判断 `ref` 属性是否在 `v-for` 指令之内，就需要从当前元素描述对象开始一直遍历到根节点元素的描述对象，一旦发现存在某个标签，其元素描述对象的 `for` 属性存在，则说明该标签使用 `v-for` 指令，明白了这些再来看如下代码：
+
+```javascript
+function checkInFor (el: ASTElement): boolean {
+  let parent = el
+  while (parent) {
+    if (parent.for !== undefined) {
+      return true
+    }
+    parent = parent.parent
+  }
+  return false
+}
+```
+
+可以看到，如上代码通过 `while` 循环，从当前元素的描述对象开始，逐层向父级节点遍历，直到根节点为止，如果发现某标签的元素描述对象的 `for` 属性不为 `undefined`，则函数返回 `true`，意味着当前元素所使用的 `ref` 属性存在于 `v-for` 指令之内。否则 `checkInFor` 函数会返回 `false`，代表当前元素所使用的 `ref` 属性不再 `v-for` 指令之内。最终会在当前元素描述对象上添加 `el.refInFor` 属性来保存该标识。
+
+由以上分析可知，如果一个标签使用了 `ref` 属性，则：
+
+- 该标签的元素描述对象会被添加 `el.ref` 属性，该属性为解析后生成的表达式字符串，和 `el.key` 类似。
+- 该标签的元素描述对象会被添加 `el.refInFor` 属性，它是一个布尔值，用来标识当前元素的 `ref` 属性是否在 `v-for` 指令之内使用。
+
+或许大家有疑问，为什么需要检查 `ref` 属性是否在 `v-for` 指令之内使用？原因很简单，如果 `ref` 属性存在于 `v-for` 之内，需要创建一个组件实例或 DOM 节点的引用数组，而不是单一引用，这个时候需要 `el.refInFor` 属性来区分了。这些内容会在讲解 `$ref` 属性的实现时详细阐述。
+
+## 处理 (作用域) 插槽
+
+下一个要讲解的将是 `processSlot` 函数，如下：
+
+```javascript
+export function processElement (element: ASTElement, options: CompilerOptions) {
+  processKey(element)
+
+  // determine whether this is a plain element after
+  // removing structural attributes
+  element.plain = !element.key && !element.attrsList.length
+
+  processRef(element)
+  processSlot(element)
+  processComponent(element)
+  for (let i = 0; i < transforms.length; i++) {
+    element = transforms[i](element, options) || element
+  }
+  processAttrs(element)
+}
+```
+
+`processSlot` 函数用来处理插槽或作用域插槽相关的内容，关于插槽的使用，Vue 文档讲的比较明白了，这里不做讲述，但还是强调一下和插槽相关的使用形式：
+
+- 默认插槽：
+
+  ```html
+  <slot></slot>
+  ```
+
+- 具名插槽：
+
+  ```html
+  <slot name="header"></slot>
+  ```
+
+- 插槽内容：
+
+  ```html
+  <h1 slot="header">title</h1>
+  ```
+
+- 作用域插槽 (slot-scope)：
+
+  ```html
+  <h1 slot="header" slot-scope="slotProps">{{slotProps}}</h1>
+  ```
+
+- 作用域插槽 (scope)：
+
+  ```html
+  <template slot="header" scope="slotProps">
+    <h1>{{slotProps}}</h1>
+  </template>
+  ```
+
+  `scope` 只能使用在 `template` 标签上，并且 `2.5.0+` 版本中已经被 `slot-scope` 特性替代。
+
+实际上 `processSlot` 函数就是用来解析以上标签并为这些标签的描述对象添加相应属性的，`processSlot` 函数由一个 `if...else` 语句块组成，先来看 `if` 条件语句块内的代码，如下：
+
+```javascript
+function processSlot (el) {
+  if (el.tag === 'slot') {
+    el.slotName = getBindingAttr(el, 'name')
+    if (process.env.NODE_ENV !== 'production' && el.key) {
+      warn(
+        `\`key\` does not work on <slot> because slots are abstract outlets ` +
+        `and can possibly expand into multiple elements. ` +
+        `Use the key on a wrapping element instead.`
+      )
+    }
+  } else {
+    // 省略...
+  }
+}
+```
+
+通过 `if` 语句的条件：`el.tag === 'slot'`，可知 `if` 语句块内的代码是用来处理 `<slot>` 插槽标签的，所以如果当前标签是 `<slot>` 标签，则 `if` 语句块内的代码将会被执行，在 `if` 语句块，首先通过 `getBindingAttr` 函数获取标签的 `name` 属性值，并将获取到的值赋值给元素描述对象的 `el.slotName` 属性。举个例子，如果 `<slot>` 标签如下：
+
+```html
+<slot name="header"></slot>
+```
+
+则 `el.slotName` 属性的值为 `JSON.stringify("header")`。
+
+如果 `<slot>` 标签如下：
+
+```html
+<slot></slot>
+```
+
+则 `el.slotName` 属性的值为 `undefined`。
+
+获取插槽的名字之后，会执行如下代码：
+
+```javascript
+if (process.env.NODE_ENV !== 'production' && el.key) {
+  warn(
+    `\`key\` does not work on <slot> because slots are abstract outlets ` +
+    `and can possibly expand into multiple elements. ` +
+    `Use the key on a wrapping element instead.`
+  )
+}
+```
+
+在非生产环境下，如果发现在 `<slot>` 标签中使用了 `key` 属性，则会打印警告信息，提示开发者 `key` 属性不能使用在 `slot` 标签上，另外大家应该还记得，在前边的分析中，可以知道 `key` 属性同样不能使用在 `<template>` 标签上。可以发现 `<slot>` 标签和 `<template>` 标签的共同点就是它们都是抽象组件，抽象组件的特点是要么不渲染真实 DOM，要么会被不可预知的 DOM 元素替代。这就是在这些标签上不能使用 `key` 属性的原因。对于 `<slot>` 标签的处理就是如上这些内容，接着再来看 `processSlot` 函数内的 `else` 分支的代码：
+
+```javascript
+function processSlot (el) {
+  if (el.tag === 'slot') {
+    // 省略...
+  } else {
+    let slotScope
+    if (el.tag === 'template') {
+      slotScope = getAndRemoveAttr(el, 'scope')
+      /* istanbul ignore if */
+      if (process.env.NODE_ENV !== 'production' && slotScope) {
+        warn(
+          `the "scope" attribute for scoped slots have been deprecated and ` +
+          `replaced by "slot-scope" since 2.5. The new "slot-scope" attribute ` +
+          `can also be used on plain elements in addition to <template> to ` +
+          `denote scoped slots.`,
+          true
+        )
+      }
+      el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope')
+    } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
+      // 省略...
+    }
+    // 省略...
+  }
+}
+```
+
+如果代码走到了 `else` 分支，则说明当前解析的标签不是 `<slot>` 标签。如上高亮的代码所示，首先定义了 `slotScope` 变量，接着是一段 `if` 条件语句块，该 `if` 条件判断了当前解析的标签是否是 `<template>` 标签，如果是则通过 `getAndRemoveAttr` 函数获取标签 `scope` 属性值，并将获取到的值赋值给 `slotScope` 变量。接着再来看 `if` 条件语句块的最后一行代码：
+
+```javascript
+el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope')
+```
+
+这行代码在元素描述对象上添加了 `el.slotScope` 属性，如果 `slotScope` 变量的值存在，则使用 `slotScope` 变量的值，否则通过 `getAndRemoveAttr` 函数获取当前标签 `slot-scope` 属性的值作为 `el.slotScope` 属性的值。
+
+通过以上逻辑，能够发现，如果一个标签是 `<template>` 标签，则会为该标签的元素描述对象添加 `el.slotScope` 属性，并且该属性的值取自标签的 `scope` 属性，但是如果该 `<template>` 标签没有使用 `scope` 属性，则会导致取不到值，此时会尝试获取标签 `slot-scope` 属性的值为 `el.slotScope` 的值。另外注意如上代码中，无论是获取 `scope` 属性的值还是获取 `slot-scope` 属性的值，都是通过 `getAndRemoveAttr` 函数完成的，这意味着 `scope` 属性和 `slot-scope` 属性是不能写成绑定的属性的，如下是错误的代码：
+
+```html
+<div :slot-scope="slotProps" ></div>
+```
+
+另外注意到，在 `if` 语句块内存在如下这段代码：
+
+```javascript
+slotScope = getAndRemoveAttr(el, 'scope')
+/* istanbul ignore if */
+if (process.env.NODE_ENV !== 'production' && slotScope) {
+  warn(
+    `the "scope" attribute for scoped slots have been deprecated and ` +
+    `replaced by "slot-scope" since 2.5. The new "slot-scope" attribute ` +
+    `can also be used on plain elements in addition to <template> to ` +
+    `denote scoped slots.`,
+    true
+  )
+}
+```
+
+在非生产环境下，如果 `slotScope` 变量存在，则说明 `<template>` 标签中使用了 `scope` 属性，但是这个属性已经在 `2.5.0+` 的版本中被 `slot-scope` 属性替代了，所以现在更推荐使用 `slot-scope` 属性，好处是 `slot-scope` 属性不受限于 `<template>` 标签。
+
+接着看如下这段代码：
+
+```javascript
+function processSlot (el) {
+  if (el.tag === 'slot') {
+    // 省略...
+  } else {
+    let slotScope
+    if (el.tag === 'template') {
+      // 省略...
+    } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
+      /* istanbul ignore if */
+      if (process.env.NODE_ENV !== 'production' && el.attrsMap['v-for']) {
+        warn(
+          `Ambiguous combined usage of slot-scope and v-for on <${el.tag}> ` +
+          `(v-for takes higher priority). Use a wrapper <template> for the ` +
+          `scoped slot to make it clearer.`,
+          true
+        )
+      }
+      el.slotScope = slotScope
+    }
+    // 省略...
+  }
+}
+```
+
+如上代码所示，这时一个 `else if` 条件语句块，该语句块的内容基本和 `if` 语句块内的代码相同，区别就在于此时不需要去尝试获取标签的 `scope` 属性值了，而是直接获取 `slot-scope` 属性的值，并将值赋值给 `slotScope` 变量，如果成功取到值，则 `else if` 语句块内的代码将被执行，注意该语句块的最后一行代码，直接将 `slotScope` 变量的值赋值给元素描述对象的 `el.slotScope` 属性。
+
+另外发现 `else if` 语句块内同样存在一个 `if` 判断语句：
+
+```javascript
+if (process.env.NODE_ENV !== 'production' && el.attrsMap['v-for']) {
+  warn(
+    `Ambiguous combined usage of slot-scope and v-for on <${el.tag}> ` +
+    `(v-for takes higher priority). Use a wrapper <template> for the ` +
+    `scoped slot to make it clearer.`,
+    true
+  )
+}
+```
+
+在非生产环境下，会检查当前元素是否使用了 `v-for` 属性，如下代码所示：
+
+```html
+<div slot-scope="slotProps" v-for="item of slotProps.list"></div>
+```
+
+如上这行代码，`slot-scope` 属性和 `v-for` 指令共存，这会造成的影响：由于 `v-for` 具有更高的优先级，所以 `v-for` 绑定的状态将会是父组件作用域的状态，而不是子组件通过作用域插槽传递的状态。并且这么使用很容易让人感到困惑。更好的方式是像如下代码这样：
+
+```html
+<template slot-scope="slotProps">
+  <div v-for="item of slotProps.list"></div>
+</template>
+```
+
+这样就不会有任何歧义，`v-for` 指令绑定的状态就是作用域插槽传递的状态。而上方的警告信息，大概就是这个意思。
+
+到目前为止，可以发现无论是 `<template>` 标签，还是其他元素标签，只要该标签使用了 `slot-scope` 属性，则该标签的元素描述对象都将被添加 `el.slotScope` 属性。
+
+接着再来看最后一段代码，如下代码所示：
+
+```javascript
+function processSlot (el) {
+  if (el.tag === 'slot') {
+    // 省略...
+  } else {
+    // 省略...
+    const slotTarget = getBindingAttr(el, 'slot')
+    if (slotTarget) {
+      el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget
+      // preserve slot as an attribute for native shadow DOM compat
+      // only for non-scoped slots.
+      if (el.tag !== 'template' && !el.slotScope) {
+        addAttr(el, 'slot', slotTarget)
+      }
+    }
+  }
+}
+```
+
+如上这段代码是 `processSlot` 函数的最后一段代码，这段代码主要用来处理标签的 `slot` 属性，首先使用 `getBindingAttr` 函数获取元素 `slot` 属性的值，并将获取到的值赋值给 `slotTarget` 常量，注意这里使用的是 `getBindingAttr` 函数，这意味着 `slot` 属性是可以绑定的。接着进入一个 `if` 条件语句的判断，如果 `slotTarget` 存在，则会执行如下这行代码：
+
+```javascript
+el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget
+```
+
+这行代码检测了 `slotTarget` 变量是否为字符串 `'""'`，这种情况出现在标签虽然使用了 `slot` 属性，但却没有为 `slot` 属性指定相应的值，如下：
+
+```html
+<div slot></div>
+```
+
+这时通过 `getBindingAttr` 函数获取 `slot` 属性的值时，会得到字符串 `""`，此时会将 `el.slotTarget` 属性的值设置为字符串 `'""'`， 此时会将 `el.slotTarget` 属性的值设置为字符串 `'"default"'`，否则直接将 `slotTarget` 变量的值赋值给 `el.slotTarget` 属性。
+
+再往下，是如下这段代码：
+
+```javascript
+// preserve slot as an attribute for native shadow DOM compat
+// only for non-scoped slots.
+if (el.tag !== 'template' && !el.slotScope) {
+  addAttr(el, 'slot', slotTarget)
+}
+```
+
+注释已经写得很清楚了，实际上这段代码的作用就是用来保存原生影子 DOM (`shallow DOM`) 的 `slot` 属性，当然了既然是原生影子 DOM 的 `slot` 属性，那么首先该元素必然是原生 DOM，所以 `el.tag !== 'template'` 必须成立，同时对于作用域插槽是不会保留原生的 `slot` 属性的。关于原生影子 DOM 的 `slot` 属性，更详细的内容可以查阅 `Element.slot`，会发现 Vue 的实现在某种程度上参考了标准的。
+
+回到上方的代码中，保留原生 `slot` 属性的方式，就是调用 `addAttr` 函数，可以知道该函数会将属性的名字和值以对象的形式添加到元素描述对象的 `el.attrs` 数组中。
+
+最后按照惯例，做一个总结：
+
+- 对于 `<slot>` 标签，会为其元素描述对象添加 `el.slotName` 属性，属性值为该标签 `name` 属性的值，并且 `name` 属性可以是绑定的。
+- 对于 `<template>` 标签，会优先获取并使用该标签 `scope` 属性的值，如果获取不到则会获取 `slot-scope` 属性的值，并将获取到的值赋值给元素描述对象的 `el.slotScope` 属性，注意 `scope` 属性和 `slot-scope` 属性不能是绑定的。
+- 对于其他标签，会尝试获取 `slot-scope` 属性的值，并将获取到的值赋值给元素描述对象的 `el.slotScope` 属性。
+- 对于非 `<slot>` 标签，会尝试获取该标签的 `slot` 属性，并将获取到的值赋值给元素描述对象的 `el.slotTarget` 属性。如果一个标签使用了 `slot` 属性但却没有给定相应的值，则该标签元素描述对象的 `el.slotTarget` 属性值为字符串 `'"default"'`。
+
+
+
+## 处理使用了 `is` 或 `inline-template` 属性的元素
+
+再往下，将来到 `processComponent` 函数：
+
+```javascript
+export function processElement (element: ASTElement, options: CompilerOptions) {
+  processKey(element)
+
+  // determine whether this is a plain element after
+  // removing structural attributes
+  element.plain = !element.key && !element.attrsList.length
+
+  processRef(element)
+  processSlot(element)
+  processComponent(element)
+  for (let i = 0; i < transforms.length; i++) {
+    element = transforms[i](element, options) || element
+  }
+  processAttrs(element)
+}
+```
+
+`processComponent` 函数的源码如下：
+
+```javascript
+function processComponent (el) {
+  let binding
+  if ((binding = getBindingAttr(el, 'is'))) {
+    el.component = binding
+  }
+  if (getAndRemoveAttr(el, 'inline-template') != null) {
+    el.inlineTemplate = true
+  }
+}
+```
+
+可以知道 Vue 内置了 `component` 组件，并且该组件接收两个 `props` 分别是：`is` 和 `inline-template`。而 `processComponent` 函数就是用来处理 `is` 属性和 `inline-template` 属性的。在 `processComponent` 函数内部，首先执行的是如下这段代码：
+
+```javascript
+let binding
+if ((binding = getBindingAttr(el, 'is'))) {
+  el.component = binding
+}
+```
+
+定义了 `binding` 变量，它的值是通过 `getBindingAttr` 函数获取元素的 `is` 属性得到的，如果获取成功，则会将取到的值赋值给元素描述对象的 `el.component` 属性。
+
+举个例子：
+
+- 例子一：
+
+  ```html
+  <div is></div>
+  ```
+
+  上例中的 `is` 属性是非绑定的，并且没有任何值，则最终如上标签经过处理后其元素描述对象的 `el.component` 属性值为空字符串：
+
+  ```javascript
+  el.component = ''
+  ```
+
+- 例子二：
+
+  ```html
+  <div is="child"></div>
+  ```
+
+  上例中的 `is` 属性是非绑定的，但是有一个字符串值，则最终如上标签经过处理后其元素描述对象的 `el.component` 属性值为：
+
+  ```javascript
+  el.component = JSON.stringify('child')
+  ```
+
+- 例子三：
+
+  ```html
+  <div :is="child"></div>
+  ```
+
+  上例中的 `is` 属性是绑定的，并且有一个字符串值，则最终如上标签经过处理后其元素描述对象的 `el.component` 属性值为：
+
+  ```javascript
+  el.component = 'child'
+  ```
+
+  接着再来看 `processComponent` 函数中如下这段代码：
+
+  ```javascript
+  if (getAndRemoveAttr(el, 'inline-template') != null) {
+    el.inlineTemplate = true
+  }
+  ```
+
+  这段代码是用来处理 `inline-template` 属性的，首先通过 `getAndRemoveAttr` 属性获取 `inline-template` 属性的值，如果获取成功，则将元素描述对象的 `el.inlineTemplate` 属性设置为 `true`，代表着该标签使用了 `inline-template` 属性。
+
+  以上就是 `processComponent` 函数所做的事情。
+
+## 前置处理、中置处理、后置处理
+
+回到 `processElement` 函数：
+
+```javascript
+export function processElement (element: ASTElement, options: CompilerOptions) {
+  processKey(element)
+
+  // determine whether this is a plain element after
+  // removing structural attributes
+  element.plain = !element.key && !element.attrsList.length
+
+  processRef(element)
+  processSlot(element)
+  processComponent(element)
+  for (let i = 0; i < transforms.length; i++) {
+    element = transforms[i](element, options) || element
+  }
+  processAttrs(element)
+}
+```
+
+如上代码所示，这段代码是一段 `for` 循环，用来遍历 `transform` 数组，前面曾经遇到过对于 `preTransforms` 数组的遍历，当时说这是在应用“前置处理”，而 `transforms` 则可以称为“中置处理”，实际上还有“后置处理”，“后置处理”的代码存在于 `closeElement` 函数中，如下：
+
+```javascript
+function closeElement (element) {
+  // check pre state
+  if (element.pre) {
+    inVPre = false
+  }
+  if (platformIsPreTag(element.tag)) {
+    inPre = false
+  }
+  // apply post-transforms
+  for (let i = 0; i < postTransforms.length; i++) {
+    postTransforms[i](element, options)
+  }
+}
+```
+
+如上代码所示，`closeElement` 函数内部使用一个 `for` 循环遍历了 `postTransforms` 数组，这实际上就是在应用“后置处理”，之所以说这时后置处理，是因为只有当遇到二元标签的结束标签或一元标签时才会调用 `closeElement` 函数。
+
+无论是前置处理，中置处理还是后置处理，这些名词都是为了大家更好理解而写出来的，它们的作用等价于提供了对元素描述对象处理的钩子，让外界有能力参与不同阶段的元素描述对象的处理，这对于平台化是很重要的事情，不同平台能够通过这些处理钩子去处理那些特定平台下特有的元素或元素的属性。
+
+后面会详细讲解 `web` 平台下都应用了哪些前置处理、中置处理和后置处理，以及处理的目的。

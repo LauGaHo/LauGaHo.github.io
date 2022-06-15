@@ -71,6 +71,7 @@
     - [Vue编译器初探](Vue源码解读/Vue编译器初探.md)
     - [词法分析—为生成AST做准备](Vue源码解读/词法分析—为生成AST做准备.md)
     - [句法分析—生成真正的AST(一)](Vue源码解读/句法分析—生成真正的AST(一).md)
+    - [句法分析—生成真正的AST(二)](Vue源码解读/句法分析—生成真正的AST(二).md)
 
 - Webpack
     - [Webpack入门配置指南](Webpack/Webpack入门配置指南.md)

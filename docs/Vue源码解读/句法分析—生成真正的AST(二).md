@@ -248,13 +248,188 @@ match.forEach(m => { ret[m.slice(1)] = true })
 }
 ```
 
+当然了，如果指令字符串中不包含修饰符，则 `parseModifiers` 函数没有返回值，或者说其返回值为 `undefined`。
 
+再回到如下这段代码，注意代码，如下：
 
+```javascript
+if (dirRE.test(name)) {
+  // mark element as dynamic
+  el.hasBindings = true
+  // modifiers
+  modifiers = parseModifiers(name)
+  if (modifiers) {
+    name = name.replace(modifierRE, '')
+  }
+  if (bindRE.test(name)) { // v-bind
+    // 省略...
+  } else if (onRE.test(name)) { // v-on
+    // 省略...
+  } else { // normal directives
+    // 省略...
+  }
+} else {
+  // 省略...
+}
+```
 
+在使用 `parseModifiers` 函数解析完指令中的修饰符之后，会使用 `modifiers` 变量保存解析结果，如果解析成功，将会执行如下代码：
+
+```javascript
+if (modifiers) {
+  name = name.replace(modifierRE, '')
+}
+```
+
+这行代码的作用很简单，就是将修饰符从指令字符串中移除，也就是说此时的指令字符串 `name` 中已经不包含修饰符部分了。
 
 ### 解析 `v-bind` 指令
 
+处理完了修饰符，将进入对于指令的解析，解析环节分为三部分，分别是对于 `v-bind` 指令的解析，对于 `v-on` 指令的解析，以及对于其他指令的解析。如下代码所示：
 
+```javascript
+if (dirRE.test(name)) {
+  // mark element as dynamic
+  el.hasBindings = true
+  // modifiers
+  modifiers = parseModifiers(name)
+  if (modifiers) {
+    name = name.replace(modifierRE, '')
+  }
+  if (bindRE.test(name)) { // v-bind
+    // 省略...
+  } else if (onRE.test(name)) { // v-on
+    // 省略...
+  } else { // normal directives
+    // 省略...
+  }
+} else {
+  // 省略...
+}
+```
+
+如上高亮的代码所示，该 `if...else if...else` 语句块分别用来处理 `v-bind` 指令、`v-on` 指令以及其他指令。先来看 `if` 语句块：
+
+```javascript
+if (bindRE.test(name)) {
+  // 省略...
+}
+```
+
+该 `if` 语句的判断条件是使用 `bindRE` 去匹配指令字符串，如果一个指令以 `v-bind:` 或 `:` 开头，则说明该指令为 `v-bind` 指令，这时 `if` 语句块内的代码将被执行，如下：
+
+```javascript
+if (bindRE.test(name)) { // v-bind
+  name = name.replace(bindRE, '')
+  value = parseFilters(value)
+  isProp = false
+  // 省略...
+}
+```
+
+首先使用 `bindRE` 正则将指令字符串中的 `v-bind` 或 `:` 去除掉，此时 `name` 字符串已经从一个完整的指令字符串变为绑定属性的名字了，举个例子，假如原本的指令字符串为 `'v-bind:some-prop.sync'`，由于之前已经把该字符串中修饰符的部分去掉了，所以指令字符串将变为了 `'v-bind:some-prop'`，接着如上第一行代码又将指令字符串找那个的 `v-bind:` 去掉，所以此时指令字符串将变为 `'some-prop'`，可以发现该字符串就是绑定属性的名字，或者说是 `v-bind` 指令的参数。
+
+接着调用 `parseFilters` 函数处理绑定属性的值，可以知道 `parseFilters` 函数的作用是用来将表达式与过滤器整合在一起的，前边已经做了详细的讲解，但凡涉及到能够使用过滤器的地方都要使用 `parseFilters` 函数去解析，并将解析后的新表达式返回。如上第二行代码所示，使用 `parseFilters` 函数的返回值重新赋值 `value` 变量。
+
+第三行代码将 `isProp` 变量初始化为 `false`，`isProp` 变量标识着该绑定的属性是否是原生 DOM 对象的属性，所谓原生 DOM 对象的属性就是能够通过 DOM 元素对象直接访问的有效 API，比如 `innerHTML` 就是一个原生 DOM 对象的属性。
+
+再往下将进入一段 `if` 条件语句，该 `if` 语句块的作用是用来处理修饰符的：
+
+```javascript
+if (modifiers) {
+  if (modifiers.prop) {
+    isProp = true
+    name = camelize(name)
+    if (name === 'innerHtml') name = 'innerHTML'
+  }
+  if (modifiers.camel) {
+    name = camelize(name)
+  }
+  if (modifiers.sync) {
+    addHandler(
+      el,
+      `update:${camelize(name)}`,
+      genAssignmentCode(value, `$event`)
+    )
+  }
+}
+```
+
+当然了，如果没有给 `v-bind` 属性提供修饰符，则这段 `if` 语句的代码将被忽略。`v-bind` 属性为开发者提供了三个修饰符，分别是 `prop`、`camel`、`sync`，这恰好对应如上代码的三段 `if` 语句块。首先看第一段 `if` 语句块：
+
+```javascript
+if (modifiers.prop) {
+  isProp = true
+  name = camelize(name)
+  if (name === 'innerHtml') name = 'innerHTML'
+}
+```
+
+这段 `if` 语句块的代码用来处理使用了 `prop` 修饰符的 `v-bind` 指令，既然使用了 `prop` 修饰符，则意味着该属性将被作为原生 DOM 对象的属性，所以首先会将 `isProp` 变量设置为 `true`，接着使用 `camelize` 函数将属性名驼峰化，最后还会检查驼峰化之后的属性名是否等于字符串 `'innerHtml'`，如果属性名全等于该字符串则将属性名重写为字符串 `'innerHTML'`，可以知道 `'innerHTML'` 是一个特例，它的 `HTML` 四个字符串权威大写。以上就是对于使用了 `prop` 修饰符的 `v-bind` 指令的处理，如果一个绑定属性使用了 `prop` 修饰符则 `isProp` 变量会设置为 `true`，并且会把属性名字驼峰化。之所以要将 `isProp` 变量设置为 `true` 是因为答案如下：
+
+```javascript
+if (bindRE.test(name)) { // v-bind
+  name = name.replace(bindRE, '')
+  value = parseFilters(value)
+  isProp = false
+  if (modifiers) {
+    if (modifiers.prop) {
+      isProp = true
+      name = camelize(name)
+      if (name === 'innerHtml') name = 'innerHTML'
+    }
+    // 省略...
+  }
+  if (isProp || (
+    !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
+  )) {
+    addProp(el, name, value)
+  } else {
+    addAttr(el, name, value)
+  }
+}
+```
+
+如上代码所示，如果 `isProp` 为 `true` 则会执行该 `if` 语句块内的代码，即调用 `addProp` 函数，而 `else` 语句块内的 `addAttr` 函数是永远不会调用的。前边讲解过 `addAttr` 函数，它会将属性的名字和值以对象的形式添加到元素描述对象的 `el.attrs` 数组中，`addProp` 函数和 `addAttr` 函数类似，只不过 `addProp` 函数会把属性的名字和值以对象的形式添加到元素描述对象的 `el.props` 数组中。如下是 `addProp` 函数的源码，它来自 `src/compiler/helpers.js` 文件：
+
+```javascript
+export function addProp (el: ASTElement, name: string, value: string) {
+  (el.props || (el.props = [])).push({ name, value })
+  el.plain = false
+}
+```
+
+总之 `isProp` 变量是一个重要的标识，它的值将会影响一个属性被添加到元素描述对象的位置，从而影响后续的行为。另外再说一句：**元素描述对象的 `el.props` 数组中存储的并不是组件概念中的 `prop`，而是原生 DOM 对象的属性**。在后面的章节中会看到，组件概念中的 `prop` 其实是在 `el.attrs` 数组中。
+
+回过头来，明白了 `prop` 修饰符和 `isProp` 变量的作用之后，再来看一下对于 `camel` 修饰符的处理，如下代码：
+
+```javascript
+if (modifiers) {
+  if (modifiers.prop) {
+    // 省略...
+  }
+  if (modifiers.camel) {
+    name = camelize(name)
+  }
+  if (modifiers.sync) {
+    // 省略...
+  }
+}
+```
+
+如上代码所示，如果 `modifiers.camel` 为真，则说明该绑定的属性使用了 `camel` 修饰符，使用该修饰符的作用只有一个，那就是将绑定的属性驼峰化，如下代码所示：
+
+```html
+<svg :view-box.camel="viewBox"></svg>
+```
+
+有些人可能会说，直接写成驼峰就可以了：
+
+```html
+<svg :viewBox="viewBox"></svg>
+```
+
+不行，因为对于浏览器来讲，真正的属性名字是 `:viewBox` 而不是 `viewBox`，
 
 ### 解析 `v-on` 指令
 

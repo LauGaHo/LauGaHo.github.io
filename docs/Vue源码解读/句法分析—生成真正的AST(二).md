@@ -619,7 +619,76 @@ isProp || (!el.component && platformMustUseProp(el.tag, el.attrsMap.type, name))
 
 ### 解析 `v-on` 指令
 
+接下来看一下 `processAttrs` 函数对于 `v-on` 指令的解析，如下代码所示：
 
+```javascript
+if (bindRE.test(name)) { // v-bind
+  // 省略...
+} else if (onRE.test(name)) { // v-on
+  name = name.replace(onRE, '')
+  addHandler(el, name, value, modifiers, false, warn)
+} else { // normal directives
+  // 省略...
+}
+```
+
+和 `v-bind` 指令类似，使用 `onRE` 正则去匹配指令字符串，如果该指令字符串以 `@` 或 `v-on:` 开头，则说明该指令是事件绑定，此时 `else if` 语句块内的代码将会被执行，在 `else if` 语句块内，首先将指令字符串中的 `@` 字符或 `v-on:` 字符串去掉，然后直接调用 `addHandler` 函数。
+
+打开 `src/compiler/helpers.js` 文件并找到 `addHandler` 函数，如下是 `addHandler` 函数签名：
+
+```javascript
+export function addHandler (
+  el: ASTElement,
+  name: string,
+  value: string,
+  modifiers: ?ASTModifiers,
+  important?: boolean,
+  warn?: Function
+) {
+  // 省略...
+}
+```
+
+可以看到 `addHandler` 函数接收六个参数，分别是：
+
+- `el`：当前元素描述对象。
+- `name`：绑定属性的名字，即事件名称。
+- `value`：绑定属性的值，这个值可能是事件回调函数名字，有可能是内联语句，有可能是函数表达式。
+- `modifiers`：指令对象。
+- `important`：可选参数，是一个布尔值，代表着添加的事件侦听函数的重要级别，如果为 `true`，则该侦听函数会被添加到该事件侦听函数数组的头部，否则将其添加到尾部。
+- `warn`：打印警告信息的函数，是一个可选参数。
+
+了解了 `addHandler` 函数所需的参数，再来看一下解析 `v-on` 指令时调用 `addHandler` 函数所传递的参数，如下代码所示：
+
+```javascript
+if (bindRE.test(name)) { // v-bind
+  // 省略...
+} else if (onRE.test(name)) { // v-on
+  name = name.replace(onRE, '')
+  addHandler(el, name, value, modifiers, false, warn)
+} else { // normal directives
+  // 省略...
+}
+```
+
+如上代码中在调用 `addHandler` 函数时传递了全部六个参数。现在开始研究 `addHandler` 函数的实现，在 `addHandler` 函数的开头是这样一段代码：
+
+```javascript
+modifiers = modifiers || emptyObject
+// warn prevent and passive modifier
+/* istanbul ignore if */
+if (
+  process.env.NODE_ENV !== 'production' && warn &&
+  modifiers.prevent && modifiers.passive
+) {
+  warn(
+    'passive and prevent can\'t be used together. ' +
+    'Passive handler can\'t prevent default event.'
+  )
+}
+```
+
+首先检测 `v-on` 指令的修饰符对象 `modifiers` 是否存在，如果在使用 `v-on` 指令时没有指定任何修饰符，则 `modifiers` 的值为 `undefined`，
 
 ### 解析其他指令
 

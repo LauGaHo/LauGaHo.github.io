@@ -429,7 +429,193 @@ if (modifiers) {
 <svg :viewBox="viewBox"></svg>
 ```
 
-不行，因为对于浏览器来讲，真正的属性名字是 `:viewBox` 而不是 `viewBox`，
+不行，因为对于浏览器来讲，真正的属性名字是 `:viewBox` 而不是 `viewBox`，所以浏览器在渲染时会认为这是一个自定义属性，对于任何自定义属性浏览器都会把它渲染成小写的形式，所以当 `Vue` 尝试获取这段字符串的时候，会得到如下字符串：
+
+```javascript
+'<svg :viewbox="viewBox"></svg>'
+```
+
+最终渲染的真实 `DOM` 将是：
+
+```html
+<svg viewbox="viewBox"></svg>
+```
+
+这将导致渲染失败，因为 `SVG` 标签只认 `viewBox`，却不知道 `viewbox` 是什么。
+
+注意，这个问题仅存在于 `Vue` 需要获取被浏览器处理后的模板字符串时才会出现，所以如果使用了 `template` 选项代替 `Vue` 自动读取则不会出现这个问题：
+
+```vue
+new Vue({
+  template: '<svg :viewBox="viewBox"></svg>'
+})
+```
+
+当然了，使用单文件组件也不会出现这种问题，所以这些情况下，是不需要使用 `camel` 修饰符的。
+
+接着来看一下对于最后一个修饰符的处理，即 `sync` 修饰符：
+
+```javascript
+if (modifiers) {
+  if (modifiers.prop) {
+    // 省略...
+  }
+  if (modifiers.camel) {
+    // 省略...
+  }
+  if (modifiers.sync) {
+    addHandler(
+      el,
+      `update:${camelize(name)}`,
+      genAssignmentCode(value, `$event`)
+    )
+  }
+}
+```
+
+如上代码所示，如果 `modifiers.sync` 为真，则说明该绑定的属性使用了 `sync` 修饰符。`sync` 修饰符实际上是一个语法糖，子组件不能够直接修改 `prop` 值，通常会在子组件中发射一个自定义事件，然后在父组件层面监听该事件并由父组件来修改状态。这个过程有时候过于繁琐，如下：
+
+```vue
+<template>
+  <child :some-prop="value" @custom-event="handleEvent" />
+</template>
+
+<script>
+export default {
+  data () {
+    value: ''
+  },
+  methods: {
+    handleEvent (val) {
+      this.value = val
+    }
+  }
+}
+</script>
+```
+
+为了简化该过程，可以在绑定属性时使用 `sync` 修饰符：
+
+```vue
+<child :some-prop.sync="value" />
+```
+
+这行代码等价于：
+
+```vue
+<template>
+  <child :some-prop="value" @update:someProp="handleEvent" />
+</template>
+
+<script>
+export default {
+  data () {
+    value: ''
+  },
+  methods: {
+    handleEvent (val) {
+      this.value = val
+    }
+  }
+}
+</script>
+```
+
+注意事件名称 `update:someProp` 是固定的，它由 `update:` 加上驼峰化的绑定属性名称组成的。所以在子组件中需要发射一个名字为 `update:someProp` 的事件才能使 `sync` 修饰符生效，这大大提高了开发者的开发效率。
+
+在 `Vue` 内部，使用 `sync` 修饰符的绑定属性和没有使用 `sync` 修饰符的绑定属性之间差异就在于：使用了 `sync` 修饰符的绑定属性等价于多了一个事件侦听，并且事件名称为 `'update:${驼峰化命名}'`。回到源码：
+
+```javascript
+if (modifiers) {
+  if (modifiers.prop) {
+    // 省略...
+  }
+  if (modifiers.camel) {
+    // 省略...
+  }
+  if (modifiers.sync) {
+    addHandler(
+      el,
+      `update:${camelize(name)}`,
+      genAssignmentCode(value, `$event`)
+    )
+  }
+}
+```
+
+可以看到如果发现该绑定的属性使用了 `sync` 修饰符，则直接调用 `addHandler` 函数，在当前元素描述对象上添加事件侦听器。`addHandler` 函数的作用实际上就是将事件名称和该事件的侦听函数添加到元素描述对象的 `el.events` 属性或 `el.nativeEvents` 属性中。对于 `addHandler` 函数的实现将会在讲解的 `v-on` 指令的解析中讲解。这里需要注意一个公式：
+
+```javascript
+:some-prop.sync <==等价于==> :some-prop + @update:someProp
+```
+
+通过如下代码就能够知道事件名称的构成：
+
+```javascript
+if (modifiers.sync) {
+  addHandler(
+    el,
+    `update:${camelize(name)}`,
+    genAssignmentCode(value, `$event`)
+  )
+}
+```
+
+如上代码中，事件名称等于字符串 `'update:'` 加上驼峰化的绑定属性名称。另外可以注意到传递给 `addHandler` 函数的第三个参数，实际上 `addHandler` 函数的第三个参数就是当事件发生时的回调函数，而该回调函数是通过 `genAssignmentCode` 函数生成的。`genAssignmentCode` 函数来自 `src/compiler/directives/model.js` 文件，如下是源码：
+
+```javascript
+export function genAssignmentCode (
+  value: string,
+  assignment: string
+): string {
+  const res = parseModel(value)
+  if (res.key === null) {
+    return `${value}=${assignment}`
+  } else {
+    return `$set(${res.exp}, ${res.key}, ${assignment})`
+  }
+}
+```
+
+讲解 `genAssignmentCode` 函数将会牵扯到比较多的东西，实际上 `genAssignmentCode` 函数也被用在 `v-model` 指令，因为本质上 `v-model` 指令和绑定属性加上 `sync` 修饰符几乎相同，所以会在讲解 `v-model` 指令时再来讲解 `genAssignmentCode` 函数。这里只需要关注如上代码中 `genAssignmentCode` 的返回值即可，它返回的是一个代码字符串，可以看到如果这个代码字符串作为代码执行，其作用就是一个赋值工作。这样就免去了手动赋值的繁琐。
+
+以上讲完了对于三个绑定属性可以使用的修饰符，接下来看处理绑定属性的最后一段代码：
+
+```javascript
+if (isProp || (
+  !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
+)) {
+  addProp(el, name, value)
+} else {
+  addAttr(el, name, value)
+}
+```
+
+实际上这段代码已经讲到过了，这里要强调的是 `if` 语句的判断条件：
+
+```javascript
+isProp || (!el.component && platformMustUseProp(el.tag, el.attrsMap.type, name))
+```
+
+前面说过了如果 `isProp` 变量为 `true`，则说明了该绑定的属性是原生 `DOM` 对象的属性，但是如果 `isProp` 变量为 `false`，那么需要看第二个条件是否成立，如果第二个条件成立，则该绑定的属性还是会作为原生 `DOM` 对象的属性，第二个条件如下：
+
+```javascript
+!el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
+```
+
+首先 `el.component` 变量必须为 `false`，`el.component` 属性保存的是标签 `is` 的属性值，如果 `el.component` 属性值为假就能够保证该标签没有使用 `is` 属性。总结如下：
+
+- `input`、`textarea`、`option`、`select`、`progress` 这些标签的 `value` 属性都应该使用元素对象的原生 `prop` 绑定。
+- `option` 标签的 `selected` 属性应该使用元素对象的原生的 `prop` 绑定。
+- `input` 标签的 `checked` 属性应该使用元素对象的原生的 `prop` 绑定。
+- `video` 标签的 `muted` 属性应该使用元素对象的原生的 `prop` 绑定。
+
+可以看到如果满足这些条件，则意味着即使在绑定以上属性时没有使用 `prop` 修饰符，那么它们依然会被当做原生 `DOM` 对象的属性。不过还是没有解释为什么要保证 `!el.component` 成立，这是因为 `platformMustUseProp` 函数在判断的时候需要标签的名字 (`el.tag`)，而 `el.component` 会在元素渲染阶段替换掉 `el.tag` 的值，所以如果 `el.component` 存在则会影响 `platformMustUseProp` 的判断结果。
+
+最后对 `v-bind` 指令的解析做一个总结：
+
+- 任何绑定的属性，最终要么会被添加到元素描述对象的 `el.attrs` 数组中，要么被添加到元素描述对象的 `el.props` 数组中。
+- 对于使用了 `.sync` 修饰符的绑定属性，还会在元素描述对象的 `el.events` 对象中添加名字为 `'update:${驼峰化的属性名}'`。
 
 ### 解析 `v-on` 指令
 

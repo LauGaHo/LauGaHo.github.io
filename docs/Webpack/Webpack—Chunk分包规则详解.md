@@ -56,3 +56,22 @@ Webpack 遍历 `entry` 对象属性并创建出 `chunk[main]`、`chunk[home]` �
 ![alt](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/LAaLiG.png)
 
 > 基于 `entry` 生成的 `chunk` 在 Webpack 官方文档中，通常称之为 `intial chunk`。
+
+## 异步模块分包处理
+
+> 分析 `ModuleDependencyGraph` 时，每次遇到异步模块都会为之创建单独的 `Chunk` 对象，单独打包异步模块。
+
+Webpack 4 之后，只需要异步语句 `require.ensure("./xx.js")` 或 `import("./xx.js")` 方式引入模块，就可以实现模块的动态加载，这种能力本质也是基于 `Chunk` 实现。
+
+Webpack 生成阶段中，遇到异步引入语句时会为该模块单独生成一个 `chunk` 对象，并将其子模块都假如这个 `chunk` 中，例如对于下方的例子：
+
+```javascript
+// index.js, entry 文件
+import 'sync-a'
+import 'sync-b'
+
+import('async-c')
+```
+
+在 `index.js` 中，以同步的方式引入 `sync-a`、`sync-b`；以异步的方式引入 `async-c` 模块；同时，在 `async-c` 中同步引入 `sync-c` 模块，对应的模块依赖如：
+

@@ -688,7 +688,64 @@ if (
 }
 ```
 
-首先检测 `v-on` 指令的修饰符对象 `modifiers` 是否存在，如果在使用 `v-on` 指令时没有指定任何修饰符，则 `modifiers` 的值为 `undefined`，
+首先检测 `v-on` 指令的修饰符对象 `modifiers` 是否存在，如果在使用 `v-on` 指令时没有指定任何修饰符，则 `modifiers` 的值为 `undefined`，此时会使用冻结的空对象 `emptyObject` 作为替代。接着是一个 `if` 条件语句块，如果该 `if` 语句的判断条件成立，则说明开发同时使用了 `prevent` 修饰符和 `passive` 修饰符，此时如果是在非生产环境下并且 `addHandler` 函数的第六个参数 `warn` 存在，则使用 `warn` 函数打印警告信息，提示开发者 `passive` 修饰符不能和 `prevent` 修饰符一起使用，这是因为在事件监听中 `passive` 选项参数就是用来告诉浏览器该事件监听函数是不会阻止默认行为的。
+
+再往下是这样一段代码：
+
+```javascript
+// check capture modifier
+if (modifiers.capture) {
+  delete modifiers.capture
+  name = '!' + name // mark the event as captured
+}
+if (modifiers.once) {
+  delete modifiers.once
+  name = '~' + name // mark the event as once
+}
+/* istanbul ignore if */
+if (modifiers.passive) {
+  delete modifiers.passive
+  name = '&' + name // mark the event as passive
+}
+```
+
+这段代码由三个 `if` 条件语句块组成，如果事件指令中使用了 `capture` 修饰符，则第一个 `if` 语句块的内容将被执行，可以看到在第一个 `if` 语句块内首先将 `modifiers.capture` 选项移除，紧接着在原始事件名称之前添加一个字符 `!`。假设事件绑定代码如下：
+
+```html
+<div @click.capture="handleClick"></div>
+```
+
+如上代码中点击事件使用了 `capture` 修饰符，所以在 `addHandler` 函数内部，会把事件名称 `'click'` 修改为 `'!click'`。
+
+和第一个 `if` 语句块类似，第二个和第三个 `if` 语句块分别用来处理当事件使用了 `once` 修饰符和 `passive` 修饰符的情况。可以看到如果事件使用了 `once` 修饰符，则会在事件名称的前面添加字符 `~`，如果事件使用了 `passive` 修饰符，则会在事件名称前面添加字符 `&`。也就是如下两段代码是等价的：
+
+```html
+<div @click.once="handleClick"></div>
+```
+
+等价于：
+
+```html
+<div @~click="handleClick"></div>
+```
+
+再往下是如下这段代码：
+
+```javascript
+// normalize click.right and click.middle since they don't actually fire
+// this is technically browser-specific, but at least for now browsers are
+// the only target envs that have right/middle clicks.
+if (name === 'click') {
+  if (modifiers.right) {
+    name = 'contextmenu'
+    delete modifiers.right
+  } else if (modifiers.middle) {
+    name = 'mouseup'
+  }
+}
+```
+
+这段代码用来规范化“右击”事件和点击鼠标中间按钮的事件，可以知道在浏览器总点击右键一般会出来一个菜单，这本质上触发了 `contextmenu` 事件。而 `Vue` 中定义“右击”事件的方式是为 `click` 事件添加 `right` 修饰符。所以如上代码中首先检查了事件名称是否是 `click`，如果事件名称是 `click` 并且使用了 `right` 修饰符，则会将事件名称重写为 `contextmenu`，同时使用 `delete` 操作符删除 `modifiers.right` 属性。类似地在 `Vue` 中定义点击滚轮事件的方式是为 `click` 事件指定 `middle` 修饰符，但可以知道鼠标本没有滚轮点击事件，一般区分用户点击的按钮是不是滚轮的方式是监听 `mouseup` 事件，然后通过事件对象的 `event.button` 属性值来判断，如果 `event.button === 1` 则说明用户点击的是滚轮按钮。
 
 ### 解析其他指令
 

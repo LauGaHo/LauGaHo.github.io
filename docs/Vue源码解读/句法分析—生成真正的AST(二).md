@@ -889,7 +889,54 @@ el.events = {
 }
 ```
 
+再次修改模板：
 
+```html
+<div @click.prevent="handleClick1" @click="handleClick2" @click.self="handleClick3"></div>
+```
+
+在上一次修改的基础上添加了第三个 `click` 事件侦听，但是使用了 `self` 修饰符，所以这个 `click` 事件和前两个 `click` 事件也是不同的，此时如下 `if` 语句块的代码将被执行：
+
+```javascript
+const handlers = events[name]
+/* istanbul ignore if */
+if (Array.isArray(handlers)) {
+  important ? handlers.unshift(newHandler) : handlers.push(newHandler)
+} else if (handlers) {
+  events[name] = important ? [newHandler, handlers] : [handlers, newHandler]
+} else {
+  events[name] = newHandler
+}
+```
+
+由于此时 `el.events.click` 属性已经是一个数组，所以如上 `if` 语句的判断条件成立。在 `if` 语句块内执行了一行代码，这行代码是一个三元运算符，其作用很简单，可以知道 `important` 所影响的就是事件作用的顺序，所以根据 `important` 参数的不同，会选择使用数组的 `unshift` 方法将新添加的事件信息对象放到数组的头部，或者是选择数组的 `push` 方法将新添加的事件信息对象放到数组的尾部。这样无论有多少个同名的事件监听，都不会落下任何一个监听函数的执行。
+
+接着注意到 `addHandler` 函数的最后一行代码，如下：
+
+```javascript
+el.plain = false
+```
+
+如果一个标签存在事件侦听，无论如何都不会认为这个元素是“纯”的，所以这里直接将 `el.plain` 设置为 `false`。`el.plain` 属性会影响代码生成阶段，并间接导致程序的执行行为，后面会总结关于 `el.plain` 的变更情况。
+
+以上就是对于 `addHandler` 函数的讲解，可以发现 `addHandler` 函数对于元素描述对象的影响主要是在元素描述对象上添加了 `el.events` 属性和 `el.nativeEvents` 属性。对于 `el.events` 和 `el.nativeEvents` 属性的结构已经讲解得比较详细了。
+
+最后回到 `src/compiler/parser/index.js` 文件中的 `processAttrs` 函数中，如下代码所示：
+
+```javascript
+if (bindRE.test(name)) { // v-bind
+  // 省略...
+} else if (onRE.test(name)) { // v-on
+  name = name.replace(onRE, '')
+  addHandler(el, name, value, modifiers, false, warn)
+} else { // normal directives
+  // 省略...
+}
+```
+
+注意如上代码中调用 `addHandler` 函数时传递的第五个参数为 `false`，它实际上就是 `addHandler` 函数中名字为 `important` 的参数，它影响的是新添加的事件信息对象的顺序，由于上方代码中传递的 `important` 参数为 `false`，所以使用 `v-on` 添加的事件侦听函数将按照添加的顺序被先后执行。
+
+以上就是对于 `processAttrs` 函数中对于 `v-on` 指令的解析。
 
 ### 解析其他指令
 

@@ -747,6 +747,150 @@ if (name === 'click') {
 
 这段代码用来规范化“右击”事件和点击鼠标中间按钮的事件，可以知道在浏览器总点击右键一般会出来一个菜单，这本质上触发了 `contextmenu` 事件。而 `Vue` 中定义“右击”事件的方式是为 `click` 事件添加 `right` 修饰符。所以如上代码中首先检查了事件名称是否是 `click`，如果事件名称是 `click` 并且使用了 `right` 修饰符，则会将事件名称重写为 `contextmenu`，同时使用 `delete` 操作符删除 `modifiers.right` 属性。类似地在 `Vue` 中定义点击滚轮事件的方式是为 `click` 事件指定 `middle` 修饰符，但可以知道鼠标本没有滚轮点击事件，一般区分用户点击的按钮是不是滚轮的方式是监听 `mouseup` 事件，然后通过事件对象的 `event.button` 属性值来判断，如果 `event.button === 1` 则说明用户点击的是滚轮按钮。
 
+不过这里需要提醒一下，如果 `click` 事件使用了 `once` 修饰符，则事件的名字会被修改为 `~click`，所以当程序执行到如上这段时，事件名字是永远不会等于字符串 `'click'` 的，换句话说，如果同时使用 `once` 修饰符和 `right` 修饰符，则右击事件不会被触发，如下代码所示：
+
+```html
+<div @click.right.once="handleClickRightOnce"></div>
+```
+
+如上代码无效，作为变通方案可以直接监听 `contextmenu` 事件，如下：
+
+```html
+<div @contextmenu.once="handleClickRightOnce"></div>
+```
+
+但其实从源码角度也是很好解决的，只需要把规范化“右击”事件和点击鼠标中间按钮的事件的这段代码提前即可，实际上还有更好的解决方案，那就是从 `mouseup` 事件入手，将 `contextmenu` 事件和“右击”事件完全分离处理，这里就不展开讨论了。
+
+回到 `addHandler` 函数继续看后面的代码，接下来要看的是如下这段代码：
+
+```javascript
+let events
+if (modifiers.native) {
+  delete modifiers.native
+  events = el.nativeEvents || (el.nativeEvents = {})
+} else {
+  events = el.events || (el.events = {})
+}
+```
+
+定义了 `events` 变量，然后判断是否存在 `native` 修饰符，如果 `native` 修饰符存在则会在元素描述对象上添加 `el.nativeEvents` 属性，初始值为一个空对象，并且 `events` 变量和 `el.nativeEvents` 属性具有相同的引用，另外可以注意如上代码中使用 `delete` 操作符删除了 `modifiers.native` 属性，到目前为止，在讲解 `addHandler` 函数时已经遇到了多次使用 `delete` 操作符删除修饰符对象的做法。这是因为在代码生成阶段会使用 `for...in` 语句遍历修饰符对象，然后做一些相关的事情，所以在生成 AST 阶段把那些不希望被遍历的属性删掉，更具体的内容在代码生成中详细讲解。回过头来，如果 `native` 属性不存在则会在元素描述对象上添加 `el.events` 属性，它的初始值也是一个空对象，此时 `events` 变量的引用将和 `el.events` 属性相同。 
+
+再往下是这样一段代码：
+
+```javascript
+const newHandler: any = {
+  value: value.trim()
+}
+if (modifiers !== emptyObject) {
+  newHandler.modifiers = modifiers
+}
+```
+
+定义了 `newHandler` 对象，该对象初始拥有一个 `value` 属性，该属性的值就是 `v-on` 指令的属性值。接着是一个 `if` 条件，该 `if` 语句的判断条件检测了修饰符对象 `modifiers` 是否不等于 `emptyObject`，可以知道一个事件没有使用任何修饰符时，修饰符对象 `modifiers` 会被初始化为 `emptyObject`，所以如果修饰符对象 `modifiers` 不等于 `emptyObject` 则说明事件使用了修饰符，此时会把修饰符对象赋值给 `newHandler.modifiers` 属性。
+
+再往下是 `addHandler` 函数的最后一段代码：
+
+```javascript
+const handlers = events[name]
+/* istanbul ignore if */
+if (Array.isArray(handlers)) {
+  important ? handlers.unshift(newHandler) : handlers.push(newHandler)
+} else if (handlers) {
+  events[name] = important ? [newHandler, handlers] : [handlers, newHandler]
+} else {
+  events[name] = newHandler
+}
+
+el.plain = false
+```
+
+首先定义了 `handlers` 常量，它的值是通过事件名称获取 `events` 对象下的对应的属性值的：`events[name]`，可以知道变量 `events` 要么是元素描述对象的 `el.nativeEvents` 属性的引用，要么就是元素描述对象 `el.events` 属性的引用。无论是谁的引用，在初始情况下 `events` 变量都是一个空对象，所以在第一次调用 `addHandler` 时 `handlers` 常量是 `undefined`，这就会导致接下来的代码中 `else` 语句块将被执行：
+
+```javascript
+if (Array.isArray(handlers)) {
+  // 省略...
+} else if (handlers) {
+  // 省略...
+} else {
+  events[name] = newHandler
+}
+```
+
+可以看到在 `else` 语句块内，为 `events` 对象定义了和事件名称相同的属性，并以 `newHandler` 对象作为属性值。举个例子，假设有如下模板代码：
+
+```html
+<div @click.once="handleClick"></div>
+```
+
+如上模板中监听了 `click` 事件，并绑定了名字为 `handleClick` 的事件监听函数，所以此时 `newHandler` 对象应该是：
+
+```javascript
+newHandler = {
+  value: 'handleClick',
+  modifiers: {} // 注意这里是空对象，因为 modifiers.once 修饰符被 delete 了
+}
+```
+
+又因为使用了 `once` 修饰符，所以事件名称将变为字符串 `'~click'`，又因为在监听事件时没有使用 `native` 修饰符，所以 `events` 变量是元素描述对象的 `el.events` 属性的引用，所以调用 `addHandler` 函数的最终结果就是在元素描述对象的 `el.events` 对象是哪个添加相应的事件的处理结果：
+
+```javascript
+el.events = {
+  '~click': {
+    value: 'handleClick',
+    modifiers: {}
+  }
+}
+```
+
+现在修改一下之前的模板，如下：
+
+```html
+<div @click.prevent="handleClick1" @click="handleClick2"></div>
+```
+
+如上模板所示，有两个事件的侦听，其中一个 `click` 事件使用了 `prevent` 修饰符，而另外一个 `click` 事件则没有使用修饰符，所以这两个 `click` 事件是不同的，但这两个事件的名称却是相同的，都是 `'click'`，所以这导致调用两次 `addHandler` 函数添加两次名称相同的事件，但是由于第一次调用 `addHandler` 函数添加 `click` 事件之后元素描述对象的 `el.events` 对象已经存在一个 `click` 属性，如下：
+
+```javascript
+el.events = {
+  click: {
+    value: 'handleClick1',
+    modifiers: { prevent: true }
+  }
+}
+```
+
+所以当第二次调用 `addHandler` 函数时，如下 `else if` 语句块的代码将被执行：
+
+```javascript
+const handlers = events[name]
+/* istanbul ignore if */
+if (Array.isArray(handlers)) {
+  important ? handlers.unshift(newHandler) : handlers.push(newHandler)
+} else if (handlers) {
+  events[name] = important ? [newHandler, handlers] : [handlers, newHandler]
+} else {
+  events[name] = newHandler
+}
+```
+
+此时 `newHandler` 对象时第二个 `click` 事件侦听的信息对象，而 `handlers` 常量保存的则是第一次被添加的事件信息，可以看到上方的代码，`else if` 分支中的代码检测了参数 `important` 的真假，根据 `important` 参数的不同，会重新为 `events[name]` 赋值。可以看到 `important` 参数的真假所影响的仅仅是被添加的 `handlers` 对象的顺序。最终元素描述对象的 `el.events.click` 属性将变成一个数组，这个数组保存着前后两次添加的 `click` 事件的信息对象，如下：
+
+```javascript
+el.events = {
+  click: [
+    {
+      value: 'handleClick1',
+      modifiers: { prevent: true }
+    },
+    {
+      value: 'handleClick2'
+    }
+  ]
+}
+```
+
+
+
 ### 解析其他指令
 
 

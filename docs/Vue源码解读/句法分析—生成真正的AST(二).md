@@ -1237,11 +1237,228 @@ if (dirRE.test(name)) {
 }
 ```
 
+如上 `else` 语句块内的代码中，首先执行的是如下这段代码，它是一个 `if` 条件语句块：
 
+```javascript
+if (process.env.NODE_ENV !== 'production') {
+  const res = parseText(value, delimiters)
+  if (res) {
+    warn(
+      `${name}="${value}": ` +
+      'Interpolation inside attributes has been removed. ' +
+      'Use v-bind or the colon shorthand instead. For example, ' +
+      'instead of <div id="{{ val }}">, use <div :id="val">.'
+    )
+  }
+}
+```
+
+可以看到，在非生产环境下才会执行该 `if` 语句块内的代码，在该 `if` 语句块内首先调用了 `parseText` 函数，这个函数来自于 `src/compiler/parser/text-parser.js` 文件，`parseText` 函数的作用是用来解析字面量表达式的，如下模板代码所示：
+
+```html
+<div id="{{ isTrue ? 'a' : 'b' }}"></div>
+```
+
+其中字符串 `"b"` 就称为字面量表达式，此时就会使用 `parseText` 函数来解析这段字符串。至于 `parseText` 函数是如何对这段字符串进行解析的，后面讲解会详细说明。这里只需要知道，如果使用 `parseText` 函数能够成功解析某个非指令属性的属性值字符串，则说明该非指令属性的属性值使用了字面量表达式，就如同上方模板中的 `id` 属性一样。此时会打印警告信息，提示开发者使用绑定属性作为替代，如下：
+
+```html
+<div :id="isTrue ? 'a' : 'b'"></div>
+```
+
+这就是上方那段 `if` 语句块代码的作用，继续往下看代码，接下来将执行这行代码：
+
+```javascript
+addAttr(el, name, JSON.stringify(value))
+```
+
+可以看到，对于任何非指令属性，都会使用 `addAttr` 函数将该属性和该属性对应的字符串添加到元素描述对象的 `el.attrs` 数组中。这里需要注意的是，如上这行代码中使用 `JSON.stringify` 函数对属性值做了处理，这么做的目的就是让该属性的值当做一个纯字符串对待。
+
+理论上，代码运行到这里已经足够了，该做的事情已经完成了，但是发现在 `else` 语句块的最后，还有如下这样一段代码：
+
+```javascript
+// #6887 firefox doesn't update muted state if set via attribute
+// even immediately after element creation
+if (!el.component &&
+    name === 'muted' &&
+    platformMustUseProp(el.tag, el.attrsMap.type, name)) {
+  addProp(el, name, 'true')
+}
+```
+
+实际上元素描述对象的 `el.attrs` 数组中所存储的任何属性都会在由虚拟 DOM 创建真实 DOM 的过程中使用 `setAttribute` 方法将属性添加到真实 DOM 元素上，而在火狐浏览器中存在无法通过 DOM 元素的 `setAttribute` 方法为 `video` 标签添加 `muted` 属性的问题，所以如上代码就是为了解决该问题的，其方案是如果一个属性的名字是 `muted` 并且该标签满足 `platformMustUseProp` 函数 (`video` 标签满足)，则会额外调用 `addProp` 函数将属性添加到元素描述对象的 `el.props` 数组中。之所以这样子做，是因为元素描述对象的 `el.props` 数组中所存储的任何属性都会在由虚拟 DOM 创建真实 DOM 的过程中直接使用真实 DOM 对象添加，也就是说对于 `<video>` 标签的 `muted` 属性的添加方式为：`videoEl.muted = true`。另外如上代码的注释中已经提供了相应的 `issue` 号：`#6887`。
 
 ## `preTransformNode` 前置处理
 
+讲解完了 `processAttrs` 函数之后，所有的 `process*` 系列函数讲解完毕了。另外，目前所讲解的内容都是在 `parseHTML` 函数的 `start` 钩子中运行的代码，如下代码所示：
 
+```javascript
+parseHTML(template, {
+  warn,
+  expectHTML: options.expectHTML,
+  isUnaryTag: options.isUnaryTag,
+  canBeLeftOpenTag: options.canBeLeftOpenTag,
+  shouldDecodeNewlines: options.shouldDecodeNewlines,
+  shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
+  shouldKeepComment: options.comments,
+  start (tag, attrs, unary) {
+    // 省略...
+  },
+  end () {
+    // 省略...
+  },
+  chars (text: string) {
+    // 省略...
+  },
+  comment (text: string) {
+    // 省略...
+  }
+})
+```
+
+也就是说现在讲解的内容都是在当解析器遇到开始标签时所做的内容，接下来要讲解的内容就是 `start` 钩子函数中的如下这段代码：
+
+```javascript
+// apply pre-transforms
+for (let i = 0; i < preTransforms.length; i++) {
+  element = preTransforms[i](element, options) || element
+}
+```
+
+这段代码是在应用前置转换 (或前置处理)，其中 `preTransforms` 变量是一个数组，这个数组中包含了所有前置处理的函数，如下代码所示：
+
+```javascript
+preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
+```
+
+由上代码可知 `preTransforms` 变量的值是使用 `pluckModuleFunction` 函数从 `options.modules` 编译器选项中读取 `preTransformNode` 字段筛选出来的。具体筛选过程在前面的章节中已经讲解过了。
+
+这里说一下编译器选项中的 `modules`，在前边的章节当中，可以知道编译器的选项来自于两部分，一部分是创建编译器时传递的基本选项 `baseOptions`，另一部分则是在使用编译器编译模板时传递的选项参数。如下时创建编译器的基本选项：
+
+```javascript
+import { baseOptions } from './options'
+import { createCompiler } from 'compiler/index'
+
+const { compile, compileToFunctions } = createCompiler(baseOptions)
+```
+
+如上代码来自 `src/platforms/web/compiler/index.js` 文件，可以看到 `baseOptions` 导入自 `src/platforms/web/compiler/options.js` 文件。
+
+最终了解到编译器选项的 `modules` 选项来自 `src/platforms/web/compiler/modules/index.js` 文件导出的一个数组，如下：
+
+```javascript
+import klass from './class'
+import style from './style'
+import model from './model'
+
+export default [
+  klass,
+  style,
+  model
+]
+```
+
+如果把 `modules` 数组展开的话，它长成如下这个样子：
+
+```javascript
+[
+  // klass
+  {
+    staticKeys: ['staticClass'],
+    transformNode,
+    genData
+  },
+  // style
+  {
+    staticKeys: ['staticStyle'],
+    transformNode,
+    genData
+  },
+  // model
+  {
+    preTransformNode
+  }
+]
+```
+
+根据如上数组可以发现 `modules` 数组中的每一个元素都是一个对象，并且 `klass` 对象和 `style` 对象都拥有 `transformNode` 属性，而 `model` 对象中则有一个 `preTransformNode` 属性。打开 `src/compiler/parser/index.js` 文件，找到如下代码：
+
+```javascript
+preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
+```
+
+这时应该知道 `preTransforms` 变量应该是一个数组：
+
+```javascript
+preTransforms = [
+  preTransformNode
+]
+```
+
+并且数组中只有一个元素 `preTransformNode`，而这里的 `preTransformNode` 就是来自于 `src/platforms/web/compiler/modules/model.js` 文件中的 `preTransformNode` 函数。接着重点讲解的是 `preTransformNode` 函数的作用，既然它是对元素描述对象做前置处理的，就看看它做了哪些处理。
+
+> 为了方便描述，后续会把 `src/platforms/web/compiler/modules/model.js` 文件简称 `model.js`
+
+如下是 `preTransformNode` 函数的签名以及函数体内一开始的一段代码：
+
+```javascript
+function preTransformNode (el: ASTElement, options: CompilerOptions) {
+  if (el.tag === 'input') {
+    const map = el.attrsMap
+    if (!map['v-model']) {
+      return
+    }
+
+    // 省略...
+  }
+}
+```
+
+`preTransformNode` 函数接收两个参数，第一个参数是预处理的元素描述对象，第二个参数则是透传过来的编译器的选项参数。在 `preTransformNode` 函数内部，所有的代码都被包含在一个 `if` 条件语句中，该 `if` 语句的条件是：
+
+```javascript
+if (el.tag === 'input')
+```
+
+也就是说只有当前解析的标签时 `input` 标签才会执行预处理工作，看来 `preTransformNode` 函数是用来预处理 `input` 标签的。如果当前解析的元素是 `input` 标签，则会继续判断该 `input` 标签是否使用了 `v-model` 属性：
+
+```javascript
+const map = el.attrsMap
+if (!map['v-model']) {
+  return
+}
+```
+
+如果该 `input` 标签没有使用 `v-model` 属性，则函数直接返回，什么都不做。所以可以说 `preTransformNode` 函数要预处理的是 **使用了 `v-model` 属性的 `input` 标签**，不过还没有完，继续看如下代码：
+
+```javascript
+let typeBinding
+if (map[':type'] || map['v-bind:type']) {
+  typeBinding = getBindingAttr(el, 'type')
+}
+if (!map.type && !typeBinding && map['v-bind']) {
+  typeBinding = `(${map['v-bind']}).type`
+}
+
+if (typeBinding) {
+  // 省略...
+}
+```
+
+上方这段代码是 `preTransformNode` 函数中剩余的所有代码，只不过省略了最后一个 `if` 语句块内的代码。注意如上代码的 `if` 条件语句，可以发现只有当 `typeBinding` 变量为 `true` 的情况下才会执行该 `if` 语句块内的代码，而该 `if` 语句块内的代码才是用来完成主要工作的代码。实际上 `typeBinding` 变量保存的是该 `input` 标签上绑定的 `type` 属性的值，举例说明，假如有如下模板：
+
+```html
+<input v-model="val" :type="inputType" />
+```
+
+则 `typeBinding` 变量的值为字符串 `'inputType'`。来看源码的实现，首先是如下这段代码：
+
+```javascript
+if (map[':type'] || map['v-bind:type']) {
+  typeBinding = getBindingAttr(el, 'type')
+}
+```
+
+由于开发者在绑定属性的时候可以选择 `v-bind:` 或者缩写
 
 ## `transformNode` 中置处理
 

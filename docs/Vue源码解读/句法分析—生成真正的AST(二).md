@@ -1694,9 +1694,113 @@ if (inVPre) {
 }
 ```
 
+如上的 `else if` 中的条件判断语句 `!el.processed` 属性值已经为 `true`，所以判断条件将会为 `false`，即 `else if` 语句块内的代码将不会被执行，这样的目的是为了避免重复的解析。
 
+对于第一个克隆的元素描述对象来说，最后执行的将是如下代码：
 
+```javascript
+branch0.if = `(${typeBinding})==='checkbox'` + ifConditionExtra
+addIfCondition(branch0, {
+  exp: branch0.if,
+  block: branch0
+})
+```
 
+这段代码为元素描述对象添加了 `el.if` 属性，其 `if` 属性值为：
+
+```javascript
+`(${typeBinding})==='checkbox'` + ifConditionExtra
+```
+
+假设有如下模板：
+
+```html
+<input v-model="val" :type="inputType" v-if="display" />
+```
+
+则 `el.if` 属性的值将为：`'(${inputType}) === "checkbox" && display`，可以看到只有当本地状态 `inputType` 的值为字符串 `'checkbox'` 并且本地状态 `display` 为 `true` 才会渲染该复选按钮。
+
+另外如果一个标签使用了 `v-if` 指令，则该标签的元素描述对象被添加到其自身的 `el.ifConditions` 数组中，所以需要执行如下代码：
+
+```javascript
+addIfCondition(branch0, {
+  exp: branch0.if,
+  block: branch0
+})
+```
+
+至此，对于第一个扩展出来的复选按钮就完成了，紧接着是后面的代码，如下：
+
+```javascript
+// 2. add radio else-if condition
+const branch1 = cloneASTElement(el)
+getAndRemoveAttr(branch1, 'v-for', true)
+addRawAttr(branch1, 'type', 'radio')
+processElement(branch1, options)
+addIfCondition(branch0, {
+  exp: `(${typeBinding})==='radio'` + ifConditionExtra,
+  block: branch1
+})
+// 3. other
+const branch2 = cloneASTElement(el)
+getAndRemoveAttr(branch2, 'v-for', true)
+addRawAttr(branch2, ':type', typeBinding)
+processElement(branch2, options)
+addIfCondition(branch0, {
+  exp: ifCondition,
+  block: branch2
+})
+```
+
+这段代码和扩展复选按钮一样，分为两部分，第一部分用来扩展单选按钮，而第二部分用来扩展其他类型的 `input` 标签。需要注意的有两点，第一点是如上代码中无论是扩展单选按钮还是扩展其他类型的 `input` 标签，它们都重新使用 `cloneASTElement` 函数克隆出了新的元素描述对象并且这两个元素描述对象都会被添加到复选按钮元素描述对象的 `el.ifConditions` 数组中。第二点需要注意的是无论是扩展单选按钮还是扩展其他类型的 `input` 标签，都执行了如下这行代码：
+
+```javascript
+getAndRemoveAttr(branch2, 'v-for', true)
+```
+
+这里将克隆出来的元素描述对象中的 `v-for` 属性移除掉，因为在复选按钮中已经使用 `processFor` 处理了 `v-for` 指令，由于它们本身是互斥的，本质上等价于是同一个元素，只是根据不同的条件渲染不同的标签而已，因此 `v-for` 指令处理一次就够了。
+
+再往下执行时如下这段代码：
+
+```javascript
+if (hasElse) {
+  branch0.else = true
+} else if (elseIfCondition) {
+  branch0.elseif = elseIfCondition
+}
+```
+
+前面的讲解中，所举的例子都是使用 `v-if` 指令的 `input` 标签，但是 `input` 标签也可能使用 `v-else-if` 或 `v-else`，如下：
+
+```html
+<div v-if="num === 1"></div>
+<input v-model="val" :type="inputType" v-else />
+```
+
+最后 `preTransformNode` 函数将返回一个全新的元素描述对象：
+
+```javascript
+function preTransformNode (el: ASTElement, options: CompilerOptions) {
+  if (el.tag === 'input') {
+    // 省略...
+    if (typeBinding) {
+      // 省略...
+      return branch0
+    }
+  }
+}
+```
+
+回到 `src/compiler/parser/index.js` 文件找到应用预处理钩子的代码，如下：
+
+```javascript
+// apply pre-transforms
+for (let i = 0; i < preTransforms.length; i++) {
+  element = preTransforms[i](element, options) || element
+}
+```
+
+通过预处理函数之后得到了新的元素描述对象，则使用新的元素描述对象替换当前元素描述对象 (`element`)，否则仍然使用 `element` 作为元素描述对象。
 
 ## `transformNode` 中置处理
 

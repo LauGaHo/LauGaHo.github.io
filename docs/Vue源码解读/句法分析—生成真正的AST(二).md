@@ -1458,7 +1458,245 @@ if (map[':type'] || map['v-bind:type']) {
 }
 ```
 
-由于开发者在绑定属性的时候可以选择 `v-bind:` 或者缩写
+由于开发者在绑定属性的时候可以选择 `v-bind:` 或者缩写 `:` 两种方式，所以如上代码中分别获取了通过这两种方式绑定的 `type` 属性，如果存在其一，则使用 `getBindingAttr` 函数获取绑定的 `type` 属性的值。如果开发者没有这两种方式绑定 `type` 属性，则代码会继续执行，来到如下这段 `if` 条件语句：
+
+```javascript
+if (!map.type && !typeBinding && map['v-bind']) {
+  typeBinding = `(${map['v-bind']}).type`
+}
+```
+
+如果该 `if` 条件语句的判断条件成立，则说明该 `input` 标签没有使用非绑定的 `type` 属性，并且没有使用 `v-bind:` 或 `:` 绑定 `type` 属性，并且开发者使用了 `v-bind`。这里需要注意，开发者即使没有使用 `v-bind:` 或 `:` 绑定 `type` 属性，但仍然可以通过如下方式绑定属性：
+
+```html
+<input v-model="val" v-bind="{ type: inputType }" />
+```
+
+此时就需要通过读取绑定对象的 `type` 属性来获取绑定的属性值，即：
+
+```javascript
+typeBinding = `(${map['v-bind']}).type`
+```
+
+如上这行代码相当于：
+
+```javascript
+typeBinding = `({ type: inputType }).type`
+```
+
+总之要想办法获取到绑定的 `type` 属性的值，如果获取不到则说明该 `input` 标签的类型是固定不变的，因为它是非绑定的。只有当一个 `input` 表单拥有绑定的 `type` 属性时才会执行真正的预处理代码，所以进一步总结：**`preTransformNode` 函数要预处理的是使用了 `v-model` 属性并且使用了绑定的 `type` 属性的 `input` 标签**。
+
+紧接着看 `model.js` 文件开头的一段注释：
+
+```javascript
+/**
+ * Expand input[v-model] with dyanmic type bindings into v-if-else chains
+ * Turn this:
+ *   <input v-model="data[type]" :type="type">
+ * into this:
+ *   <input v-if="type === 'checkbox'" type="checkbox" v-model="data[type]">
+ *   <input v-else-if="type === 'radio'" type="radio" v-model="data[type]">
+ *   <input v-else :type="type" v-model="data[type]">
+ */
+```
+
+根据如上注释可知 `preTransformNode` 函数将形如：
+
+```html
+<input v-model="data[type]" :type="type">
+```
+
+这样的 `input` 标签扩展为如下三种 `input` 标签：
+
+```html
+<input v-if="type === 'checkbox'" type="checkbox" v-model="data[type]">
+<input v-else-if="type === 'radio'" type="radio" v-model="data[type]">
+<input v-else :type="type" v-model="data[type]">
+```
+
+可以知道在 AST 中一个标签对应一个元素描述对象，所以从结果来看，`preTransformNode` 函数将一个 `input` 元素描述对象扩展为三个 `input` 标签的元素描述对象。但是由于扩展后的标签由 `v-if`、`v-else-if`、`v-else` 三个条件指令组成，在前面的分析可以得知，对于使用了 `v-else-if`、`v-else` 指令的标签，其元素描述对象是会被添加到那个使用 `v-if` 指令的元素描述对象的 `el.ifConditions` 数组中的。所以虽然把一个 `input` 标签扩展成了三个，但实际上并不会影响到 AST 的结构，并且从渲染结果上来看，也是一致的。
+
+之所以要将一个 `input` 标签扩展为三个，是因为由于使用了绑定的 `type` 属性，所以该 `input` 标签的类型是不确定的，并且同样是 `input` 标签，但是类型为 `checkbox` 的 `input` 标签和类型为 `radio` 的 `input` 标签的行为是不一致的。到代码生成阶段会看到，正是因为这里将 `input` 标签类型做了区分，才使得代码生成时能根据三种不同情况生成三种对应的代码，从而实现三种不同的功能。但是这里不做区分也是可以的，假设这里不做区分，那么在代码生成时不可以知道目标 `input` 元素的类型，为了保证实现所有类型 `input` 标签的功能可用，必须保证生成的代码能够能完成所有类型标签的工作。所以需要选择再编译阶段区分类型，或者运行阶段区分类型，Vue 选择了在编译阶段将类型区分开来，好处是运行时的代码在针对某种特定类型的 `input` 标签时所执行的代码是单一职责的。后面代码生成时，在编译阶段区分类型使得代码编写更加容易。从另外一个角度来说，由于不同类型的 `input` 标签所绑定的事件未必相同，这也是在编译阶段区分 `input` 标签类型的一个重要因素。
+
+看具体实现，首先是如下这段代码：
+
+```javascript
+if (typeBinding) {
+  const ifCondition = getAndRemoveAttr(el, 'v-if', true)
+  const ifConditionExtra = ifCondition ? `&&(${ifCondition})` : ``
+  const hasElse = getAndRemoveAttr(el, 'v-else', true) != null
+  const elseIfCondition = getAndRemoveAttr(el, 'v-else-if', true)
+  // 省略...
+}
+```
+
+这段代码定义了四个常量，分别是 `ifCondition`、`ifConditionExtra`、`hasElse` 以及 `elseIfCondition`，其中 `ifCondition` 常量保存的值是通过 `getAndRemoveAttr` 函数取得的 `v-if` 指令的值，注意如上代码中调用 `getAndRemoveAttr` 函数时传递的第三个参数为 `true`，所以在获取到属性值之后，会将属性从元素描述对象的 `el.attrsMap` 中移除。
+
+假设有如下模板：
+
+```html
+<input v-model="val" :type="inputType" v-if="display" />
+```
+
+则 `ifCondition` 常量的值为字符串 `'display'`。
+
+第二个常量 `ifConditionExtra` 同样是一个字符串，还是以如上模板为例，由于 `ifCondition` 常量存在，所以 `ifConditionExtra` 常量的值为字符串 `'&&(display)'`，假若 `ifCondition` 常量不存在，则 `ifConditionExtra` 常量的值将是一个空字符串。
+
+第三个常量 `hasElse` 是一个布尔值，代表着 `input` 指令标签是否使用了 `v-else` 指令。其实现方式也是通过 `getAndRemoveAttr` 函数获取 `v-else` 指令的属性值，然后将值和 `null` 作比较。如果 `input` 标签使用 `v-else` 指令，则 `hasElse` 常量的值为 `true`，反之为 `false`。
+
+第四个常量 `elseIfCondition` 和 `ifCondition` 类似，只不过 `elseIfCondition` 所存储的是 `v-else-if` 指令的属性值。
+
+往下代码如下：
+
+```javascript
+// 1. checkbox
+const branch0 = cloneASTElement(el)
+// process for on the main node
+processFor(branch0)
+addRawAttr(branch0, 'type', 'checkbox')
+processElement(branch0, options)
+branch0.processed = true // prevent it from double-processed
+branch0.if = `(${typeBinding})==='checkbox'` + ifConditionExtra
+addIfCondition(branch0, {
+  exp: branch0.if,
+  block: branch0
+})
+```
+
+前面所讲，`preTransformNode` 函数的作用就是将一个拥有绑定类型和 `v-model` 指令的 `input` 标签扩展为三个 `input` 标签，这三个 `input` 标签分别是复选按钮 `checkbox`、单选按钮 `radio` 和其他 `input` 标签。而如上这段代码的作用就是创建复选按钮的，首先调用 `cloneASTElement` 函数克隆出一个和原始标签的元素描述对象一模一样的元素描述对象出来，并将新克隆出的元素描述对象赋值给 `branch0` 常量。看 `cloneASTElement` 函数的实现，如下：
+
+```javascript
+function cloneASTElement (el) {
+  return createASTElement(el.tag, el.attrsList.slice(), el.parent)
+}
+```
+
+就是通过 `createASTElement` 函数再创建出一个元素描述对象，但是由于 `el.attrsList` 数组是引用类型，所以为了避免克隆的元素描述对象和原始描述对象互相干扰，所以需要使用数组的 `slice` 方法克隆出一个新的 `el.attrsList` 数组。
+
+获取到新的元素描述对象参考 `src/compiler/parser/index.js` 文件，在解析开始标签的 `start` 钩子函数中有如下代码：
+
+```javascript
+if (inVPre) {
+  processRawAttrs(element)
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  processIf(element)
+  processOnce(element)
+  // element-scope stuff
+  processElement(element, options)
+}
+```
+
+如上代码中的 `else if` 分支中，对于一个不在 `v-pre` 指令内的标签，会使用四个 `process*` 函数处理，所以在 `preTransformNode` 函数中同样需要这四个 `process*` 函数对标签的元素描述对象做处理，如下代码所示：
+
+```javascript
+// 1. checkbox
+const branch0 = cloneASTElement(el)
+// process for on the main node
+processFor(branch0)
+addRawAttr(branch0, 'type', 'checkbox')
+processElement(branch0, options)
+branch0.processed = true // prevent it from double-processed
+branch0.if = `(${typeBinding})==='checkbox'` + ifConditionExtra
+addIfCondition(branch0, {
+  exp: branch0.if,
+  block: branch0
+})s
+```
+
+上方代码中分别调用了 `processFor` 函数和 `processElement` 函数，这里并没有调用 `processOnce` 函数以及 `processIf` 函数，对于 `processOnce` 函数，没有使用说明一个问题，即如下代码中的 `v-once` 指令无效：
+
+```html
+<input v-model="val" :type="inputType" v-once />
+```
+
+对于一个使用了 `v-model` 指令又使用了绑定 `type` 属性的 `input` 标签而言，不存在静态的意义。
+
+没有调用 `processIf` 函数，因为对于条件指令在前边已经处理完了，如下所示：
+
+```javascript
+const ifCondition = getAndRemoveAttr(el, 'v-if', true)
+const ifConditionExtra = ifCondition ? `&&(${ifCondition})` : ``
+const hasElse = getAndRemoveAttr(el, 'v-else', true) != null
+const elseIfCondition = getAndRemoveAttr(el, 'v-else-if', true)
+```
+
+实际上 `preTransformNode` 函数的处理逻辑就是把一个 `input` 标签扩展为多个标签，并且这些扩展出来的标签彼此之间是互斥的，这些扩展出来的标签都存在于元素描述对象的 `el.ifConditions` 数组中。
+
+接着看代码，如下代码所示：
+
+```javascript
+// 1. checkbox
+const branch0 = cloneASTElement(el)
+// process for on the main node
+processFor(branch0)
+addRawAttr(branch0, 'type', 'checkbox')
+processElement(branch0, options)
+branch0.processed = true // prevent it from double-processed
+branch0.if = `(${typeBinding})==='checkbox'` + ifConditionExtra
+addIfCondition(branch0, {
+  exp: branch0.if,
+  block: branch0
+})
+```
+
+在 `processFor` 函数和 `processElement` 函数中调用了 `addRawAttr` 函数，该函数来自于 `src/compiler/helpers.js` 文件，源码如下：
+
+```javascript
+export function addRawAttr (el: ASTElement, name: string, value: any) {
+  el.attrsMap[name] = value
+  el.attrsList.push({ name, value })
+}
+```
+
+代码很容易理解，`addRawAttr` 函数的作用就是将属性的名和值分别添加到元素描述对象的 `el.attrsMap` 对象和 `el.attrsList` 数组中，以如下为例：
+
+```javascript
+addRawAttr(branch0, 'type', 'checkbox')
+```
+
+这样相当于把新克隆的标签视为：
+
+```html
+<input type="checkbox" />
+```
+
+继续看下方代码：
+
+```javascript
+// 1. checkbox
+const branch0 = cloneASTElement(el)
+// process for on the main node
+processFor(branch0)
+addRawAttr(branch0, 'type', 'checkbox')
+processElement(branch0, options)
+branch0.processed = true // prevent it from double-processed
+branch0.if = `(${typeBinding})==='checkbox'` + ifConditionExtra
+addIfCondition(branch0, {
+  exp: branch0.if,
+  block: branch0
+})
+```
+
+如上代码中 `branch0.processed = true` 将元素描述对象的 `el.processed` 属性设置为 `true`，标识着当前元素描述对象已经被处理过了，回到 `src/compiler/parser/index.js` 文件中 `start` 钩子函数的如下这段代码：
+
+```javascript
+if (inVPre) {
+  processRawAttrs(element)
+} else if (!element.processed) {
+  // structural directives
+  processFor(element)
+  processIf(element)
+  processOnce(element)
+  // element-scope stuff
+  processElement(element, options)
+}
+```
+
+
+
+
 
 ## `transformNode` 中置处理
 

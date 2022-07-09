@@ -4,17 +4,17 @@
 
 ```
 |-- build // 工程化构建脚本和配置
-		|-- bin // 项目文件构建
-		|-- md-loader // 自定义 markdown-loader，用于组件文档展示
+	|-- bin // 项目文件构建
+	|-- md-loader // 自定义 markdown-loader，用于组件文档展示
 |-- examples // 存放组件实例
 |-- lib // 构建后生成的文件，发布到 npm 包
 |-- packages // 存放组件源码和主题样式
 |-- src // 存放入口文件和各种工具文件
-		|-- directives // 指令
-		|-- locale // 国际化功能
-		|-- mixins // 混入方法
-		|-- transition // 动画
-		|-- utils // 工具方法
+	|-- directives // 指令
+	|-- locale // 国际化功能
+	|-- mixins // 混入方法
+	|-- transition // 动画
+	|-- utils // 工具方法
 |-- test // 存放单元测试文件
 |-- types // 存放声明文件，方便引入 TypeScript 项目中，需要在 package.json 中指定 typing 属性的值为声明的入口文件才能生效
 |-- components.json // 完整组件清单，标注了组件的文件路径，方便 webpack 打包时获取组件的文件路径

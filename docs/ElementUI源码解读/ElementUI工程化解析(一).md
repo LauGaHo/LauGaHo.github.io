@@ -104,3 +104,51 @@
 }
 ```
 
+#### `unpkg`
+
+`unpkg` 是前端常用的公共 CDN，它通过 URL 语法就可以访问 npm 上任何包的任何文件
+
+```
+unpkg.com/:package@:version/:file
+```
+
+当把包发布到 npm 上时，不仅可以在 NodeJS 环境中使用，也可以通过 unpkg 获取在浏览器环境执行，不过需要符合 UMD 规范。
+
+```json
+{
+  "unpkg": "lib/index.js"
+}
+```
+
+`main` 属性值 `lib/element-ui.common.js` 是 CommonJS 规范，由 `build/webpack.common.js` 打包生成。`unpkg` 属性值 `lib/index.js` 是 UMD 规范，由 `build/webpack.conf.js` 打包生成。关于打包模块之后会讲解。
+
+```javascript
+// pkg 指 package.json
+// 定义了 unpkg 属性时
+const url = "https://unpkg.com/:package@:latestVersion/[pkg.unpkg]"
+
+// 未定义 unpkg 属性时，将回退到 main 属性
+const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
+```
+
+设置了 `unpkg` 属性后，访问 `unpkg.com/element-ui` 按照规则将自动访问 `unpkg.com/element-ui/lib/index.js`。
+
+若浏览器环境引入组件，只需要通过 `unpkg.com/element-ui` 获取到资源，在页面上引入对应的 JS 文件和 CSS 文件即可开始使用。CSS 文件路径是 `style` 属性值，JS 文件路径是基于 UMD 规范打包文件的路径—`unpkg` 的属性值。
+
+```html
+<!-- 引入样式 -->
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<!-- 引入组件库 -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+```
+
+#### `faas`
+
+用于 `faas deploy` 配置，npm 脚本的 `pub` 命令存在 `sh build/deploy-faas.sh` 调用，用于站点 `element.eleme.io` 的发布部署。
+
+## npm 脚本
+
+`scripts` 属性指定了运行脚本命令的 npm 命令行缩写，各个脚本可以互相结合使用，这些脚本覆盖整个项目的声明周期 (开发、测试、打包、部署)。
+
+
+

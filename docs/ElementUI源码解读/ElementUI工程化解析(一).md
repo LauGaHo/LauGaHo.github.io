@@ -150,5 +150,62 @@ const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
 
 `scripts` 属性指定了运行脚本命令的 npm 命令行缩写，各个脚本可以互相结合使用，这些脚本覆盖整个项目的声明周期 (开发、测试、打包、部署)。
 
+> 注意事项：
+>
+> - 通配符：由于 npm 脚本就是 Shell 脚本，所以可以使用 Shell 通配符
+>
+>   ```json
+>   "lint": "jshint *.js"
+>   "lint": "jshint **/*.js"
+>   ```
+>
+>   上方代码中，`*` 标识任意文件名，`**` 表示任意一层子目录
+>
+> - 执行顺序：如果 npm 脚本中需要执行多个任务，需要明确其执行顺序。如果是 **并行执行** (即同时的平行执行)，使用 `&` 符号。
+>
+>   ```shell
+>   npm run script1.js & npm run script2.js
+>   ```
+>
+>   如果是 **继发执行** (即只有前一个任务成功，才执行下一个任务)，使用 `&&` 符号。
+>
+>   ```shell
+>   npm run script1.js && npm run script2.js
+>   ```
 
+`element` 定义了很多脚本，按照用途可以分为以下这些分类：
+
+- 项目基础
+- 文件构建
+- 项目开发
+- 发布部署
+- 项目测试
+
+脚本命令调用 `build` 目录中众多文件，自动化完成大量重复性工作，从而提高效率。
+
+### 项目基础
+
+#### `npm run bootstrap`
+
+```json
+"bootstrap": "yarn || npm i"
+```
+
+自动下载项目所需要的模块，官方推荐使用 `yarn`。
+
+#### `npm run clean`
+
+```json
+"clean": "rimraf lib && rimraf packages/*/lib && rimraf test/**/coverage"
+```
+
+清除打包、测试生成的目录及文件，主要有 `lib` 目录、`test/unit/coverage` 目录以及 `packages/theme-chalk/lib` 目录。
+
+> 需要安装 `rimraf` 包，用于递归删除目录所有文件。
+
+#### `npm run eslint` 代码质量检查
+
+```json
+"lint": "eslint src/**/* test/**/* packages/**/* build/**/* --quiet"
+```
 

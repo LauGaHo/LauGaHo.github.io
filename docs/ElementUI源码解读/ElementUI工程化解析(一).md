@@ -203,9 +203,150 @@ const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
 
 > 需要安装 `rimraf` 包，用于递归删除目录所有文件。
 
-#### `npm run eslint` 代码质量检查
+#### `npm run lint` 代码质量检查
 
 ```json
 "lint": "eslint src/**/* test/**/* packages/**/* build/**/* --quiet"
 ```
 
+基于 `.eslintrc` 和 `.eslintignore` 文件配置，调用 `eslint` 检测代码规范，`--quiet` 参数允许报告错误，禁止报告警告。
+
+项目使用自己封装的规则配置 `eslint-config-elemefe`，如下显示：
+
+```json
+{
+  "extends": "elemefe"
+}
+```
+
+### 文件构建
+
+#### `npm run i18n`
+
+```json
+"i18n": "node build/bin/i18n.js"
+```
+
+执行 `build/bin/i18n.js` 基于 `examples/i18n/page.json` 页面多语言配置和 `examples/pages/templates` 目录下的所有模板文件，生成 `zh-CN`、`en-US`、`es`、`fr-FR` 等四种语言的网站 `.vue` 文件。
+
+#### `npm run build:file`
+
+```javascript
+"build:file": "node build/bin/iconInit.js & node build/bin/build-entry.js & node build/bin/i18n.js & node build/bin/version.js"
+```
+
+该命令主要用于文件的自动生成，多个任务间是并行执行：
+
+- 执行 `build/bin/iconInit.js` 生成 `examples/icon.json` 图标集合文件。
+- 执行 `build/bin/build-entry.js` 生成 `src/index.js` 组件库入口文件。
+- 执行 `build/bin/i18n.js` 生成官网的多语言网站文件。
+- 执行 `build/bin/version.js` 生成 `examples/version.json` 记录项目版本信息，用于网站版头部导航版本切换。
+
+#### `npm run build:theme`
+
+```json
+"build:theme": "node build/bin/gen-cssfile && gulp build --gulpfile packages/theme-chalk/gulpfile.js && cp-cli packages/theme-chalk/lib lib/chalk"
+```
+
+该命令主要用于项目的主题和样式生成。
+
+- 执行 `build/bin/gen-cssfile` 生成 `packages/theme-chalk/index.scss` 样式总入口文件。全量引入组件时，引用该样式如下：`import 'packages/theme-chalk/src/index.scss'`。
+- 采用 `gulp` 进行样式构建，将 `packages/theme-chalk/src` 下的 `scss` 文件转换成 `css` 文件，输出到 `packages/theme-chalk/src/lib` 目录下；将 `packages/theme-chalk/src/fonts` 下的字体文件压缩处理，输出到 `packages/theme-chalk/src/lib/fonts` 目录下。
+- 将构建内容 `packages/theme-chalk/lib` 拷贝 `lib/theme-chalk` 下。前面 `style` 属性配置的路径文件 `lib/theme-chalk/index.css` 就是这样生成的。
+
+> 需要安装 `cp-cli` 包，用于文件和文件夹的复制，无需担心跨平台的问题。
+
+#### `npm run build:utils`
+
+```json
+"build:utils": "cross-env BABEL_ENV=utils babel src --out-dir lib --ignore src/index.js"
+```
+
+该命令作用把 `src` 目录下除了 `src/index.js` 入口文件外的其他文件通过 `babel` 转译后，输出至 `lib` 文件夹下。
+
+> 需要安装 `cross-env` 包，是一款运行跨平台设置和使用环境变量的脚本，不同平台使用唯一指令，无需担心跨平台问题。
+
+#### `npm run build:umd`
+
+```json
+"build:umd": "node build/bin/build-locale.js"
+```
+
+该命令作用是执行 `build/bin/build-locale.js` 通过 `babel` 处理 `src/locale/lang` 目录下的文件，生成 `umd` 格式的文件，输出到 `lib/umd/locale` 目录下。
+
+### 项目开发
+
+#### `npm run dev`
+
+```json
+"dev": "npm run bootstrap && npm build:file && cross-env NODE_ENV=development webpack-dev-server --config build/webpack.demo.js & node build/bin/template.js"
+```
+
+该命令用于运行组件库的本地开发环境：
+
+- 执行命令 `npm run bootstrap` 安装项目所需的依赖。
+- 执行命令 `npm run build:file` 生成各种入口文件。
+- `webpack-dev-server` 提供一个本地服务并运行项目网站 (打包规则配置文件 `build/webpack.demo.js`)；同时执行 `build/bin/template.js` 文件启动监听 `examples/pages/template` 目录下的模板文件，若内容发生变化，则重新生成网站文件。`webpack-dev-server` 具有 `live reloading` 功能，网站内容会实时重新加载。
+
+#### `npm run dev:play`
+
+```json
+"dev:play": "npm run build:file && cross-env NODE_ENV=development PLAY_ENV=true webpack-dev-server --config build/webpack.demo.js"
+```
+
+该命令用于组件库开发得的功能展示：
+
+- 执行 `npm run build:file` 生成对应的入口文件。
+- 因为配置了环境变量 `NODE_ENV=development PLAY_ENV=true`，可以在 `build/webpack.demo.js` 打包文件中看到入口文件 `example/play.js`，`play.js` 引用 `examples/play/index.vue`，可以引入组件库任意一个组件用于功能展示。
+
+### 发布部署
+
+#### `npm run deploy:build`
+
+```json
+"deploy:build": "npm run build && cross-env NODE_ENV=production webpack --config build/webpack.demo.js && ehco element.eleme.io>>examples/element-ui/CNAME"
+```
+
+该命令作用主要用于打包构建项目官网内容，为网站部署做准备：
+
+- 执行命令 `npm run build:file` 生成对应的入口文件。
+- `webpack --config build/webpack.demo.js` 基于 `production` 模式，打包生成内容输出至 `examples/element-ui/` 目录下。
+- `echo element.eleme.io>>examples/element-ui/CNAME` 文件中写入 `element.eleme.io`。
+
+#### `npm run deploy:extension`
+
+```json
+"deploy:extension": "cross-env NODE_ENV=production webpack --config build/webpack.extension.js"
+```
+
+该命令作用是打包构建主题编辑器的 Chrome 插件项目：`Element Theme Roller`。基于 `production` 模式打包生成内容输出到 `examples/extension` 目录下。
+
+使用该插件可以自定义全局变量和组件所有设计标记，并实时预览新主题并基于新主题生成完整的样式包，以供下载。
+
+#### `npm run dist`
+
+```json
+"dist": "npm run clean && npm run build:file && npm run lint && webpack --config build/webpack.conf.js && webpack --config build/webpack.common.js && webpack --config build/webpack.component.js && npm run build:utils &&npm run build:umd && npm run build:theme"
+```
+
+该命令：
+
+- `npm run clean` 清除打包、测试等文件目录。
+
+- `npm run build:file` 生成对应的入口文件。
+
+- `npm run lint` 检查代码规范。
+
+- 执行打包 `webpack --config build/webpack.conf.js`，入口文件 `src/index.js` 以 UMD 格式输出到 `lib/index.js`。
+
+- 执行打包 `webpack --config build/webpack.common.js`，入口文件 `src/index.js` 以 CommonJS2 格式输出到 `lib/element-ui.common.js`。
+
+- 执行打包 `webpack --config build/webpack.component.js`，入口文件 `components.json`，将 `packages` 目录下的组件，以 CommonJS2 格式分别输出到 `lib` 目录下，用于按需引入。
+
+- `npm run build:utils` 将 `src` 目录下除了 `index.js` 文件之外的文件通过 Babel 转译后生成对应的 JS 文件，并存放在 `lib` 目录下。
+
+  > 注意：`src` 目录下，一般都是存放 `directives`、`locale`、`mixins` 的内容，并没有组件的内容，组件的定义都在 `packages` 文件下。
+
+- `npm run build:umd` 通过 Babel 处理 `src/locale/lang` 目录下的文件，生成 UMD 格式的文件，输出到 `lib/umd/locale` 目录下。
+
+- `npm run build:theme` 生成样式总入口文件，并将 `.scss` 编译成 `.css` 文件，输出到 `packages/theme-chalk/src/lib` 目录下，最后将构建内容 `packages/theme-chalk/lib` 拷贝到 `lib/theme-chalk` 下。

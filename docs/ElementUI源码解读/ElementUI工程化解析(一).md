@@ -350,3 +350,21 @@ const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
 - `npm run build:umd` 通过 Babel 处理 `src/locale/lang` 目录下的文件，生成 UMD 格式的文件，输出到 `lib/umd/locale` 目录下。
 
 - `npm run build:theme` 生成样式总入口文件，并将 `.scss` 编译成 `.css` 文件，输出到 `packages/theme-chalk/src/lib` 目录下，最后将构建内容 `packages/theme-chalk/lib` 拷贝到 `lib/theme-chalk` 下。
+
+#### `npm run pub`
+
+```json
+"pub": "npm run bootstrap && sh build/git-release.sh && sh build/release.sh && node build/bin/gen-indices.js"
+```
+
+该命令：
+
+- `npm run bootstrap` 安装项目所需依赖。
+
+- `sh build/git-release.sh`，检查代码 `dev` 分支是否存在冲突。
+
+- `sh build/release.sh`，合并 `dev` 分支到 `master` 分支，更新版本号，发布主题，`push` 代码到远端仓库，发布组件到 npm 仓库。
+
+- 执行文件 `node build/bin/gen-indices.js`，提供 `algoliasearch` 搜索功能，需要把 `examples/docs` 目录下 `.md` 文件格式化后上传 `algolia`，如下图：
+
+  ![alt](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/JbXQzF.png)

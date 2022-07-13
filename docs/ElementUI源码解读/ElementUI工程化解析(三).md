@@ -706,3 +706,64 @@ module.exports = webpackConfig;
 - 入口文件：`examples/extension/src/background.js` 和 `examples/extension/src/entry.js`。
 - 输出文件：构建内容输出至 `examples/extension/dist` 目录下。生成文件 `background.js` 和 `entry.js`，复制文件 `icon.png` 和 `manifest.json`。
 
+```javascript
+const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const demoConfig = require('./webpack.demo');
+// 复用 webpack.demo.js 配置
+const webpack = require('webpack');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+// 两个入口文件
+demoConfig.entry = {
+  background: path.join(process.cwd(), './examples/extension/src/background'),
+  entry: path.join(process.cwd(), './examples/extension/src/entry')
+};
+// 输出
+demoConfig.output = {
+  path: path.join(process.cwd(), './examples/extension/dist'),
+  filename: '[name].js'
+};
+// 插件配置
+demoConfig.plugins = [
+  // 文件复制插件
+  new CopyWebpackPlugin([
+    { from: 'examples/extension/src/manifest.json' },
+    { from: 'examples/extension/src/icon.png' }
+  ]),
+  new VueLoaderPlugin(),
+  new ProgressBarPlugin(),
+  new webpack.LoaderOptionsPlugin({
+    vue: {
+      compilerOptions: {
+        preserveWhitespace: false
+      }
+    }
+  }),
+  new webpack.HotModuleReplacementPlugin()
+];
+// 更新解析规则，移除 url-loader
+demoConfig.module.rules.find(a => a.loader === 'url-loader').query = {};
+module.exports = demoConfig;
+```
+
+### `build/webpack.test.js`
+
+用于 `test/unit/karma.conf.js` 中打包配置。
+
+```javascript
+const webpackConfig = require('../../build/webpack.test');
+
+module.exports = function(config) {
+  const configuration = {
+    ......
+    webpack: webpackConfig,
+    ......
+  };
+
+  config.set(configuration);
+};
+```
+
+
+

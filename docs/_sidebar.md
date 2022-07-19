@@ -90,3 +90,6 @@
 
 - Vim
     - [Vim编辑器](Vim/Vim编辑器.md)
+
+- 疑难杂症
+    - [MacOS中的Python2.7](疑难杂症/MacOS中的Python2.7.md)

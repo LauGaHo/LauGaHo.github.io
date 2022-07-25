@@ -795,3 +795,573 @@ $family: unquote("Droid+Sans");
 ```
 
 > 不可以在混合指令 `mixin` 或控制指令中嵌套 `@import`。
+
+### 4.2 `@media`
+
+
+
+### 4.3 `@extend`
+
+在设计网页的时候经常会遇到这种情况：一个元素使用的样式和另一个元素完全相同，但又添加了额外的样式。通常会在 HTML 中给元素定义两个 `class`，一个是通用样式，一个是特殊样式。假设要设计一个普通错误样式和一个严重错误样式，一般会这样写：
+
+```html
+<div class="error seriousError">
+  Oh no! You've been hacked!
+</div>
+```
+
+样式如下：
+
+```css
+.error {
+  border: 1px #foo;
+  background-color: #fdd;
+}
+
+.seriousError {
+  border-width: 3px;
+}
+```
+
+使用 `@extend` 某种程度上可以告诉 Sass 将一个选择器下的所有样式集成给另一个选择器。
+
+```scss
+.error {
+  border: 1px #foo;
+  background-color: #fdd;
+}
+
+.serioudError {
+  @extend .error;
+  border-width: 3px;
+}
+```
+
+上面代码的意思是将 `.error` 下的所有样式继承给 `.seriousError`，`border-width: 3px` 是单独给 `.seriousError` 设定的特殊样式，这样，使用 `.seriousError` 的地方可以不再使用 `.error`。
+
+其他使用到 `.error` 样式也会同样继承给 `.seriousError`，例如，另一个样式 `.error.instrusion` 使用了 `hacked.png` 做背景，`<div class="seriousError instrusion"></div>` 也同样会使用 `hacked.png` 背景。
+
+```scss
+.error.instrusion {
+  background-image: url("/image/hacked.png");
+}
+```
+
+#### 4.3.1 `@extend` 原理
+
+`@extend` 的作用是将重复使用的样式 `.error` 延伸给需要包含这个样式的特殊样式 `.seriousError`，刚刚的例子：
+
+```scss
+.error {
+  border: 1px #f00;
+  background-color: #fdd;
+}
+.error.instrusion {
+  background-image: url("/image/hacked.png");
+}
+.seriousError {
+  @extend .error;
+  border-width: 3px;
+}
+```
+
+编译为：
+
+```css
+.error, .seriousError {
+  border: 1px #f00;
+  background-color: #fdd;
+}
+
+.error.instrusion, .seriousError.instrusion {
+  background-image: url("/image/hacked.png");
+}
+
+.seriousError {
+  border-width: 3px;
+}
+```
+
+#### 4.3.2 `@extend` 复杂的选择器
+
+`class` 选择器并不是唯一可以被 `extend` 的，Sass 允许 `extend` 任何定义给单个元素的选择器，比如 `.special.cool`、`a:hover` 或者 `a.user[href^="http://"]` 等，例如：
+
+```scss
+.hoverlink {
+  @extend a:hover;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+```
+
+编译为：
+
+```css
+a:hover, .hoverlink {
+  text-decoration: underline;
+}
+```
+
+和上方 `.error.instrusion` 的例子一样，所有 `a:hover` 的样式都将继承给 `.hoverlink`，包括其他使用到 `a:hover` 的样式，例如：
+
+```scss
+.hoverlink {
+  @extend a:hover;
+}
+
+.comment a.user:hover {
+  font-weight: bold;
+}
+```
+
+编译为：
+
+```css
+.comment a.user:hover, .comment .hoverlink.user {
+  font-weight: bold;
+}
+```
+
+#### 4.3.3 多重 `@extend`
+
+同一个选择器可以 `extend` 给多个选择器，它所包含的属性将继承给所有被 `extend` 的选择器：
+
+```scss
+.error {
+  border: 1px #f00;
+  background-color: #fdd;
+}
+.attention {
+  font-size: 3em;
+  background-color: #f00;
+}
+.seriousError {
+  @extend .error;
+  @extend .attention;
+  border-width: 3px;
+}
+```
+
+编译为：
+
+```css
+.error, .seriousError {
+  border: 1px #f00;
+  background-color: #fdd;
+}
+.attention, .seriousError {
+  font-size: 3em;
+  background-color: #f00;
+}
+.seriousError {
+  border-width: 3px;
+}
+```
+
+每个 `.seriousError` 将包含 `.error` 和 `.attention` 下的所有样式，这时，后定义的样式享有优先权：`.seriousError` 的背景颜色是 `#f00` 而不是 `#fdd`，因为 `.attention` 在 `.error` 之后定义。
+
+多重 `extend` 可以使用逗号分隔选择器名，比如：
+
+```scss
+@extend .error, .attention;
+```
+
+和
+
+```scss
+@extend .error;
+@extend .attention;
+```
+
+具有相同的效果。
+
+#### 4.3.4 链式 `extend`
+
+当一个选择器 `extend` 给第二个后，可以继续将第二个选择器 `extend` 给第三个，例如：
+
+```scss
+.error {
+  border: 1px #f00;
+}
+
+.seriousError {
+  @extend .error;
+  border-width: 3px;
+}
+
+.criticalError {
+  @extend .seriousError;
+  position: fixed;
+  top: 10%;
+  bottom: 10%;
+  left: 10%;
+  right: 10%;
+}
+```
+
+现在，每个 `.seriousError` 选择器将包含 `.error` 的样式，而 `.criticalError` 不仅包含 `.seriousError` 的样式也会同时包含 `.error` 的所有样式，上方的代码编译为：
+
+```css
+.error, .seriousError, .criticalError {
+  border: 1px #f00;
+  background-color: #fdd;
+}
+.seriousError, .criticalError {
+  border-width: 3px;
+}
+.criticalError {
+  position: fixed;
+  top: 10%;
+  bottom: 10%;
+  left: 10%;
+  right: 10%;
+}
+```
+
+#### 4.3.5 选择器列
+
+暂时不可以将选择器列 (`.foo .bar` 或 `.foo + .bar`) `extend` 给其他元素，但是，却可以将其他元素 `extend` 给选择器列：
+
+```scss
+#fake-links .link {
+  @extend a;
+}
+
+a {
+  color: blue;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+```
+
+编译为：
+
+```css
+a, #fake-links .link {
+  color: blue;
+}
+a:hover, #fake-links .link:hover {
+  text-decoration: underline;
+}
+```
+
+##### 4.3.5.1 合并选择器列
+
+有时候会遇到更复杂的情况，比如选择器列中的某个元素需要 `extend` 给另一个选择器列，这种情况下，两个选择器列需要合并，比如：
+
+```scss
+#admin .tabbar a {
+  font-weight: bold;
+}
+#demo .overview .fakelink {
+  @extend a;
+}
+```
+
+技术上能够生成所有匹配条件的结果，但是这样生成的样式表太复杂了，上面这个简单的例子就可能有 10 中结果。所以，Sass 只会编译输出有用的选择器。
+
+当两个列合并时，如果没有包含相同的选择器，将生成两个新选择器：第一列出现在第二列之前，或者第二列出现在第一列之前：
+
+```scss
+#admin .tabbar a {
+  font-weight: bold;
+}
+#demo .overview .fakelink {
+  @extend a;
+}
+```
+
+编译为：
+
+```css
+#admin .tabbar a,
+#admin .tabbar #demo .overview .fakelink,
+#demo .overview #admin .tabbar .fakelink {
+  font-weight: bold;
+}
+```
+
+如果两个列包含了相同的选择器，相同部分将会合并在一起，其他部分交替输出，下方例子中，两个列都包含了 `#admin`，输出结果中它们合并在了一起：
+
+```scss
+#admin .tabbar a {
+  font-weight: bold;
+}
+#admin .overview .fakelink {
+  @extend a;
+}
+```
+
+编译为：
+
+```css
+#admin .tabbar a,
+#admin .tabbar .overview .fakelink,
+#admin .overview .tabbar .fakelink {
+  font-weight: bold;
+}
+```
+
+#### 4.3.6 `@extend-Only` 选择器
+
+有的时候需要定义一套样式并不是给某个元素用，而是通过 `@extend` 指令使用，尤其是在制作 Sass 样式库的时候，希望 Sass 能够忽略用不到的样式。
+
+如果使用普通的 CSS 规则，最后会编译出很多用不到的样式，也容易和其他样式名冲突，所以，Sass 引入了“占位符选择器”，看起来很想普通的 `id` 或 `class` 选择器，只是 `#` 或 `.` 被替换成了 `%`。可以像 `class` 或者 `id` 选择器那样使用，当它们单独使用时，不会被编译到 CSS 文件中。
+
+```scss
+// This ruleset won't be rendered on its own
+#content a%extreme {
+  color: blue;
+  font-weight: bold;
+  font-size: 2em;
+}
+```
+
+占位符选择器时需要通过 `@extend` 指令进行使用，用法和 `class` 或者 `id` 选择器一样，被 `extend` 后，占位符选择器本身不会被编译。
+
+```scss
+.notice {
+  @extend %extreme;
+}
+```
+
+编译为：
+
+```css
+#content a.notice {
+  color: blue;
+  font-weight: bold;
+  font-size: 2em;
+}
+```
+
+#### 4.3.7 `!optional` 声明
+
+如果 `@extend` 失败会收到错误提示，比如，这样像如下的写法：
+
+```scss
+a.important {
+  @extend .notice;
+}
+```
+
+当没有 `.notice` 选择器时，将会报错，只有 `h1.notice` 包含 `.notice` 时也会报错，因为 `h1` 和 `a` 冲突，会生成新的选择器。
+
+如果要求 `@extend` 不生成新选择器，可以通过 `!optional` 声明达到这个目的，例如：
+
+```scss
+a.important {
+  @extend .notice !optional;
+}
+```
+
+#### 4.3.8 在指令中使用 `@extend`
+
+在指令中使用 `@extend` 时 (比如在 `@media` 中) 有一些限制：Sass 不可以将 `@media` 层外的 CSS 规则 `extend` 给指令层内的 CSS，这样会生成大量的无用代码。也就是说，如果在 `@media` (或者其他 CSS 指令) 中使用 `@extend`，必须 `extend` 给相同指令层中的选择器。
+
+下方例子是可行的：
+
+```scss
+@media print {
+  .error {
+    border: 1px #f00;
+    background-color: #fdd;
+  },
+  .seriousError {
+    @extend .error;
+    border-width: 3px;
+  }
+}
+```
+
+但不可以这样：
+
+```scss
+.error {
+  border: 1px #f00;
+  background-color: #fdd;
+}
+@media print {
+  .seriousError {
+    // INVALID EXTEND: .error is used outside of the "@media print" directive
+    @extend .error;
+    border-width: 3px;
+  }
+}
+```
+
+### 4.4 `@at-root`
+
+`@at-root` 指令可以让一个或多个规则从文档的根部发出，而不是嵌套在它们的父选择器之下，它也可以和单个内联选择器一起使用：
+
+```scss
+.parent {
+  ...
+  @at-root .child {
+    ...
+  }
+}
+```
+
+编译为：
+
+```css
+.parent {
+  ...
+}
+.child {
+  ...
+}
+```
+
+或者它可以和包含多个选择器的块一起使用：
+
+```scss
+.parent {
+  ...
+  @at-root {
+    .child1 { ... }
+    .child2 { ... }
+  }
+  .step-child { ... }
+}
+```
+
+编译为：
+
+```css
+.parent { ... }
+.child1 { ... }
+.child2 { ... }
+.parent .step-child { ... }
+```
+
+#### 4.4.1 `@at-root(without: ...)` 和 `@at-root(with: ...)`
+
+默认情况下，`@at-root` 只排除选择器。但是，也可以使用 `@at-root` 移出嵌套指令，例如 `@media` 指令，代码如下：
+
+```scss
+@media print {
+  .page {
+    width: 8in;
+    @at-root (with-out: media) {
+      color: red;
+    }
+  }
+}
+```
+
+编译为：
+
+```css
+@media print {
+  .page {
+    width: 8in;
+  }
+}
+.page {
+  color: red;
+}
+```
+
+## 5 控制指令
+
+SassScript 提供了一些基础的控制指令，比如在满足一定条件时引用样式，或者设定范围重复输出格式。控制指令时一种高级功能，日常编写过程并不常用到，主要和混合指令 `mixin` 配合使用，尤其是在样式库中。
+
+### 5.1 `if()`
+
+内置的 `if()` 函数允许根据条件进行分类并仅返回两种可能结果中的一种。它可以在任何脚本上下文中使用。`if()` 函数只评估和它将返回的参数有关的参数，这允许引用可能未定义的变量或进行可能导致错误的计算。
+
+### 5.2 `@if`
+
+当 `@if` 的表达式返回值不是 `false` 或者 `null` 时，条件成立，输出 `{}` 内的代码：
+
+```scss
+p {
+  @if 1 + 1 == 2 { border: 1px solid; }
+  @if 5 < 3 { border: 2px dotted; }
+  @if null { border: 3px double; }
+}
+```
+
+编译为：
+
+```css
+p {
+  border: 1px solid;
+}
+```
+
+`@if` 声明后面可以跟多个 `@else if` 声明，或者一个 `@else` 声明。如果 `@if` 声明失败，Sass 将逐条执行 `@else if` 声明，如果全部失败，最后执行 `@else` 声明，例如：
+
+```scss
+$type: monster;
+p {
+  @if $type == ocean {
+    color: blue;
+  } @else if $type == matador {
+    color: red;
+  } @else if $type == monster {
+    color: green;
+  } @else {
+    color: black;
+  }
+}
+```
+
+编译为：
+
+```css
+p {
+  color: green;
+}
+```
+
+### `@for`
+`@for` 指令可以在限制的范围内重复输出格式，每次要求 (变量的值) 对输出结果做出变动。这个指令包含两种格式:
+
+- `@for $var from <start> through <end>`
+- `@for $var from <start> to <end>`
+  
+区别在于 `through` 和 `to` 的含义：当使用 `through` 时，条件范围包含 `<start>` 和 `<end>` 的值，而使用 `to` 时条件范围只包含 `<start>` 的值但不包含 `<end>` 的值，另外，`$var` 可以是任何变量，比如 `$i`；`<start>` 和 `<end>` 必须是整数值。
+
+```scss
+@for $i from 1 through 3 {
+  .item-#{$i} {
+    width: 2em * $i;
+  }
+}
+```
+
+### `@each`
+`@each` 指令的格式是 `$var in <list>`，`$var` 可以是任何变量名，比如 `$length` 或者 `$name`，而 `<list>` 是一连串的值，也就是值列表。
+
+`@each` 将变量 `$var` 作用于值列表中的每一个项目，然后输出结果，例如：
+
+```scss
+@each $animal in puma, sea-slug, egret, salamander {
+  .#{$animal}-icon {
+    background-image: url('/images/#{$animal}.png');
+  }
+}
+```
+
+编译为：
+
+```css
+.puma-icon {
+  background-image: url('/images/puma.png');
+}
+.sea-slug-icon {
+  background-image: url('/images/sea-slug.png');
+}
+.egret-icon {
+  background-image: url('/images/egret.png');
+}
+.salamander-icon {
+  background-image: url('/images/salamander.png');
+}
+```

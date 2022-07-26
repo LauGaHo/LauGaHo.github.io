@@ -1320,12 +1320,14 @@ p {
 }
 ```
 
-### `@for`
+### 5.3 `@for`
+
 `@for` 指令可以在限制的范围内重复输出格式，每次要求 (变量的值) 对输出结果做出变动。这个指令包含两种格式:
 
 - `@for $var from <start> through <end>`
 - `@for $var from <start> to <end>`
   
+
 区别在于 `through` 和 `to` 的含义：当使用 `through` 时，条件范围包含 `<start>` 和 `<end>` 的值，而使用 `to` 时条件范围只包含 `<start>` 的值但不包含 `<end>` 的值，另外，`$var` 可以是任何变量，比如 `$i`；`<start>` 和 `<end>` 必须是整数值。
 
 ```scss
@@ -1336,7 +1338,8 @@ p {
 }
 ```
 
-### `@each`
+### 5.4 `@each`
+
 `@each` 指令的格式是 `$var in <list>`，`$var` 可以是任何变量名，比如 `$length` 或者 `$name`，而 `<list>` 是一连串的值，也就是值列表。
 
 `@each` 将变量 `$var` 作用于值列表中的每一个项目，然后输出结果，例如：
@@ -1365,3 +1368,74 @@ p {
   background-image: url('/images/salamander.png');
 }
 ```
+
+#### 5.4.1 多重赋值
+
+
+
+### 5.5 `@while`
+
+`@while` 指令重复输出格式直到表达式返回结果为 `false`。这样可以实现比 `@for` 更复杂的循环，只是很少会用到。例如：
+
+```scss
+@while $i > 0 {
+  .item-#{$i} {
+    width: 2em * $i;
+  }
+  $i: $i - 2;
+}
+```
+
+编译为：
+
+```css
+.item-6 {
+  width: 12em;
+}
+.item-4 {
+  width: 8em;
+}
+.item-2 {
+  width: 4em;
+}
+```
+
+## 6 混合指令 `mixin`
+
+混合指令 `mixin` 用于定义可重复使用的样式，避免了使用无语义的 `class`，比如 `.float-left`。混合指令可以包含所有的 CSS 规则，绝大部分的 Sass 规则，甚至可以通过参数功能引入变量，输出多样化的样式。
+
+### 6.1 定义混合指令 `@mixin`
+
+混合指令的用法是在 `@mixin` 后添加名称和样式，比如名为 `large-text` 的混合通过下面的代码定义：
+
+```scss
+@mixin large-text {
+  font: {
+    family: Arial;
+    size: 20px;
+    weight: bold;
+  }
+  color: #ff0000;
+}
+```
+
+混合也需要包含选择器和属性，设置可以使用 `&` 引用父选择器：
+
+```scss
+@mixin clearfix {
+  display: inline-block;
+  &:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+  }
+  * html & {
+    height: 1px;
+  }
+}
+```
+
+### 6.2 引用混合样式 `@include`
+

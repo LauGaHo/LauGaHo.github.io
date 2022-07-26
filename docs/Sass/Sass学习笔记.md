@@ -1439,3 +1439,206 @@ p {
 
 ### 6.2 引用混合样式 `@include`
 
+使用 `@include` 指令引用混合样式，格式是在其后添加混合名称，以及需要的参数 (可选)：
+
+```scss
+.page-title {
+  @include large-text;
+  padding: 4px;
+  margin-top: 10px;
+}
+```
+
+编译为：
+
+```css
+.page-title {
+  font-family: Arial;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ff0000;
+  padding: 4px;
+  margin-top: 10px;
+}
+```
+
+也可以在最外层引用混合样式，不会直接定义属性，也不可以使用父选择器。
+
+```scss
+@mixin silly-links {
+  a {
+    color: blue;
+    background-color: red;
+  }
+}
+@include silly-links;
+```
+
+编译为：
+
+```css
+a {
+  color: blue;
+  background-color: red;
+}
+```
+
+混合样式中也可以包含其他混合样式，比如：
+
+```scss
+@mixin compund {
+  @include highlighted-background;
+  @include header-text;
+}
+@mixin highlighted-background {
+  background-color: #fc0;
+}
+@mixin header-text {
+  font-size: 20px;
+}
+```
+
+混合样式中应该只定义后代选择器，这样可以安全的导入到文件的任何位置。
+
+### 6.3 参数
+
+参数用于给 `mixin` 指令中的样式设定变量，并赋值使用。在定义 `mixin` 指令的时候，按照变量的格式，通过逗号分隔，将参数写进圆括号中，引用指令时，按照参数的顺序，再将所赋的值对应写进括号：
+
+```scss
+@mixin sexy-border($color, $width) {
+  border: {
+    color: $color;
+    width: $width;
+    style: $style;
+  }
+}
+p {
+  @include sexy-border(blue, 1in);
+}
+```
+
+编译为：
+
+```css
+p {
+  border-color: blue;
+  border-width: 1in;
+  border-style: dashed;
+}
+```
+
+混合指令也可以使用给变量赋值的方法给参数设定默认值，然后，当这个指令被引用的使用，如果没有参数赋值，则自动使用默认值：
+
+```scss
+@mixin sexy-border($border, $width: 1in) {
+  border: {
+    color: $color;
+    width: $width;
+    style: dashed;
+  }
+}
+p {
+  @include sexy-border(blue);
+}
+h1 {
+  @include sexy-border(blue, 2in);
+}
+```
+
+编译为
+
+```scss
+p {
+  border-color: blue;
+  border-width: 1in;
+  border-style: dashed;
+}
+h1 {
+  border-color: blue;
+  border-width: 2in;
+  border-style: dashed;
+}
+```
+
+#### 6.3.1 关键词参数
+
+混合指令也可以使用关键词参数，上方的例子可以写成：
+
+```scss
+p {
+  @include sexy-border($color: blue);
+}
+h1 {
+  @include sexy-border($color: blue, $width: 2in);
+}
+```
+
+虽然不够简明，但是阅读起来会更加方便。关键词参数给函数提供了更灵活的接口，以及容易调用的参数。关键词参数可以打乱顺序使用，如果使用默认值也可以缺省，另外，参数名被视为变量名，下划线和短横线可以互相使用。
+
+#### 6.3.2 参数变量
+
+有时，不能确定混合指令需要多少个参数，比如一个关于 `box-shadow` 的混合指令不能确定有多少个 `shadow` 会被用到。这时可以使用参数变量 `...` 声明 (写在参数的最后方) 告诉 Sass 将这些参数视为值列表处理：
+
+```scss
+@mixin box-shadow($shadows...) {
+  -moz-box-shadow: $shadows;
+  -webkit-box-shadow: $shadows;
+  box-shadow: $shadows;
+}
+.shadows {
+  @include box-shadow(0px 4px 5px #666, 2px 6px 10px #999);
+}
+```
+
+编译为：
+
+```scss
+.shadows {
+  -moz-box-shadow: 0px 4px 5px #666, 2px 6px 10px #999;
+  -webkit-box-shadow: 0px 4px 5px #666, 2px 6px 10px #999;
+  box-shadow: 0px 4px 5px #666, 2px 6px 10px #999;
+}
+```
+
+参数变量也可以用在引用混合指令的时候 (`@include`)，和平时用法一样，将一串值列表的值逐条作为参数引用：
+
+```scss
+@mixin colors($text, $background, $border) {
+  color: $text;
+  background-color: $background;
+  border-color: $border;
+}
+$value: #ff0000, #00ff00, #0000ff;
+.primary {
+  @include colors($values...);
+}
+```
+
+编译为：
+
+```css
+.primary {
+  color: #ff0000;
+  background-color: #00ff00;
+  border-color: #0000ff;
+}
+```
+
+> You can use variable arguments to wrap a mixin and add additional styles without changing the argument signature of the mixin. If you do so, even keyword arguments will get passed through to the wrapped mixin. For example:
+
+```scss
+@mixin wrapped-stylish-mixin($args...) {
+  font-weight: bold;
+  @include stylish-mixin($args...);
+}
+.stylish {
+  // The $width argument will get passed on to "stylish-mixin" as a keyword
+  @include wrapped-stylish-mixin(#00ff00, $width: 100px);
+}
+```
+
+上面注释内的意思是：`$width` 参数将会传递给 `stylish-mixin` 作为关键词。
+
+### 6.4 向混合样式 `mixin` 导入内容
+
+

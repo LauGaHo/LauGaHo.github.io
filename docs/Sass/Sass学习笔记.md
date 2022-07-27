@@ -1639,6 +1639,179 @@ $value: #ff0000, #00ff00, #0000ff;
 
 上面注释内的意思是：`$width` 参数将会传递给 `stylish-mixin` 作为关键词。
 
-### 6.4 向混合样式 `mixin` 导入内容
+### 6.4 向混合样式 `mixin` 导入内容 (`@content`)
 
+在引用混合样式的时候，可以先将一段代码导入到混合指令中，然后再输出混合样式，额外导入的部分将出现在 `@content` 标志的地方：
 
+```scss
+@mixin apply-to-ie6-only {
+  * html {
+    @content;
+  }
+}
+@include apply-to-ie6-only {
+  #logo {
+    background-image: url(/logo.gif);
+  }
+}
+```
+
+编译为：
+
+```css
+* html #logo {
+  background-image: url(/logo.gif);
+}
+```
+
+为了便于书写，`@mixin` 可以使用 `=` 表示，而 `@include` 可以用 `+` 表示，所以上面的例子可以写成：
+
+```scss
+=apply-to-ie6-only
+  * html
+    @content
+
++apply-to-ie6-only
+  #logo
+    background-image: url(/logo.gif)
+```
+
+> 注意：当 `@content` 在指令中出现过多次或者出现在循环中时，额外的代码被导入到每一个地方。
+
+#### 6.4.1 变量范围和内容块
+
+传递给 `mixin` 的内容块的范围内进行评估，而不是在 `mixin` 的范围内。这意味着 `mixin` 的本地变量不能在传递的样式块中使用，并且变量将解析为全局值：
+
+> 原文：The block of content passed to a mixin are evaluated in the scope where the block is defined, not in the scope of the mixin. This means that variables local to the mixin cannot be used within the passed style block and variables will resolve to the global value:
+
+```scss
+$color: white;
+@mixin colors($color: blue) {
+  background-color: $color;
+  @content;
+  border-color: $color;
+}
+.colors {
+  @include colors {
+    color: $color;
+  }
+}
+```
+
+编译为：
+
+```css
+.colors {
+  background-color: blue;
+  color: white;
+  border-color: blue;
+}
+```
+
+此外，这清楚地表明，在传递的块中使用的变量和 `mixin` 和定义块的其他样式相关。例如：
+
+> 原文：Additionally, this makes it clear that the variables and mixins that are used within the passed block are related to the other styles around where the block is defined. For example:
+
+```scss
+#sidebar {
+  $sidebar-width: 300px;
+  width: $sidebar-width;
+  @include smartphone {
+    width: $sidebar-width / 3;
+  }
+}
+```
+
+## 7 函数指令
+
+Sass 支持自定义函数，并能在任何属性值或 SassScript 中使用：
+
+```scss
+$grid-width: 40px;
+$gutter-width: 10px;
+
+@function grid-width($n) {
+  @return $n * $grid-width + ($n - 1) * $guttter-width;
+}
+
+#sidebar {
+  width: grid-width(5);
+}
+```
+
+编译为
+
+```scss
+#sidebar {
+  width: 240px;
+}
+```
+
+和 `mixin` 相同，也可以传递若干个全局变量给函数作为参数。一个函数可以含有多条语句，需要调用 `@return` 输出结果。
+
+自定义的函数也可以使用关键词参数，上方的例子可以这样写：
+
+```scss
+#sidebar {
+  width: grid-width($n: 5);
+}
+```
+
+建议在自定义函数前添加前缀避免命名冲突，其他人阅读代码的时候也会知道这不是 Sass 或者 CSS 的子代功能。
+
+自定义函数和 `mixin` 相同，都支持参数变量。
+
+## 8 输出格式
+
+Sass 提供了四种输出格式，可以通过 `:style option` 选项设定，或者在命令行中使用 `--style` 选项。
+
+### 8.1 `:nested`
+
+Nested 样式时 Sass 默认的输出格式，能够清晰反映 CSS 和 HTML 的结构关系。选择器和属性等单独占用一行，缩进量和 Sass 文件中一致，每行的缩进量反映了其在嵌套规则内的层数。当阅读大型 CSS 文件时，这样格式可以很容易分析文件的主要结构。
+
+```scss
+#main {
+  color: #fff;
+  background-color: #000; }
+  #main p {
+    width: 10em; }
+
+.huge {
+  font-size: 10em;
+  font-weight: bold;
+  text-decoration: underline; }
+```
+
+### 8.2 `:expanded`
+
+`:expanded` 的输出更像是手写的样式，选择器、属性等各占用一行，属性根据选择器缩进，而选择器不做任何缩进。
+
+```scss
+#main {
+  color: #fff;
+  background-color: #000;
+}
+#main p {
+  width: 10em;
+}
+.huge {
+  font-size: 10em;
+  font-weight: bold;
+  text-decoration: underline;
+}
+```
+
+### 8.3 `:compact`
+
+`:compact` 输出方式比起上面两种占用的空间更少，每条 CSS 规则只占一行，包含其下的所有属性。嵌套过的选择器在输出时没有空行，不嵌套的选择器会输出空白行作为分隔符。
+
+```scss
+#main { color: #fff; background-color: #000; }
+#main p { width: 10em; }
+
+.huge { font-size: 10em; font-weight: bold; text-decoration: underline; }
+```
+
+### 8.4 `:compressed`
+
+`:compressed` 输出方式删除所有无意义的空格、空白行、以及注释，力求将文件体积压缩到最小，同时也会做出其他调整，比如自动替换占用空间最小的颜色表达方式。

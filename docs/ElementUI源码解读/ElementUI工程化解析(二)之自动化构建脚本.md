@@ -1,4 +1,4 @@
-# ElementUI工程化解析(二)
+# ElementUI工程化解析(二)之自动化构建脚本
 
 ## 组件清单 `components.json`
 

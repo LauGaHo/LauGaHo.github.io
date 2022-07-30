@@ -1804,6 +1804,233 @@ for (let i = 0; i < preTransforms.length; i++) {
 
 ## `transformNode` 中置处理
 
+在前置处理中，目前只有一个用来处理使用了 `v-model` 指令并且使用绑定的 `type` 属性的 `input` 标签的前置处理函数。与之不同，中置处理函数 `transformNode` 则有两个分别对 `class` 属性和 `style` 属性进行扩展，打开 `src/compiler/parser/index.js` 函数找到 `processElement` 函数，如下代码所示：
+
+```javascript
+export function processElement (element: ASTElement, options: CompilerOptions) {
+  processKey(element)
+
+  // determine whether this is a plain element after
+  // removing structural attributes
+  element.plain = !element.key && !element.attrsList.length
+
+  processRef(element)
+  processSlot(element)
+  processComponent(element)
+  for (let i = 0; i < transforms.length; i++) {
+    element = transforms[i](element, options) || element
+  }
+  processAttrs(element)
+}
+```
+
+可以看到中置处理函数的应用时机是在 `processAttrs` 函数之前，使用 `for` 循环遍历了 `transforms` 数组，`transform` 数组中包含了两个 `transformNode` 函数，分别来自 `src/platforms/web/compiler/modules/class.js` 文件和 `src/platforms/web/compiler/modules/style.js` 文件。先看 `class.js` 文件，在该文件下找到 `transformNode` 函数，如下：
+
+```javascript
+function transformNode (el: ASTElement, options: CompilerOptions) {
+  const warn = options.warn || baseWarn
+  const staticClass = getAndRemoveAttr(el, 'class')
+  if (process.env.NODE_ENV !== 'production' && staticClass) {
+    const res = parseText(staticClass, options.delimiters)
+    if (res) {
+      warn(
+        `class="${staticClass}": ` +
+        'Interpolation inside attributes has been removed. ' +
+        'Use v-bind or the colon shorthand instead. For example, ' +
+        'instead of <div class="{{ val }}">, use <div :class="val">.'
+      )
+    }
+  }
+  if (staticClass) {
+    el.staticClass = JSON.stringify(staticClass)
+  }
+  const classBinding = getBindingAttr(el, 'class', false /* getStatic */)
+  if (classBinding) {
+    el.classBinding = classBinding
+  }
+}
+```
+
+在该 `transformNode` 函数内，首先执行的是如下两句代码：
+
+```javascript
+const warn = options.warn || baseWarn;
+const staticClass = getAndRemoveAttr(el, 'class');
+```
+
+定义 `warn` 常量，它是一个函数，用来打印警告信息。接着使用 `getAndRemoveAttr` 函数从元素描述对象上获取非绑定的 `class` 属性的值，并将其保存在 `staticClass` 常量中。接着进入一条 `if` 条件语句：
+
+```javascript
+if (process.env.NODE_ENV !== 'production' && staticClass) {
+  const res = parseText(staticClass, options.delimiters)
+  if (res) {
+    warn(
+      `class="${staticClass}": ` +
+      'Interpolation inside attributes has been removed. ' +
+      'Use v-bind or the colon shorthand instead. For example, ' +
+      'instead of <div class="{{ val }}">, use <div :class="val">.'
+    )
+  }
+}
+```
+
+在非生产环境下，并且非绑定的 `class` 属性值存在，则会使用 `parseText` 函数解析该值，如果解析成功则说明在非绑定的 `class` 属性中使用了字面量表达式，例如：
+
+```html
+<div class="{{ isActive ? 'active' : '' }}"></div>
+```
+
+这时 Vue 会打印警告信息，提示你使用如下这种方式替代：
+
+```html
+<div :class="{ 'active': isActive }"></div>
+```
+
+再往下是这段代码：
+
+```javascript
+if (staticClass) {
+  el.staticClass = JSON.stringify(staticClass);
+}
+```
+
+如果非绑定的 `class` 属性值存在，则将该值保存在元素描述对象的 `el.staticClass` 属性中，注意这里使用了 `JSON.stringify` 函数对值做了处理。再往下是 `transformNode` 函数的最后一段代码：
+
+```javascript
+const classBinding = getBindingAttr(el, 'class', false /* getStatic */);
+if (classBinding) {
+  el.classBinding = classBinding;
+}
+```
+
+这段代码使用了 `getBindingAttr` 函数获取绑定的 `class` 属性，如果绑定的 `class` 属性的值存在，则将该值保存在 `el.classBinding` 属性中。
+
+以上是中置处理对于 `class` 属性的处理方式，总结一下：
+
+- 非绑定的 `class` 属性保存在元素描述对象中的 `staticClass` 属性中，有如下模板：
+
+  ```html
+  <div class="a b c"></div>
+  ```
+
+  则该标签元素描述对象的 `el.staticClass` 属性值为：
+
+  ```javascript
+  el.staticClass = JSON.stringify('a b c`);
+  ```
+
+- 绑定的 `class` 属性值保存在元素描述对象的 `el.classBinding` 属性中，有如下模板：
+
+  ```html
+  <div :class="{{ 'active': isActive }}"></div>
+  ```
+
+  则该标签元素描述对象的 `el.classBinding` 属性值为：
+
+  ```javascript
+  el.classBinding = "{ 'active': isActive}";
+  ```
+
+对于 `style` 属性的处理和 `class` 属性的处理类似，用于处理 `style` 属性的中置处理函数位于 `src/platforms/web/compiler/modules/style.js` 文件，如下：
+
+```javascript
+function transformNode (el: ASTElement, options: CompilerOptions) {
+  const warn = options.warn || baseWarn
+  const staticStyle = getAndRemoveAttr(el, 'style')
+  if (staticStyle) {
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV !== 'production') {
+      const res = parseText(staticStyle, options.delimiters)
+      if (res) {
+        warn(
+          `style="${staticStyle}": ` +
+          'Interpolation inside attributes has been removed. ' +
+          'Use v-bind or the colon shorthand instead. For example, ' +
+          'instead of <div style="{{ val }}">, use <div :style="val">.'
+        )
+      }
+    }
+    el.staticStyle = JSON.stringify(parseStyleText(staticStyle))
+  }
+
+  const styleBinding = getBindingAttr(el, 'style', false /* getStatic */)
+  if (styleBinding) {
+    el.styleBinding = styleBinding
+  }
+}
+```
+
+可以看到，用来处理 `style` 属性的 `transformNode` 函数基本和用来处理 `class` 属性的 `transformNode` 函数相同，不过下方这行代码需要格外注意，留个心：
+
+```javascript
+el.staticClass = JSON.stringify(parseStyleText(staticClass));
+```
+
+和 `class` 属性不同，如果一个标签使用了非绑定的 `style` 属性，则会使用 `parseStyleText` 函数对属性值进行处理，`parseStyleText` 函数来自 `src/platforms/web/util/style.js` 文件，举个例子说明 `parseStyleText` 函数处理非绑定 `style` 属性值，如下所示：
+
+```html
+<div style="color: red; background: green;"></div>
+```
+
+如上模板中使用了非绑定的 `style` 属性，属性值为字符串 `'color: red; background: green;'`，`parseStyleText` 函数会把这个字符串解析为对象，如下：
+
+```javascript
+{
+  color: 'red';
+  background: 'green';
+}
+```
+
+最后再使用 `JSON.stringify` 函数将如上对象变为字符串后赋值给元素描述对象的 `el.staticClass` 属性。
+
+接着细看 `parseStyleText` 函数的源码：
+
+```javascript
+export const parseStyleText = cached(function (cssText) {
+  const res = {}
+  const listDelimiter = /;(?![^(]*\))/g
+  const propertyDelimiter = /:(.+)/
+  cssText.split(listDelimiter).forEach(function (item) {
+    if (item) {
+      var tmp = item.split(propertyDelimiter)
+      tmp.length > 1 && (res[tmp[0].trim()] = tmp[1].trim())
+    }
+  })
+  return res
+})
+```
+
+由以上代码可知 `parseStyleText` 函数是由 `cached` 函数创建的高阶函数，`parseStyleText` 接收内联样式字符串作为参数并返回解析后的对象。在 `parseStyleText` 函数内部定义了 `res` 常量，该常量作为 `parseStyleText` 函数的返回值，其初始值是一个空对象，接着定义了两个正则常量 `listDelimiter` 和 `propertyDelimiter`，其实把一个内联样式字符串解析为对象的思路很简单，首先找到样式字符串的规则，如下：
+
+```html
+<div style="color: red; background: green;"></div>
+```
+
+可以知道，样式字符串中的 `;` 作为样式规则的分隔，而 `:` 作为样式规则中的属性名和值的分隔，所以就了如下的思路：
+
+- 使用 `;` 把样式字符串分割成一个数组，数组中的每个元素都是一条样式规则，以如上模板为例，分隔后的数组应该是：
+  
+  ```javascript
+  [
+    'color: red',
+    'background: green'
+  ]
+  ```
+
+  接着遍历该数组，对于每一条样式规则使用 `:` 将其属性名和值再次进行分割，这样就可以得到想要的结果。明白这个思路就很容易理解 `parseStyleText` 函数的代码。
+
+对于 `parseStyleText` 函数的逻辑就不做过多的解释了，这里重点解析一下 `listDelimiter` 正则，如下：
+
+```javascript
+const listDelimiter = /;(?![^(]*\))/g;
+```
+
+该正则表达式使用了 **正向否定查询 (`(?!`)**，举个例子说明正向否定查询，正则表达式 `/a(?!b)/` 用来匹配后面没有跟字符 `'b'` 的字符 `'a'`。所以如上的正则表达式用来全局匹配字符串中的 `;`，但是该分号必须满足一个条件：**该分号的后面不能跟右圆括号 (`)`)，除非有一个相应的右圆括号 (`)`) 存在**，说起来抽象，举例说明，如下模板所示：
+
+```html
+<div style="color: red; background: url(www.xxx.com?a=1&amp;copy=3);"></div>
+```
+
 
 
 ## 文本节点的元素描述对象

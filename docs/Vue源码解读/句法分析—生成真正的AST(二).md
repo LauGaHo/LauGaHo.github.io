@@ -2031,10 +2031,128 @@ const listDelimiter = /;(?![^(]*\))/g;
 <div style="color: red; background: url(www.xxx.com?a=1&amp;copy=3);"></div>
 ```
 
+仔细观察如上 `div` 标签的 `style` 属性值中存在三个分号，但只有其中两个分号才是真正的样式规则分隔符，而字符串 `'url(www.xxx.com?a=1&amp;copy=3)'` 中的分号则是不能作为规则分割符的，正则常量 `listDelimiter` 正是为了实现这个功能而设计的。实际上正如上方例子所示，可以知道内联样式是写在 `html` 文件中的，而在 `html` 规则中存在一个叫做 `html` 实体的概念，看如下这段 `html` 模板：
 
+```html
+<a href="foo.cgi?chapter=1&copy=3">link</a>
+```
+
+这段 `html` 模板在一些浏览器中不能正常工作，这是因为有些浏览器会把 `&copy` 当做 `html` 实体从而把其解析为字符串 `©`，这导致打开链接的时候，变成了访问：`foo.cgi?chapter=1©=3`。
+
+总之，对于非绑定的 `style` 属性，会在元素描述对象上添加 `el.staticStyle` 属性，该属性的值是一个字符串化后的对象。接着对于绑定的 `style` 属性，则会使用如下这段代码来处理：
+
+```javascript
+const styleBinding = getBindingAttr(el, 'style', false /* getStatic */)
+if (styleBinding) {
+  el.styleBinding = styleBinding
+}
+```
+
+和处理绑定的 `class` 属性类似，使用 `getBindingAttr` 函数获取到绑定的 `style` 属性值后，如果值存在则直接将其赋值给元素描述对象的 `el.styleBinding` 属性。
+
+以上就是中置中置处理对于 `style` 属性的处理方式，总结一下：
+
+- 非绑定的 `style` 属性值保存在元素描述对象的 `el.statciStyle` 属性中，假设有如下模板：
+  
+  ```html
+  <div style="color: red; background: green;"></div>
+  ```
+
+  则该标签元素描述对象的 `el.staticStyle` 属性值为：
+
+  ```javascript
+  el.staticStyle = JSON.stringify({
+    color: 'red',
+    background: 'green'
+  })
+  ```
+
+- 绑定的 `style` 属性值保存在元素描述对象的 `el.styleBinding` 属性中，假设有如下模板：
+
+  ```html
+  <div :style="{ fontSize: fontSize + 'px' }"></div>
+  ```
+
+  则该标签元素描述对象的 `el.styleBinding` 属性值为：
+
+  ```javascript
+  el.styleBinding = "{ fontSize: fontSize + 'px' }"
+  ```
+
+现在前置处理 `preTransformNode` 和中置处理 `transformNode` 都讲解完了，还剩下后置处理 `postTransformsNode` 没有讲，每当遇到非一元标签的结束标签或遇到一元标签时都会应用后置处理器，回到 `src/compiler/parser/index.js` 文件，如下代码所示：
+
+```javascript
+function closeElement (element) {
+  // check pre state
+  if (element.pre) {
+    inVPre = false
+  }
+  if (platformIsPreTag(element.tag)) {
+    inPre = false
+  }
+  // apply post-transforms
+  for (let i = 0; i < postTransforms.length; i++) {
+    postTransforms[i](element, options)
+  }
+}
+```
+
+该 `for` 循环遍历了 `postTransforms` 数组，但实际上 `postTransforms` 是一个空数组，因为当前还没有任何后置处理的钩子函数。这里只是暂时提供一个用于后置处理的出口，当有需要的时候就可以使用。
 
 ## 文本节点的元素描述对象
 
+接着主要讲解每当解析器遇到一个文本节点时，会如何为文本节点创建元素描述对象，会对文本节点做哪些特殊的处理。打开文件 `src/compiler/parser/index.js` 文件中找到 `parserHTML` 函数的 `chars` 钩子函数选项，如下代码所示：
+
+```javascript
+parseHTML(template, {
+  // 省略...
+  chars (text: string) {
+    // 省略...
+  },
+  // 省略...
+})
+```
+
+当解析器遇到文本节点时，如上代码中的 `chars` 钩子函数就会被调用，并且接收该文本节点的文本内容作为参数，来看 `chars` 钩子函数最开始的这段代码：
+
+```javascript
+if (!currentParent) {
+  if (process.env.NODE_ENV !== 'production') {
+    if (text === template) {
+      warnOnce(
+        'Component template requires a root element, rather than just text.'
+      )
+    } else if ((text = text.trim())) {
+      warnOnce(
+        `text "${text}" outside root element will be ignored.`
+      )
+    }
+  }
+  return
+}
+```
+
+这段代码是连续的几个 `if` 条件语句，首先判断了 `currentParent` 变量是否存在，可以知道 `currentParent` 变量指向的是当前节点的父节点，如果父节点不存在才会执行该 `if` 条件语句里面的代码。思考一下，如果 `currentParent` 变量不存在说明什么问题？当代码执行到了这里，那么当前的节点必然是文本节点，并且该文本节点没有父级节点。而一个文本节点没有父节点有两种情况：
+
+- 一：模板中只有文本节点
+  
+  ```html
+  <template>
+    我是文本节点
+  </template>
+  ```
+
+  如上模板中没有根元素，只有一个文本节点。由于没有元素节点，所以 `currentParent` 变量是肯定不存在值的。而 `Vue` 的模板要求必须有一个根元素节点才行。当解析器解析如上模板时，由于模板只有一个文本节点，所以在解析过程中只会调用一次 `chars` 钩子函数，同时将文本节点的内容作为参数传递，此时就会出现一种情况，即：**整个模板的内容和文本节点的内容完全一致**，换句话说 `text === template` 条件成立，这时解析器会打印警告信息提示模板不能只是文本，必须有一个元素节点才行。
+
+- 二：文本节点在根元素的外面
+
+  ```html
+  <template>
+    <div>根元素内的文本节点</div>根元素外的文本节点
+  </template>
+  ```
+
+  
 
 
 ## `parseText` 函数解析字面量表达式

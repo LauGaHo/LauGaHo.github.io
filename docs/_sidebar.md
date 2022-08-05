@@ -84,6 +84,7 @@
 - Webpack
     - [Webpack入门配置指南](Webpack/Webpack入门配置指南.md)
     - [Webpack—Chunk分包规则详解](Webpack/Webpack—Chunk分包规则详解.md)
+    - [Webpack核心原理](Webpack/Webpack核心原理.md)
 
 - Linux
     - [Linux之Shell](Linux/Linux之Shell.md)

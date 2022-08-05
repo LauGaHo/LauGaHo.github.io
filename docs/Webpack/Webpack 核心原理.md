@@ -103,3 +103,70 @@ Webpack 架构灵活，但是代价牺牲了源码的直观性，比如上方所
 
 ## 构建阶段
 
+构建的核心流程：
+
+![webpack构建流程](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack2.png)
+
+解释一下：
+
+1. 调用 `handleModuleCreate`，根据文件类型构建 `Module` 子类。
+2. 调用 `loader-runner` 仓库的 `runLoaders` 转译 `Module` 对象的内容，通常是从各类资源转移成 JS 文本。
+3. 调用 `acorn` 将 JS 文本解析为 AST。
+4. 遍历 AST，触发各种钩子。
+   1. 在 `HarmonyExportDependencyParserPlugin` 插件监听 `exportImportSpecifier` 钩子，解读 JS 文本对应的资源依赖
+   2. 调用 `Module` 对象的 `addDependency` 将依赖对象加入到 `Module` 依赖列表中。
+5. AST 遍历完毕后，调用 `module.handleParseResult` 处理模块依赖。
+6. 对于 `Module` 对象新增的依赖，调用 `handleModuleCreate`，控制流回到第一步。
+7. 所有依赖解析完毕后，构建阶段完成。
+
+> 上方中的 `module` 指代的是 `Module` 对象。
+
+这个过程中的数据流 `module => ast => dependencies => module`，先转 AST，然后再从 AST 中找依赖。这要求 `loaders` 处理完的最后结果必须是可以被 `acorn` 处理的标准 JavaScript 语法，比如图片，需要从二进制转换成类似于 `export default "data:image/png;base64,xxx"` 这类 `base64` 格式，或者 `export default "http://xxx"` 这类 URL 格式。
+
+假设有如下图所示的文件依赖树：
+
+![依赖树](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/gM3DGE.png)
+
+其中 `index.js` 为 `entry` 文件，依赖于 `a.js` 和 `b.js` 文件，而 `a.js` 文件又会依赖于 `c.js` 和 `d.js` 文件。初始化编译环境后，`EntryPlugin` 根据 `entry` 配置找到 `index.js` 文件，调用 `compilation.addEntry` 函数触发构建流程，构建完毕后内部会生成这样的数据结构：
+
+![module](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack3.png)
+
+此时得到的 `module[index.js]` 的内容以及对应的依赖对象 `dependence[a.js]` 和 `dependence[b.js]`。根据上方所讲述的流程，继续调用 `module[index.js]` 的 `handleParseResule` 函数，继续处理 `a.js` 和 `b.js` 文件，递归上述流程，进一步得到 `a.js` 和 `b.js` 文件对应的 `Module` 对象，如下图所示：
+
+![webpack](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack4.png)
+
+从 `a.js` 的 `Module` 对象上又解析到了 `dependence[c.js]` 和 `dependence[d.js]`，于是再继续调用 `module[a.js]` 的 `handleParseResult`，再递归上述流程：
+
+![webpack](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack5.png)
+
+到这里解析完所有模块后，发现没有更多新的依赖，就可以继续推进，进入下一步。
+
+## 生成阶段
+
+构建阶段围绕 `Module` 对象进行展开，生成阶段，则是围绕着 `Chunk` 对象来展开，经过构建阶段之后，webpack 得到了足够的模块内容和模块关系信息，接着就开始生成最终资源了。代码层面上来看，就是开始执行 `compilation.seal` 函数：
+
+```javascript
+// webpack/lib/compiler.js 
+compile(callback) {
+    const params = this.newCompilationParams();
+    this.hooks.beforeCompile.callAsync(params, err => {
+        // ...
+        const compilation = this.newCompilation(params);
+        this.hooks.make.callAsync(compilation, err => {
+            // ...
+            this.hooks.finishMake.callAsync(compilation, err => {
+                // ...
+                process.nextTick(() => {
+                    compilation.finish(err => {
+                        compilation.seal(err => {...});
+                    });
+                });
+            });
+        });
+    });
+}
+```
+
+`seal` 的意思是密封，`seal` 函数主要的工作就是从 `Module` 对象到 `Chunk` 对象的转化，核心流程如下图：
+
+![webpack](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack10.png)

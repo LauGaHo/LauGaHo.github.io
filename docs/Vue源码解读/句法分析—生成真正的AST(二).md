@@ -2152,6 +2152,100 @@ if (!currentParent) {
   </template>
   ```
 
+  可以知道 `currentParent` 变量始终保存的是当前解析节点的父节点，当解析器解析如上模板的时候并遇到根元素外的文本节点，`currentParent` 变量是不存在的，但是此时条件 `text === template` 是不成立的，这时如下代码会被执行：
+
+  ```javascript
+  else if ((text = text.trim())) {
+    warnOnce(
+      `text "${text}" outside root element will be ignored.`
+    )
+  }
+  ```
+
+  即如果 `text` 是非空的字符串则打印警告信息提示开发者根元素外的文本会被忽略。
+
+```javascript
+if (!currentParent) {
+  if (process.env.NODE_ENV !== 'production') {
+    if (text === template) {
+      warnOnce(
+        'Component template requires a root element, rather than just text.'
+      )
+    } else if ((text = text.trim())) {
+      warnOnce(
+        `text "${text}" outside root element will be ignored.`
+      )
+    }
+  }
+  return
+}
+```  
+
+从 `chars` 钩子函数中看，当满足了 `!currentParent` 条件后，即进入了 `if (!currentParent)` 条件分支中，执行完里边的判断逻辑之后，就会直接 `return` 不会做下面的工作。如果代码不符合 `!currentParent` 条件，则会继续执行下面的逻辑。 
+
+接下来再看下面这段代码：
+
+```javascript
+// IE textarea placeholder bug
+/* istanbul ignore if */
+if (isIE &&
+  currentParent.tag === 'textarea' &&
+  currentParent.attrsMap.placeholder === text
+) {
+  return
+}
+```
+
+这段代码是用来解决 IE 浏览器中渲染 `<textarea>` 标签的 `placeholder` 属性时存在的 bug 的，为了更好的理解，举个例子说明一下：
+
+```html
+<div id="box">
+  <textarea placeholder="some placeholder..."></textarea>
+</div>
+```
+
+如上 `html` 片段中存在一个 `<textarea>` 标签，该标签拥有 `placeholder` 属性，但却没有真实的文本内容，假设使用如下代码获取字符串内容：
+
+```javascript
+document.getElementById('box').innerHTML
+```
+
+在 IE 浏览器中将得到如下字符串：
+
+```javascript
+'<textarea placeholder="some placeholder...">some placeholder...</textarea>'
+```
+
+可以看到 `<textarea>` 标签的 `placeholder` 属性的属性值被设置成了 `<textarea>` 的真实文本内容，为了解决这个问题，所以产生了如下代码：
+
+```javascript
+// IE textarea placeholder bug
+/* istanbul ignore if */
+if (isIE &&
+  currentParent.tag === 'textarea' &&
+  currentParent.attrsMap.placeholder === text
+) {
+  return
+}
+```
+
+如果当前文本节点的父元素是 `<textarea>` 标签，并且文本元素的内容和 `<textarea>` 标签的 `placeholder` 属性值相同，则说明此时碰到了 IE 的 bug，由于只有当 `<textarea>` 标签没有真实文本才会存在这个 bug，所以就是说此时解析的文本节点原本是不存在的，这时 `chars` 钩子函数会直接 `return`，不做后续处理。
+
+再往下是这样一段代码：
+
+```javascript
+const children = currentParent.children
+text = inPre || text.trim()
+  ? isTextTag(currentParent) ? text : decodeHTMLCached(text)
+  // only preserve whitespace if its not right after a starting tag
+  : preserveWhitespace && children.length ? ' ' : ''
+```
+
+这段代码首先定义了 `children` 常量，它是 `currentParent.children` 的引用。接着判断了条件 `inPre || text.trim()` 的真假，这里一步步来看，假设此时 `inPre` 变量为 `true`，那么如上的代码就等价于：
+
+```javascript
+text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
+```
   
 
 

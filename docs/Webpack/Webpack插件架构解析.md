@@ -494,7 +494,7 @@ sleep.call();
         return Promise.resolve();
     });
 
-    // hook.promise();
+    hook.promise();
     // 运行结果
     // callback A
     // callback A 异步操作
@@ -598,4 +598,191 @@ sleep.call();
     ```
 
 ### Tapable 动态编译
+
+Tapable 中有一套大胆的设计：动态编译，所谓的同步、异步、Bail、Waterfall、Loop 等回调规则都是基于动态编译能力实现的，所有深入学习 Tapable 必须细究动态编译的特性。
+
+当用户执行钩子发布函数 `call/callAsync/promise` 时，Tapable 会根据钩子类型、参数、回调队列等信息动态生成执行函数，例如对于下面的例子：
+
+```javascript
+const { SyncHook } = require("tapable");
+
+const sleep = new SyncHook();
+
+sleep.tap("test", () => {
+    console.log("callback A");
+});
+
+sleep.call();
+```
+
+调用 `sleep.call()` 时，Tapable 内部处理流程大致为：
+
+![webpack](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack16.png)
+
+编译过程主要设计三个实体：
+
+- `tapable/lib/SyncHook.js`：定义 `SyncHook` 的入口文件
+- `tapable/lib/Hook.js`：`SyncHook` 只是一个简单接口，内部实际上调用了 `Hook` 类，由 `Hook` 实现钩子的逻辑，其他钩子也是类似的道理。
+- `tapable/lib/HookCodeFactory.js`：动态编译出 `call`、`callAsync`、`promise` 函数内容的工厂类，其他钩子也是会用到 `HookCodeFactory` 工厂函数。
+
+`SyncHook` 调用了 `call` 函数之后，`Hook` 基类收集上下文信息，并调用 `createCall` 及子类传入的 `compile` 函数，`compile` 调用 `HookCodeFactory` 进而使用 `new Function` 方法动态拼接出回调执行函数。上方例子生成的对应函数如下：
+
+```javascript
+(function anonymous() {
+    "use strict";
+    var _context;
+    var _x = this._x;
+    var _fn0 = _x[0];
+    _fn0();
+})
+```
+
+动态编译在一般场景下会存在性能或安全的问题，因而社区甚少见到类似的设计，看一个稍微复杂一点的例子：
+
+```javascript
+const { AsyncSeriesWaterfallHook } = require("tapable");
+
+const sleep = new AsyncSeriesWaterfallHook(["name"]);
+
+sleep.tapAsync("test1", (name, cb) => {
+  console.log(`执行 A 回调： 参数 name=${name}`);
+  setTimeout(() => {
+    cb(undefined, "tecvan2");
+  }, 100);
+});
+
+sleep.tapAsync("test", (name, cb) => {
+  console.log(`执行 B 回调： 参数 name=${name}`);
+  setTimeout(() => {
+    cb(undefined, "tecvan3");
+  }, 100);
+});
+
+sleep.tapAsync("test", (name, cb) => {
+  console.log(`执行 C 回调： 参数 name=${name}`);
+  setTimeout(() => {
+    cb(undefined, "tecvan4");
+  }, 100);
+});
+
+sleep.callAsync("tecvan", (err, name) => {
+  console.log(`回调结束， name=${name}`);
+});
+
+// 运行结果：
+// 执行 A 回调： 参数 name=tecvan
+// 执行 B 回调： 参数 name=tecvan2
+// 执行 C 回调： 参数 name=tecvan3
+// 回调结束， name=tecvan4
+```
+
+示例用到了 `AsyncSeriesWaterfallHook`，这个钩子的特点是：异步、串行、前一个回调的返回值会传入下一个回调中，对应生成的函数如下：
+
+```javascript
+(function anonymous(name, _callback) {
+  "use strict";
+  var _context;
+  var _x = this._x;
+  function _next1() {
+    var _fn2 = _x[2];
+    _fn2(name, function(_err2, _result2) {
+      if (_err2) {
+        _callback(_err2);
+      } else {
+        if (_result2 !== undefined) {
+          name = _result2;
+        }
+        _callback(null, name);
+      }
+    });
+  }
+  function _next0() {
+    var _fn1 = _x[1];
+    _fn1(name, function(_err1, _result1) {
+      if (_err1) {
+        _callback(_err1);
+      } else {
+        if (_result1 !== undefined) {
+          name = _result1;
+        }
+        _next1();
+      }
+    });
+  }
+  var _fn0 = _x[0];
+  _fn0(name, function(_err0, _result0) {
+    if (_err0) {
+      _callback(_err0);
+    } else {
+      if (_result0 !== undefined) {
+        name = _result0;
+      }
+      _next0();
+    }
+  });
+});
+```
+
+这段生成函数的特点：
+
+- 生成函数将回调队列中各个回调函数封装成对应的函数，如上的对应的回调函数分别为：`_fn0`、`_next0`、`_next1`，这些函数中的逻辑存在一定的相似度。
+- 按回调定义的顺序，逐次执行，上一个回调结束后，才调用下一个回调。
+
+相对于使用递归、循环之类的实现，这段生成函数的逻辑会更加清晰，更容易理解。
+
+Tapable 提供的大多数特性都是基于 `Hook` 和 `HookCodeFactory` 来实现的，源码位置在 `tapable/lib/Hook.js` 中。
+
+### 高级特性 Intercept
+
+除了通常使用的 `tap/call` 之外，Tapable 还提供了简易的中间件机制— `intercept` 接口，如下所示：
+
+```javascript
+const sleep = new SyncHook();
+
+sleep.intercept({
+  name: "test",
+  context: true,
+  call() {
+    console.log("before call");
+  },
+  loop(){
+    console.log("before loop");
+  },
+  tap() {
+    console.log("before each callback");
+  },
+  register() {
+    console.log("every time call tap");
+  },
+});
+```
+
+`intercept` 支持注册如下类型的中间件：
+
+<table>
+    <th>
+        <td>签名</td>
+        <td>解释</td>
+    </th>
+    <tr>
+        <td>call</td>
+        <td>(...args) => void</td>
+        <td>调用 call/callAsync/promise 时触发</td>
+    </tr>
+    <tr>
+        <td>tap</td>
+        <td>(tap: Tap) => void</td>
+        <td>调用 call 类函数后，每次调用回调之前触发</td>
+    </tr>
+    <tr>
+        <td>loop</td>
+        <td>(...args) => void</td>
+        <td>仅 loop 型钩子函数之前触发</td>
+    </tr>
+    <tr>
+        <td>register</td>
+        <td>(tap: Tap) => Tap | undefined</td>
+        <td>调用 tap/tapAsync/tapPromise 时触发</td>
+    </tr>
+</table>
 

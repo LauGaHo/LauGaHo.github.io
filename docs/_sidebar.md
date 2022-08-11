@@ -86,6 +86,7 @@
     - [Webpack—Chunk分包规则详解](Webpack/Webpack—Chunk分包规则详解.md)
     - [Webpack核心原理](Webpack/Webpack核心原理.md)
     - [Webpack插件架构解析](Webpack/Webpack插件架构解析.md)
+    - [Webpack产物转译打包](Webpack/Webpack产物转译打包逻辑.md)
 
 - Linux
     - [Linux之Shell](Linux/Linux之Shell.md)

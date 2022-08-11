@@ -760,29 +760,173 @@ sleep.intercept({
 `intercept` 支持注册如下类型的中间件：
 
 <table>
-    <th>
-        <td>签名</td>
-        <td>解释</td>
-    </th>
-    <tr>
-        <td>call</td>
-        <td>(...args) => void</td>
-        <td>调用 call/callAsync/promise 时触发</td>
-    </tr>
-    <tr>
-        <td>tap</td>
-        <td>(tap: Tap) => void</td>
-        <td>调用 call 类函数后，每次调用回调之前触发</td>
-    </tr>
-    <tr>
-        <td>loop</td>
-        <td>(...args) => void</td>
-        <td>仅 loop 型钩子函数之前触发</td>
-    </tr>
-    <tr>
-        <td>register</td>
-        <td>(tap: Tap) => Tap | undefined</td>
-        <td>调用 tap/tapAsync/tapPromise 时触发</td>
-    </tr>
+    <thead>
+        <tr>
+            <th></th>
+            <th>签名</th>
+            <th>解释</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>call</td>
+            <td>(...args) => void</td>
+            <td>调用 call/callAsync/promise 时触发</td>
+        </tr>
+        <tr>
+            <td>tap</td>
+            <td>(tap: Tap) => void</td>
+            <td>调用 call 类函数后，每次调用回调之前触发</td>
+        </tr>
+        <tr>
+            <td>loop</td>
+            <td>(...args) => void</td>
+            <td>仅 loop 型钩子函数之前触发</td>
+        </tr>
+        <tr>
+            <td>register</td>
+            <td>(tap: Tap) => Tap | undefined</td>
+            <td>调用 tap/tapAsync/tapPromise 时触发</td>
+        </tr>
+    </tbody>
 </table>
 
+其中 `register` 在每次 `tap` 时被调用，其他三种中间件触发的时机大致如：
+
+```javascript
+var _context;
+const callbacks = [fn1, fn2];
+var _interceptors = this.interceptors;
+// 调用 call 函数，立即触发
+_interceptors.forEach((intercept) => intercept.call(_context));
+var _loop;
+var cursor = 0;
+do {
+    _loop = false;
+    // 每次循环开始时触发 `loop`
+    _interceptors.forEach((intercept) => intercept.loop(_context));
+    // 触发 `tap`
+    var _fn0 = callbacks[0];
+    _interceptors.forEach((intercept) => intercept.tap(_context, _fn0));
+    var _result0 = _fn0();
+    if (_result0 !== undefined) {
+        _loop = true;
+    } else {
+        var _fn1 = callbacks[1];
+        // 再次触发 `tap`
+        _interceptors.forEach((intercept) => intercept.tap(_context, _fn1));
+        var _result1 = _fn1();
+        if (_result1 !== undefined) {
+        _loop = true;
+        }
+    }
+} while (_loop);
+```
+
+`intercept` 特性在 Webpack 内主要被用作进度提示，如 `webpack/lib/ProgressPlugin` 插件中，分别 `compiler.hooks.emit`、`compiler.hooks.afterEmit` 钩子应用了记录进度的中间件函数。其他类型的插件应用比较少。
+
+### 高级特性：HookMap
+
+Tapable 还有一个有意思的特性— `HookMap`。`HookMap` 提供了一种集合操作的能力，能够降低创建和使用的复杂度，用法相对比较简单。
+
+```javascript
+const { SyncHook, HookMap } = require("tapable");
+
+// 创建一个名为 sleep 的 HookMap 实例
+const sleep = new HookMap(() => new SyncHook());
+
+// 在名为 sleep 的 HookMap 实例中创建一个名为 sleep 的 hook，并为该 hook 通过 tap 注册回调
+sleep.for("statement").tap("test", () => {
+    console.log("callback for statement");
+})
+
+// 触发 statement 钩子
+sleep.get("statement").call();
+```
+
+在 Webpack 中，HookMap 集中在 `webpack/lib/parser.js` 文件中，`parser.js` 文件中主要完成将资源内容解析为 AST 集合，解析完成后遍历 AST 并以钩子方式对外通知遍历到的内容。例如遇到表达式的时候触发 `parser.hooks.expression` 钩子，但是 AST 结构和内容都很复杂，如果所有情景都以独立钩子来实现，那么代码量就会急速膨胀。
+
+这种场景就适合使用 `HookMap` 来解决，以 `expression` 为例：
+
+```javascript
+class Parser {
+  constructor() {
+    this.hooks = {
+      // 定义钩子
+      // 这里用到 HookMap ，所以不需要提前遍历枚举所有 expression 场景
+      expression: new HookMap(() => new SyncBailHook(["expression"])),
+    };
+  }
+
+  //   不同场景下触发钩子
+  walkMemberExpression(expression) {
+    const exprName = this.getNameForExpression(expression);
+    if (exprName && exprName.free) {
+      // 触发特定类型的钩子
+      const expressionHook = this.hooks.expression.get(exprName.name);
+      if (expressionHook !== undefined) {
+        const result = expressionHook.call(expression);
+        if (result === true) return;
+      }
+    }
+    // ...
+  }
+
+  walkThisExpression(expression) {
+    const expressionHook = this.hooks.expression.get("this");
+    if (expressionHook !== undefined) {
+      expressionHook.call(expression);
+    }
+  }
+}
+
+// 钩子消费逻辑
+// 选取 CommonJsStuffPlugin 仅起示例作用
+class CommonJsStuffPlugin {
+  apply(compiler) {
+    compiler.hooks.compilation.tap(
+      "CommonJsStuffPlugin",
+      (compilation, { normalModuleFactory }) => {
+        const handler = (parser, parserOptions) => {
+          // 通过 for 精确消费钩子
+          parser.hooks.expression
+            .for("require.main.require")
+            .tap(
+              "CommonJsStuffPlugin",
+              ParserHelpers.expressionIsUnsupported(
+                parser,
+                "require.main.require is not supported by webpack."
+              )
+            );
+          parser.hooks.expression
+            .for("module.parent.require")
+            .tap(
+              "CommonJsStuffPlugin",
+              ParserHelpers.expressionIsUnsupported(
+                parser,
+                "module.parent.require is not supported by webpack."
+              )
+            );
+          parser.hooks.expression
+            .for("require.main")
+            .tap(
+              "CommonJsStuffPlugin",
+              ParserHelpers.toConstantDependencyWithWebpackRequire(
+                parser,
+                "__webpack_require__.c[__webpack_require__.s]"
+              )
+            );
+          // ...
+        };
+      }
+    );
+  }
+}
+```
+
+上方中的 `CommonJsStuffPlugin` 通过获取 `parser` 对象中名为 `expression` 的 `HookMap` 对象，然后调用 `HookMap` 对象中的 `for` 函数创建对应的 `Hook` 钩子实例，并为其注册相关的回调。
+
+
+## 总结
+
+Tapable 提供了多种钩子，支持 `Sync`、`Async`、`Bail`、`Loop`、`Waterfall` 等功能特性，以此支撑 Webpack 复杂的编译需求。

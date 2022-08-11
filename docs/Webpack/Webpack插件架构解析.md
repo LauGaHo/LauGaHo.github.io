@@ -231,3 +231,371 @@ sleep.call();
 
 ##### SyncWaterfallHook 钩子
 
+- 基本逻辑
+
+    `Waterfall` 钩子的执行逻辑跟 lodash 的 `flow` 函数有点像，大致上就是会将前一个函数的返回值作为参数传入下一个函数，可以简化为如下代码：
+
+    ```javascript
+    function waterfallCall(arg) {
+        const callbacks = [fn1, fn2, fn3];
+        let lastResult = arg;
+        for (let i in callbacks) {
+            const cb = callbacks[i];
+            // 上次执行结果作为参数传入下一个函数
+            lastResult = cb(lastResult);
+        }
+        return lastResult;
+    }
+    ```
+
+    理解了上边的逻辑，可以知道 `SyncWaterfallHook` 的特点如下：
+
+    1. 上一个函数的结果会被带入下一个函数
+    2. 最后一个回调的结果会作为 `call` 调用的结果返回
+
+- 示例
+
+    举例说明：
+
+    ```javascript
+    const { SyncWaterfallHook } = require("tapable");
+
+    class Somebody {
+        constructor() {
+            this.hooks = {
+                sleep: new SyncWaterfallHook(["msg"]),
+            };
+        }
+        sleep() {
+            return this.hooks.sleep.call("hello");
+        }
+    }
+
+    const person = new Somebody();
+
+    // 注册回调
+    person.hooks.sleep.tap("test", (arg) => {
+        console.log(`call 调用传入： ${arg}`);
+        return "tecvan";
+    });
+
+    person.hooks.sleep.tap("test", (arg) => {
+        console.log(`A 回调返回： ${arg}`);
+        return "world";
+    });
+
+    console.log("最终结果：" + person.sleep());
+    // 运行结果：
+    // call 调用传入： hello
+    // A 回调返回： tecvan
+    // 最终结果：world
+    ```
+
+    示例中 `sleep` 钩子为 `SyncWaterfallHook` 类型，之后注册了两个回调，从处理结果可以看到第一个回调收到的 `arg = hello`，第二个回调收到的是第一个回调返回的结果 `tevcan`，之后 `call` 调用返回的是第二个回调的结果 `world`。
+
+    使用上，`SyncWaterfallHook` 钩子有一些注意事项：
+
+    1. 初始化是必须提供参数，例如上例中 `new SyncWaterfallHook(["msg"])` 构造函数中必须传入 `["msg"]`，用于动态编译 `call` 的参数依赖，后面会讲到“动态编译”的细节。
+    2. 发布调用 `call` 时，需要传入初始化参数。
+
+- Webpack 场景解析
+
+    `SyncWaterfallHook` 在 Webpack 中比较有代表性的例子是 `NormalModuleFactory.hooks.factory`，在 Webpack 内部实现中，会在这个钩子内根据资源类型 `resolve` 出对应的 `module` 对象：
+
+    ```javascript
+    class NormalModuleFactory {
+        constructor() {
+            this.hooks = {
+                factory: new SyncWaterfallHook(["filename", "data"]),
+            };
+
+            this.hooks.factory.tap("NormalModuleFactory", () => (result, callback) => {
+                let resolver = this.hooks.resolver.call(null);
+
+                if (!resolver) return callback();
+
+                resolver(result, (err, data) => {
+                    if (err) return callback(err);
+
+                    // direct module
+                    if (typeof data.source === "function") return callback(null, data);
+
+                    // ...
+                });
+            });
+        }
+
+        create(data, callback) {
+            //   ...
+            const factory = this.hooks.factory.call(null);
+            // ...
+        }
+    }   
+    ```
+
+    大致上就是在创建模块，通过 `factory` 钩子将 `module` 的创建过程外包出去，在钩子回调队列中依据 `waterfall` 的特性逐步推断出最终的 `module` 对象。
+
+##### SyncLoopHook 钩子
+
+- 基本逻辑
+
+    `loop` 钩子的特点是循环执行知道所有回调都返回 `undefined`，不过这里循环的单位是单个回调函数，例如有回调队列 `[fn1, fn2, fn3]`，`loop` 钩子先执行 `fn1`，如果此时 `fn1` 返回了非 `undefined` 值，则继续执行 `fn1` 直到返回 `undefined` 后才向前推进执行 `fn2`。伪代码如下：
+
+    ```javascript
+    function loopCall() {
+        const callbacks = [fn1, fn2, fn3];
+        for (let i in callbacks) {
+            const cb = callbacks[i];
+            // 重复执行
+            while (cb() !== undefined) {}
+        }
+    }
+    ```
+
+- 示例
+
+    由于 `loop` 钩子循环执行的特性，使用时需要注意避免陷入死循环。示例：
+
+    ```javascript
+    const { SyncLoopHook } = require("tapable");
+
+    class Somebody {
+        constructor() {
+            this.hooks = {
+                sleep: new SyncLoopHook(),
+            };
+        }
+        sleep() {
+            return this.hooks.sleep.call();
+        }
+    }
+
+    const person = new Somebody();
+    let times = 0;
+
+    // 注册回调
+    person.hooks.sleep.tap("test", (arg) => {
+        ++times;
+        console.log(`第 ${times} 次执行回调A`);
+        if (times < 4) {
+            return times;
+        }
+    });
+
+    person.hooks.sleep.tap("test", (arg) => {
+        console.log(`执行回调B`);
+    });
+
+    person.sleep();
+    // 运行结果
+    // 第 1 次执行回调A
+    // 第 2 次执行回调A
+    // 第 3 次执行回调A
+    // 第 4 次执行回调A
+    // 执行回调B
+    ```
+
+    可以看到示例中一直在执行回调 A，直到满足判定条件 `times >= 4`，A 返回 `undefined` 后才开始执行回调 B。
+
+    虽然 Tapable 提供了 `SyncLoopHook` 钩子，但是 Webpack 中并没有使用到。
+
+#### 异步钩子
+
+除了同步钩子外，Tapable 还提供了一系列 `Async` 的异步钩子，支持在回调函数中执行异步操作，逻辑相对比较复杂。
+
+##### AsyncSeriesHook 钩子
+
+- 基本逻辑
+
+    1. 支持异步回调，可以在回调函数中写 `callback` 或 `promise` 风格的异步操作。
+    2. 回调队列一次执行，前一个执行结束后，才会开始执行下一个。
+    3. 和 `SyncHook` 一样，不需要关心回调的执行结果。
+
+    用一段伪代码来表示：
+
+    ```javascript
+    function asyncSeriesCall(callback) {
+        const callbacks = [fn1, fn2, fn3];
+        //   执行回调 1
+        fn1((err1) => {
+            if (err1) {
+                callback(err1);
+            } else {
+                //   执行回调 2
+                fn2((err2) => {
+                    if (err2) {
+                        callback(err2);
+                    } else {
+                        //   执行回调 3
+                        fn3((err3) => {
+                            if (err3) {
+                                callback(err2);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+    ```
+
+- 示例
+
+    先看 `callback` 风格的示例：
+
+    ```javascript
+    const { AsyncSeriesHook } = require("tapable");
+
+    const hook = new AsyncSeriesHook();
+
+    // 注册回调
+    hook.tapAsync("test", (cb) => {
+        console.log("callback A");
+        setTimeout(() => {
+            console.log("callback A 异步操作结束");
+            // 回调结束时，调用 cb 通知 tapable 当前回调结束
+            cb();
+        }, 100);
+    });
+
+    hook.tapAsync("test", () => {
+        console.log("callback B");
+    });
+
+    hook.callAsync();
+    // 运行结果：
+    // callback A
+    // callback A 异步操作结束
+    // callback B
+    ```
+
+    从代码输出结果可以看出，A 回调内部的 `setTimeout` 执行完毕调用 `cb` 函数，Tapable 才认为当前回调执行完毕，开始执行 B 回调。
+
+    除了 `callback` 风格外，也可以使用 `promise` 风格调用 `tap/call` 函数，改造上例如下：
+
+    ```javascript
+    const { AsyncSeriesHook } = require("tapable");
+
+    const hook = new AsyncSeriesHook();
+
+    // 注册回调
+    hook.tapPromise("test", () => {
+        console.log("callback A");
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log("callback A 异步操作结束");
+                resolve();
+            }, 100);
+        });
+    });
+
+    hook.tapPromise("test", () => {
+        console.log("callback B");
+        return Promise.resolve();
+    });
+
+    // hook.promise();
+    // 运行结果
+    // callback A
+    // callback A 异步操作
+    // callback B
+    ```
+
+    有三个改动点：
+
+    1. 将 `tapAsync` 更改为 `tapPromise`。
+    2. 回调函数需要返回 `Promise` 对象。
+    3. `callAsync` 调用需要更改为 `promise`。
+
+- Webpack 场景解析
+
+    AsyncSeriesHook 钩子在 Webpack 中的应用要数构建完毕后触发 `compiler.hooks.done` 钩子，用于通知单次构建已经结束：
+
+    ```javascript
+    class Compiler {
+        run(callback) {
+            if (err) return finalCallback(err);
+
+            this.emitAssets(compilation, (err) => {
+                if (err) return finalCallback(err);
+
+                if (compilation.hooks.needAdditionalPass.call()) {
+                    // ...
+                    this.hooks.done.callAsync(stats, (err) => {
+                        if (err) return finalCallback(err);
+
+                        this.hooks.additionalPass.callAsync((err) => {
+                            if (err) return finalCallback(err);
+                            this.compile(onCompiled);
+                        });
+                    });
+                    return;
+                }
+
+                this.emitRecords((err) => {
+                    if (err) return finalCallback(err);
+
+                    // ...
+                    this.hooks.done.callAsync(stats, (err) => {
+                        if (err) return finalCallback(err);
+                        return finalCallback(null, stats);
+                    });
+                });
+            });
+        }
+    }
+    ```
+
+##### AsyncParallelHook 钩子
+
+- 基本逻辑
+
+    和 `AsyncSeriesHook` 类似，`AsyncParallelHook` 也支持异步风格的回调，不过 `AsyncParallelHook` 是以并行方式，其特点：
+    
+    1. 支持异步风格。
+    2. 并行执行回调队列，不需要做任何等待。
+    3. 和 `SyncHook` 一样，不关心回调执行结果。
+
+    逻辑上近似于：
+
+    ```javascript
+    function asyncParallelCall(callback) {
+        const callbacks = [fn1, fn2];
+        // 内部维护了一个计数器
+        var _counter = 2;
+
+        var _done = function() {
+            _callback();
+        };
+        if (_counter <= 0) return;
+        // 按序执行回调
+        var _fn0 = callbacks[0];
+        _fn0(function(_err0) {
+            if (_err0) {
+            if (_counter > 0) {
+                // 出错时，忽略后续回调，直接退出
+                _callback(_err0);
+                _counter = 0;
+            }
+            } else {
+                if (--_counter === 0) _done();
+            }
+        });
+        if (_counter <= 0) return;
+        // 不需要等待前面回调结束，直接开始执行下一个回调
+        var _fn1 = callbacks[1];
+        _fn1(function(_err1) {
+            if (_err1) {
+            if (_counter > 0) {
+                _callback(_err1);
+                _counter = 0;
+            }
+            } else {
+                if (--_counter === 0) _done();
+            }
+        });
+    }
+    ```
+
+### Tapable 动态编译
+

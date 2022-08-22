@@ -113,3 +113,366 @@ const xxxDependency.Template = class xxxDependencyTemplate extends Template {
 
 ### 使用 Source 更改代码
 
+`Source` 是 Webpack 中编辑字符串的一套工具体系，提供了一系列字符串操作方法，包括：
+
+- 字符串合并、替换、插入等。
+- 模块代码缓存、SourceMap 映射、hash 计算等。
+
+Webpack 内部以及社区很多插件、loader 都会使用 `Source` 库编辑代码内容，包括上文所说的 `Template.apply` 体系中，逻辑上，在启动模块代码生成流程时，Webpack 会先使用模块原来的内容初始化 `Source` 对象，即：
+
+```javascript
+const source = new ReplaceSource(module.originalSource());
+```
+
+之后，不同的 `Dependency` 子类按照顺序、按需更改 `source` 内容，例如 `ConstDependencyTemplate` 中的核心代码：
+
+```javascript
+ConstDependency.Template = class ConstDependencyTemplate extends (
+  NullDependency.Template
+) {
+  apply(dependency, source, templateContext) {
+    // ...
+    if (typeof dep.range === "number") {
+      source.insert(dep.range, dep.expression);
+      return;
+    }
+
+    source.replace(dep.range[0], dep.range[1] - 1, dep.expression);
+  }
+};
+```
+
+上述 `ConstDependencyTemplate` 中，`apply` 函数根据参数条件调用 `source.insert` 插入一段代码，或者调用 `source.replace` 替换一段代码。
+
+### 使用 InitFragment 更新代码
+
+除直接操作 `source` 外，`Template.apply` 中还可以通过直接操作 `initFragments` 数组达成修改模块产物的效果。`initFragments` 数组项通常为 `InitFragment` 子类实例，通常带有两个函数：`getContent`、`getEndContent`，分别用于获取代码片段的头尾部分。
+
+例如 `HarmonyImportDependencyTemplate` 的 `apply` 函数中：
+
+```javascript
+HarmonyImportDependency.Template = class HarmonyImportDependencyTemplate extends (
+  ModuleDependency.Template
+) {
+  apply(dependency, source, templateContext) {
+    // ...
+    templateContext.initFragments.push(
+        new ConditionalInitFragment(
+          importStatement[0] + importStatement[1],
+          InitFragment.STAGE_HARMONY_IMPORTS,
+          dep.sourceOrder,
+          key,
+          runtimeCondition
+        )
+      );
+    //...
+  }
+}
+```
+
+## 代码合并
+
+上述 `Template.apply` 处理完毕后，产生转译后的 `source` 对象和代码片段 `inintFragments` 数组，接着就需要调用 `InitFragment.addToSource` 函数将两者合并为模块产物。
+
+`addToSource` 的核心代码如下：
+
+```javascript
+class InitFragment {
+  static addToSource(source, initFragments, generateContext) {
+    // 先排好顺序
+    const sortedFragments = initFragments
+      .map(extractFragmentIndex)
+      .sort(sortFragmentWithIndex);
+    // ...
+
+    const concatSource = new ConcatSource();
+    const endContents = [];
+    for (const fragment of sortedFragments) {
+        // 合并 fragment.getContent 取出的片段内容
+      concatSource.add(fragment.getContent(generateContext));
+      const endContent = fragment.getEndContent(generateContext);
+      if (endContent) {
+        endContents.push(endContent);
+      }
+    }
+
+    // 合并 source
+    concatSource.add(source);
+    // 合并 fragment.getEndContent 取出的片段内容
+    for (const content of endContents.reverse()) {
+      concatSource.add(content);
+    }
+    return concatSource;
+  }
+}
+```
+
+可以看到，`addToSource` 函数的逻辑：
+
+- 遍历 `initFragments` 数组，按顺序合并 `fragment.getContent()` 的产物。
+- 合并 `source` 对象。
+- 遍历 `initFragments` 数组，按顺序合并 `fragment.getEndContent()` 的产物。
+
+所以，模块代码合并操作主要就是用 `initFragments` 数组一层层包裹住模块代码 `source`，而两者都在 `Template.apply` 层面维护。
+
+## 示例：自定义 Banner 插件
+
+经过 `Template.apply` 转译和 `InitFragment.addToSource` 合并之后，模块就完成了从用户代码形态的转变，为加深对上述模块转译流程的理解，紧接着尝试着开发一个 Banner 插件，实现在每个模块前自动插入一段字符串。
+
+实现上，插件主要涉及 `Dependency`、`Template`、`hooks` 对象，代码：
+
+```javascript
+const { Dependency, Template } = require("webpack");
+
+class DemoDependency extends Dependency {
+  constructor() {
+    super();
+  }
+}
+
+DemoDependency.Template = class DemoDependencyTemplate extends Template {
+  apply(dependency, source) {
+    const today = new Date().toLocaleDateString();
+    source.insert(0, `/* Author: Tecvan */
+/* Date: ${today} */
+`);
+  }
+};
+
+module.exports = class DemoPlugin {
+  apply(compiler) {
+    compiler.hooks.thisCompilation.tap("DemoPlugin", (compilation) => {
+      // 调用 dependencyTemplates ，注册 Dependency 到 Template 的映射
+      compilation.dependencyTemplates.set(
+        DemoDependency,
+        new DemoDependency.Template()
+      );
+      compilation.hooks.succeedModule.tap("DemoPlugin", (module) => {
+        // 模块构建完毕后，插入 DemoDependency 对象
+        module.addDependency(new DemoDependency());
+      });
+    });
+  }
+};
+```
+
+示例插件的关键步骤：
+
+- 编写 `DemoDependency` 和 `DemoDependencyTemplate` 类，其中 `DemoDependency` 仅做示例用，没有实际功能；`DemoDependencyTemplate` 则在其 `apply` 中调用 `source.insert` 插入字符串。
+- 使用 `compilation.dependencyTemplates` 注册 `DemoDependency` 和 `DemoDependencyTemplate` 的映射关系。
+- 使用 `thisCompilation` 钩子取得 `compilation` 对象。
+- 使用 `successModule` 钩子订阅 `module` 构建完毕事件，并调用 `module.addDependency` 方法添加 `DemoDependency` 依赖。
+
+完成上述操作后，`module` 对象的产物在生成过程就会调用到 `DemoDependencyTemplate.apply` 函数，插入定义好的字符串。
+
+# 模块合并打包原理
+
+## 简介
+
+讲解完单个模块的转译过程之后，回到这个流程图：
+
+![webpack](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/webpack17.png)
+
+流程图中，`compilation.codeGeneration` 函数执行完毕 — 也就是模块转译阶段完成后，模块的转译结果会一一保存到 `compilation.codeGenerationResults` 对象中，之后会启动一个新的执行流程 — 模块合并打包。
+
+模块合并打包过程会将 `chunk` 对应的 `module` 及 `runtimeModule` 按照规则塞进模板框架中，最终合并输出成完整的 bundle 文件，如上例：
+
+![webpack](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/5RpiTn.png)
+
+上图中的左边的 bundle 文件中，红色方框中框出来的部分是用户代码文件，红色方框中间的为运行时模块生成产物，其余部分撑起了一个 IIFE 形式的运行框架即为模板框架，也就是：
+
+```javascript
+(() => { // webpackBootstrap
+    "use strict";
+    var __webpack_modules__ = ({
+        "module-a": ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+            // ! module 代码，
+        }),
+        "module-b": ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+            // ! module 代码，
+        })
+    });
+    // The module cache
+    var __webpack_module_cache__ = {};
+    // The require function
+    function __webpack_require__(moduleId) {
+        // ! webpack CMD 实现
+    }
+    /************************************************************************/
+    // ! 各种 runtime
+    /************************************************************************/
+    var __webpack_exports__ = {};
+    // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+    (() => {
+        // ! entry 模块
+    })();
+})();
+```
+
+这里的关键在于：
+
+- 最外层由一个 IIFE 包裹
+- 一个记录除了 `entry` 外的其他模块代码的 `__webpack_modules__` 对象，对象的 `key` 为模块标志符；值为模块转译后的代码。
+- 一个极度简化的 CMD 实现：`__webpack_require__` 函数。
+- 最后，一个包裹了 `entry` 代码的 IIFE 函数。
+
+模块转译是将 `module` 转译为可以在宿主环境如浏览器上运行的代码形式；而模块合并操作则是串联这些 `modules`，使之整体符合开发预期，能够正常运行整个应用逻辑。接下来将对这部分代码的生成原理进行解密。
+
+## 核心流程
+
+在 `compilation.codeGeneration` 执行完毕，即所有用户代码模块和运行时模块都执行完转译操作后，`seal` 函数调用 `compilation.createChunkAssets` 函数，触发 `renderManifest` 钩子，`JavascriptModulesPlugin` 插件监听到这个钩子消息后开始组装 bundle，伪代码如下：
+
+```javascript
+// Webpack 5
+// lib/Compilation.js
+class Compilation {
+  seal() {
+    // 先把所有模块的代码都转译，准备好
+    this.codeGenerationResults = this.codeGeneration(this.modules);
+    // 1. 调用 createChunkAssets
+    this.createChunkAssets();
+  }
+
+  createChunkAssets() {
+    // 遍历 chunks ，为每个 chunk 执行 render 操作
+    for (const chunk of this.chunks) {
+      // 2. 触发 renderManifest 钩子
+      const res = this.hooks.renderManifest.call([], {
+        chunk,
+        codeGenerationResults: this.codeGenerationResults,
+        ...others,
+      });
+      // 提交组装结果
+      this.emitAsset(res.render(), ...others);
+    }
+  }
+}
+
+// lib/javascript/JavascriptModulesPlugin.js
+class JavascriptModulesPlugin {
+  apply() {
+    compiler.hooks.compilation.tap("JavascriptModulesPlugin", (compilation) => {
+      compilation.hooks.renderManifest.tap("JavascriptModulesPlugin", (result, options) => {
+          // JavascriptModulesPlugin 插件中通过 renderManifest 钩子返回组装函数 render
+          const render = () =>
+            // render 内部根据 chunk 内容，选择使用模板 `renderMain` 或 `renderChunk`
+            // 3. 监听钩子，返回打包函数
+            this.renderMain(options);
+
+          result.push({ render /* arguments */ });
+          return result;
+        }
+      );
+    });
+  }
+
+  renderMain() {/*  */}
+
+  renderChunk() {/*  */}
+}
+```
+
+这里的核心逻辑是，`compilation` 以 `renderManifest` 钩子方式对外发布 bundle 打包需求；`JavascriptModulesPlugin` 监听这个钩子，按照 `chunk` 的内容特性，返回不同的打包函数。
+
+`JavascriptModulesPlugin` 内置的打包函数有：
+
+- `renderMain`：打包主 `chunk` 时使用。
+- `renderChunk`：打包子 `chunk`，如异步模块 `chunk` 时使用。
+
+两个打包函数实现的逻辑接近，都是按照顺序拼接个个模块，下面简单介绍 `renderMain` 的实现。
+
+## `renderMain` 函数
+
+`renderMain` 函数涉及比较多场景判断，原始代码很长，摘几个重点步骤：
+
+```javascript
+class JavascriptModulesPlugin {
+  renderMain(renderContext, hooks, compilation) {
+    const { chunk, chunkGraph, runtimeTemplate } = renderContext;
+
+    const source = new ConcatSource();
+    // ...
+    // 1. 先计算出 bundle CMD 核心代码，包含：
+    //      - "var __webpack_module_cache__ = {};" 语句
+    //      - "__webpack_require__" 函数
+    const bootstrap = this.renderBootstrap(renderContext, hooks);
+
+    // 2. 计算出当前 chunk 下，除 entry 外其它模块的代码
+    const chunkModules = Template.renderChunkModules(
+      renderContext,
+      inlinedModules
+        ? allModules.filter((m) => !inlinedModules.has(m))
+        : allModules,
+      (module) =>
+        this.renderModule(
+          module,
+          renderContext,
+          hooks,
+          allStrict ? "strict" : true
+        ),
+      prefix
+    );
+
+    // 3. 计算出运行时模块代码
+    const runtimeModules =
+      renderContext.chunkGraph.getChunkRuntimeModulesInOrder(chunk);
+
+    // 4. 重点来了，开始拼接 bundle
+    // 4.1 首先，合并核心 CMD 实现，即上述 bootstrap 代码
+    const beforeStartup = Template.asString(bootstrap.beforeStartup) + "\n";
+    source.add(
+      new PrefixSource(
+        prefix,
+        useSourceMap
+          ? new OriginalSource(beforeStartup, "webpack/before-startup")
+          : new RawSource(beforeStartup)
+      )
+    );
+
+    // 4.2 合并 runtime 模块代码
+    if (runtimeModules.length > 0) {
+      for (const module of runtimeModules) {
+        compilation.codeGeneratedModules.add(module);
+      }
+    }
+    // 4.3 合并除 entry 外其它模块代码
+    for (const m of chunkModules) {
+      const renderedModule = this.renderModule(m, renderContext, hooks, false);
+      source.add(renderedModule)
+    }
+
+    // 4.4 合并 entry 模块代码
+    if (
+      hasEntryModules &&
+      runtimeRequirements.has(RuntimeGlobals.returnExportsFromRuntime)
+    ) {
+      source.add(`${prefix}return __webpack_exports__;\n`);
+    }
+
+    return source;
+  }
+}
+```
+
+核心逻辑为：
+
+- 先计算出 bundle CMD 代码，即 `__webpack_require__` 函数。
+- 计算出当前 `chunk` 下，除 `entry` 外其他模块代码 `chunkModules`。
+- 计算出运行时模块代码。
+- 开始执行合并操作，子步骤有：
+  - 合并 CMD 代码
+  - 合并 `runtime` 模块代码
+  - 遍历 `chunkModules` 变量，合并除了 `entry` 外其他模块的代码。
+  - 合并 `entry` 模块代码
+- 返回结果
+
+总结：先计算出不同组成部分的产物形态，之后按照顺序拼接打包，输出合并后的版本。
+
+至此，Webpack 完成 bundle 的转译、打包流程，后续调用 `compilation.emitAssets`，按照上下文环境将产物输出到 `fs` 即可，Webpack 单次编译打包过程就结束了。
+
+# 总结
+
+打包流程的后半截：
+
+- 首先遍历 `chunk` 中的所有模块，为每个模块执行转译操作，产出模块级别的产物。
+- 根据 `chunk` 的类型，选择不同的结构框架，按序逐次组装模块产物，打包成最终的 bundle。

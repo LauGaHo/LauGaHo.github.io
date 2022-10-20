@@ -2246,6 +2246,26 @@ text = inPre || text.trim()
 ```javascript
 text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
 ```
+
+如上代码中首先使用 `isTextTag` 函数检测当前文本节点的父节点是否是文本标签 (即 `<script>` 标签或者是 `<style>` 标签)，如果当前文本节点的父节点是文本标签，那么则原封不动的保留原始文本，否则使用 `decodeHTMLCached` 函数对文本进行解码，其中关键点在于一定要使用 `decodeHTMLCached` 函数解码文本才可以，关于这部分的原因，看如下代码：
+
+```html
+<pre>
+  &lt;div&gt;我是一个DIV&lt;/div&gt;
+</pre>
+```
+
+通常会使用 `<pre>` 标签展示源码，所以通常会书写 `html` 实体，假如不对如上的 `html` 实体进行解码，那么最终展示在页面上的内容就是字符串 `'&lt;div&gt;我是一个DIV&lt;/div&gt;'` 而非 `'<div>我是一个DIV</div>'`，这是因为 Vue 在创建文本节点时使用的是 `document.createTextNode` 函数，这不同于将如上模板直接交给浏览器解析并渲染，所以需要解码后将字符串 `'<div>我是一个DIV</div>'` 作为一个文本节点创建才行。
+
+回过头来看一下这段代码：
+
+```javascript
+text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
+```
+
+这段代码还使用 `isTextTag` 函数检测了当前文本节点的父节点是否为文本节点，如果是文本标签则直接使用原始文本，而不会使用 `decodeHTMLCached` 函数对文本进行解码。这时考虑的就不应该是 `inPre` 变量为 `true` 的情况了，而是 `text.trim()` 这个条件为 `true` 的情况，当 `text.trim()` 为 `true` 的时候说明当前文本节点的内容不是空白，只要不是空白的文本并且该文本存在于文本标签之内，那么该文本就不需要进行解码操作，比如存在于 `<script>` 标签或者 `<style>` 标签之内的文本。
+
+
   
 
 

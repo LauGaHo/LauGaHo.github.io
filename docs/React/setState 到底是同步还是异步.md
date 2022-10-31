@@ -318,3 +318,101 @@ transaction.perform(callback, null, a, b, c, d, e)
  * </pre>
  * 
 ```
+
+说白了，`Transaction` 就像是一个“壳子”，它首先会将目标函数 `wrapper` (一组 `initialize` 及 `close` 方法称为一个 `wrapper`) 封装起来，同时需要使用 `Transaction` 类暴露的 `perform` 方法去执行它。如上方的注释所示，在 `anyMethod` 执行之前，`perform` 会先执行所有 `wrapper` 的 `initialize` 方法，执行完后，再执行所有 `wrapper` 的 `close` 方法。这就是 React 中的事务机制。
+
+## “同步现象” 的本质
+
+下面结合对事务机制的理解，继续看 `ReactDefaultBatchingStrategy` 这个对象。`ReactDefaultBatchingStrategy` 其实就是一个批量更新策略事务，他的 `wrapper` 有两个，分别是：`FLUSH_BATCHED_UPDATES` 和 `RESET_BATCHED_UPDATES`，如下代码所示：
+
+```javascript
+var RESET_BATCHED_UPDATES = {
+  initialize: emptyFunction,
+  close: function () {
+    ReactDefaultBatchingStrategy.isBatchingUpdates = false;
+  }
+};
+var FLUSH_BATCHED_UPDATES = {
+  initialize: emptyFunction,
+  close: ReactUpdates.flushBatchedUpdates.bind(ReactUpdates)
+};
+var TRANSACTION_WRAPPERS = [FLUSH_BATCHED_UPDATES, RESET_BATCHED_UPDATES];
+```
+
+把这两个 `wrapper` 套进 `Transaction` 的执行机制中，不难得出一个这样的流程：
+
+> 在 `callback` 执行完之后，`RESET_BATCHED_UPDATES` 将 `isBatchingUpdates` 设置为 `false`，`FLUSH_BATCHED_UPDATES` 执行 `flushBatchedUpdates`，然后里边会循环所有的 `dirtyComponent`，调用 `updateComponent` 来执行所有的生命周期方法 (`componentWillReceiveProps` -> `shouldComponentUpdate` -> `componentWillUpdate` -> `render` -> `componentDidUpdate`)，最后实现组件的更新。
+
+讲解到了这里，对于 `isBatchingUpdates` 管控下的批量更新机制已经了然于胸了。但是 `setState` 为何会表现出同步的问题，似乎还是没有从当前展示的源码中得到根本的解答。这时因为 `batchedUpdates` 这个方法，不仅仅会在 `setState` 之后才被调用。若在 React 源码中全局搜索 `batchedUpdates`，会发现调用它的地方会有很多，但是和更新流有关的只有这两个地方：
+
+```javascript
+// ReactMount.js
+_renderNewRootComponent: function( nextElement, container, shouldReuseMarkup, context ) {
+  // 实例化组件
+  var componentInstance = instantiateReactComponent(nextElement);
+  // 初始渲染直接调用 batchedUpdates 进行批量渲染
+  ReactUpdates.batchedUpdates(
+    batchedMountComponentIntoNode,
+    componentInstance,
+    container,
+    shouldReuseMarkup,
+    context
+  );
+  ...
+}
+```
+
+这段代码是在首次渲染组件时会执行的一个方法，可以看到其内部调用了一次 `batchedUpdates`，这是因为在组件渲染过程中，会按照顺序调用各个生命周期。开发者很有可能在声明周期函数中调用 `setState`。因此，需要通过开启 `batch` 来确保所有的更新都能够进入 `dirtyComponents` 中，进而确保初始渲染流程中所有的 `setState` 都是有效的。
+
+下方的代码是 React 事件系统中的一部分。当在组件上绑定了事件之后，事件中也有可能会触发 `setState`。为了确保每一次 `setState` 都有效，React 同样会在此处手动开启批量更新
+
+```javascript
+// ReactEventListener.js
+dispatchEvent: function (topLevelType, nativeEvent) {
+  ...
+  try {
+    // 处理事件
+    ReactUpdates.batchedUpdates(handleTopLevelImpl, bookKeeping);
+  } finally {
+    TopLevelCallbackBookKeeping.release(bookKeeping);
+  }
+}
+```
+
+说到这里，一切变得明朗了起来：`isBatchingUpdates` 这个变量，在 React 的声明周期函数以及合成事件执行之前，已经被 React 悄悄修改为了 `true`，这时所做的 `setState` 操作自然不会立即生效。当函数执行完毕之后，事务的 `close` 方法会再把 `isBatchingUpdates` 变量改为 `false`。
+
+以开头示例中的 `increment` 方法为例，整个流程像是这样：
+
+```javascript
+// ReactEventListener.js
+increment = () => {
+  // 进来先锁上
+  isBatchingUpdates = true
+  console.log('increment setState前的count', this.state.count)
+  this.setState({
+    count: this.state.count + 1
+  });
+  console.log('increment setState后的count', this.state.count)
+  // 执行完函数再放开
+  isBatchingUpdates = false
+}
+```
+
+很明显，在 `isBatchingUpdates` 的约束下，`setState` 只能是异步的。而当 `setTimeout` 从中作怪的时候，事情就会发生一点点变化。
+
+```javascript
+reduce = () => {
+  // 进来先锁上
+  isBatchingUpdates = true
+  setTimeout(() => {
+    console.log('reduce setState前的count', this.state.count)
+    this.setState({
+      count: this.state.count - 1
+    });
+    console.log('reduce setState后的count', this.state.count)
+  },0);
+  // 执行完函数再放开
+  isBatchingUpdates = false
+}
+```
+

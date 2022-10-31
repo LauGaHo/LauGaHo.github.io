@@ -416,3 +416,8 @@ reduce = () => {
 }
 ```
 
+会发现，开头锁上的那个 `isBatchingUpdates`，对 `setTimeout` 内部的执行逻辑完全没有约束力。因为 `isBatchingUpdates` 是在同步代码中发生变化的，而 `setTimeout` 的逻辑是异步执行的。当 `this.setState` 调用真正发生的时候，`isBatchingUpdates` 早已经被重置为了 `false`，这就使得当前场景下的 `setState` 具备了立即发起同步更新的能力。所以前边所说的没错：`setState` 并不是具备同步这种特性，只是在特定的场景下，它会从 React 的异步管控下“逃脱”掉。
+
+## 总结
+
+`setState` 并不是单纯同步或异步的，它的表现会因调用场景的不同而不同。`在 React 钩子函数及合成事件中，它表现为异步；而在 setTimeout、setInterval 等函数中，包括在 DOM 原生事件中，它都表现为同步`。这种差异，本质上是 `由 React 事务机制` 和 `批量更新机制` 的工作方式来决定的。

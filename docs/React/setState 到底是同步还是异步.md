@@ -190,3 +190,131 @@ reduce = () => {
 
 React 中对于功能的拆分是比较细致的，`setState` 这部分涉及了多个方法。为了方便理解，这里把主流程提取为一张大图：
 
+![process](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/rDvX3H.png)
+
+接着沿着这个流程，逐个在源码中对号入座。首先是 `setState` 入口函数：
+
+```javascript
+ReactComponent.prototype.setState = function (partialState, callback) {
+  this.updater.enqueueSetState(this, partialState);
+  if (callback) {
+    this.updater.enqueueCallback(this, callback, 'setState');
+  }
+};
+```
+
+入口函数在这里充当了一个分发器的角色，根据入参的不同，将其分发到不同的功能函数中去。这里以对象形式的入参为例，可以看到直接调用了 `this.updater.enqueueSetState` 这个方法：
+
+```javascript
+enqueueSetState: function (publicInstance, partialState) {
+  // 根据 this 拿到对应的组件实例
+  var internalInstance = getInternalInstanceReadyForUpdate(publicInstance, 'setState');
+  // 这个 queue 对应的就是一个组件实例的 state 数组
+  var queue = internalInstance._pendingStateQueue || (internalInstance._pendingStateQueue = []);
+  queue.push(partialState);
+  //  enqueueUpdate 用来处理当前的组件实例
+  enqueueUpdate(internalInstance);
+}
+```
+
+这里总结一下，`enqueueSetState` 做了两件事：
+
+- 将新的 `state` 放进组件的状态队列中
+- 用 `enqueueUpdate` 来处理将要更新的实例对象
+
+继续往下走，看看 `enqueueUpdate` 函数的内容：
+
+```javascript
+function enqueueUpdate(component) {
+  ensureInjected();
+  // 注意这一句是问题的关键，isBatchingUpdates标识着当前是否处于批量创建/更新组件的阶段
+  if (!batchingStrategy.isBatchingUpdates) {
+    // 若当前没有处于批量创建/更新组件的阶段，则立即更新组件
+    batchingStrategy.batchedUpdates(enqueueUpdate, component);
+    return;
+  }
+  // 否则，先把组件塞入 dirtyComponents 队列里，让它“再等等”
+  dirtyComponents.push(component);
+  if (component._updateBatchNumber == null) {
+    component._updateBatchNumber = updateBatchNumber + 1;
+  }
+}
+```
+
+这个 `enqueueUpdate` 的内容十分有意思，它引出了一个关键的对象 `batchingStrategy`，该对象具备的 `isBatchingUpdates` 属性直接决定了当下是走批量更新流程，还是排队等待。其中的 `batchedUpdates` 方法更是能够直接发起批量更新流程。由此可以推测，`batchingStrategy` 正是 React 内部专门用于管控批量更新的对象。
+
+接着将细看这个 `batchingStrategy`：
+
+```javascript
+/**
+ * batchingStrategy源码
+**/
+ 
+var ReactDefaultBatchingStrategy = {
+  // 全局唯一的锁标识
+  isBatchingUpdates: false,
+ 
+  // 发起更新动作的方法
+  batchedUpdates: function(callback, a, b, c, d, e) {
+    // 缓存锁变量
+    var alreadyBatchingStrategy = ReactDefaultBatchingStrategy.isBatchingUpdates
+    // 把锁“锁上”
+    ReactDefaultBatchingStrategy.isBatchingUpdates = true
+
+    if (alreadyBatchingStrategy) {
+      callback(a, b, c, d, e)
+    } else {
+      // 启动事务，将 callback 放进事务里执行
+      transaction.perform(callback, null, a, b, c, d, e)
+    }
+  }
+}
+```
+
+`batchingStrategy` 对象并不复杂，可以理解它为一个“锁管理器”。
+
+这里的“锁”，是指 React 全局唯一的 `isBatchingUpdates` 变量，`isBatchingUpdates` 的初始值是 `false`，意味着“当前并未进行任何批量更新操作”。每当 React 调用 `batchedUpdates` 方法执行更新动作的时候，会先把这个锁给“上锁”，也就是置为 `true`，表明“现在正处于批量更新过程中”。当锁被“锁上”的时候，任何需要更新的组件都只能暂时进入 `dirtyComponents` 里排队等候下一次的批量更新，而不能随意“插队”。此处体现的是“任务锁”的思想，是 React 面对大量状态仍然能实现有序分批处理的基础。
+
+理解了批量更新整体的管理机制，还需要注意的是 `batchedUpdates` 中，有一个引人注意的调用：
+
+```javascript
+transaction.perform(callback, null, a, b, c, d, e)
+```
+
+这行代码引出了一个更加硬核的概念：React 中的 `Transaction` (事务) 机制。
+
+## 理解 React 中的 Transaction (事务) 机制
+
+`Transaction` 在 React 源码中的分布可以说是非常广泛。如果在 Debug React 项目的过程中，发现函数调用栈中出现了 `initialize`、`perform`、`close`、`closeAll` 或者 `notifyAll` 这样的方法名，那么很可能当前处于一个 `Transaction` 中。
+
+`Transaction` 在 React 源码中表现为一个核心类，React 官方曾经这样描述它：`Transaction` 是创建一个黑盒，该黑盒可以封装任何的方法。因此那些需要在函数运行前，后运行的方法可以通过此方法进行封装 (即使函数运行中有异常抛出，这些固定的方法仍可运行)，实例化 `Transaction` 时只需要提供相关的方法即可。
+
+这段话有点拗口，结合 React 源码中一阵针对 `Transaction` 的注释来进行理解：
+
+```javascript
+* <pre>
+ *                       wrappers (injected at creation time)
+ *                                      +        +
+ *                                      |        |
+ *                    +-----------------|--------|--------------+
+ *                    |                 v        |              |
+ *                    |      +---------------+   |              |
+ *                    |   +--|    wrapper1   |---|----+         |
+ *                    |   |  +---------------+   v    |         |
+ *                    |   |          +-------------+  |         |
+ *                    |   |     +----|   wrapper2  |--------+   |
+ *                    |   |     |    +-------------+  |     |   |
+ *                    |   |     |                     |     |   |
+ *                    |   v     v                     v     v   | wrapper
+ *                    | +---+ +---+   +---------+   +---+ +---+ | invariants
+ * perform(anyMethod) | |   | |   |   |         |   |   | |   | | maintained
+ * +----------------->|-|---|-|---|-->|anyMethod|---|---|-|---|-|-------->
+ *                    | |   | |   |   |         |   |   | |   | |
+ *                    | |   | |   |   |         |   |   | |   | |
+ *                    | |   | |   |   |         |   |   | |   | |
+ *                    | +---+ +---+   +---------+   +---+ +---+ |
+ *                    |  initialize                    close    |
+ *                    +-----------------------------------------+
+ * </pre>
+ * 
+```

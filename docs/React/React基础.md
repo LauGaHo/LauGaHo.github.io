@@ -253,3 +253,324 @@ const p = { name: "老刘", age: 18, sex: "女" };
 // ReactDOM.render(<Person name={p.name} age={p.age} sex={p.sex}/>,document.getElementById('test3'))
 ReactDOM.render(<Person {...p} />, document.getElementById("test3"));
 ```
+
+### 对 props 进行限制
+
+```jsx
+class Person extends React.Component {
+  render() {
+    const { name, age, sex } = this.props;
+    // props 是只读的
+    // this.props.name = 'jack' // 此行代码会报错，因为 props 是只读的
+    return (
+      <ul>
+        <li>姓名：{name}</li>
+        <li>性别：{sex}</li>
+        <li>年龄：{age + 1}</li>
+      </ul>
+    );
+  }
+}
+
+// 对标签属性进行类型、必要性的限制
+Person.propTypes = {
+  name: PropTypes.string.isRequired, // 限制 name 必传，且为字符串
+  sex: PropTypes.string, // 限制 sex 为字符串
+  age: PropTypes.number, // 限制 age 为数值
+  speak: PropTypes.func, // 限制 speak 为函数
+};
+
+// 指定默认 props 属性值
+Person.defaultProps = {
+  sex: "男", // sex 默认值为男
+  age: 18, // age 默认值为 18
+};
+
+// 渲染组件到页面
+ReactDOM.render(<Person name={100} speak={speak} />, document.getElementById('test1'))
+ReactDOM.render(<Person name"tom" age={18} sex="女" />, document.getElementById('test2'))
+
+const p = { name: '老刘', age: 18, sex: '女'}
+ReactDOM.render(<Person {...p} />, document.getElementById('test3'))
+
+function speak() {
+    console.log('我说话了')
+}
+```
+
+> 上方使用了 PropTypes 包，所以务必在 `package.json` 中安装对应的依赖！
+
+### props 的简写方式
+
+```jsx
+class Person extends React.Component {
+  constructor(props) {
+    // 构造器是否接收 props，是否传递给 super，取决于：是否希望在构造器中通过 this 访问 props
+    // console.log(props)
+    super(props);
+    console.log("constructor", this.props);
+  }
+
+  // 对标签属性进行类型、必要性限制
+  static propTypes = {
+    name: PropTypes.string.isRequired,
+    sex: PropTypes.string,
+    age: PropTypes.number,
+  };
+
+  // 对 props 指定默认值
+  static defaultProps = {
+    sex: "男",
+    age: 18,
+  };
+
+  render() {
+    const { name, age, sex } = this.props;
+    // props 是只读的
+    return (
+      <ul>
+        <li>姓名：{name}</li>
+        <li>性别：{sex}</li>
+        <li>年龄：{age + 1}</li>
+      </ul>
+    );
+  }
+}
+
+// 渲染组件到页面
+ReactDOM.render(<Person name="jerry" />, document.getElementById("test1"));
+```
+
+### 函数式组件使用 props
+
+```jsx
+function Person(props) {
+  const { name, age, sex } = props;
+  return (
+    <ul>
+      <li>姓名：{name}</li>
+      <li>性别：{sex}</li>
+      <li>年龄：{age}</li>
+    </ul>
+  );
+}
+
+Person.propTypes = {
+  name: PropTypes.string.isRequired,
+  sex: PropTypes.string,
+  age: PropTypes.number,
+};
+
+// 指定 props 默认值
+Person.defaultProps = {
+  sex: "男",
+  age: 18,
+};
+
+// 渲染组件到页面
+ReactDOM.render(<Person name="jerry" />, document.getElementById("test1"));
+```
+
+## 组件三大属性之—refs
+
+### 字符串形式的 refs
+
+```jsx
+class Demo extends React.Component {
+  // 展示左侧输入框的数据
+  showData = () => {
+    const { input1 } = this.refs;
+  };
+
+  // 展示右侧输入框的数据
+  showData2 = () => {
+    const { input2 } = this.refs;
+    alert(input2.value);
+  };
+
+  render() {
+    return (
+      <div>
+        <input ref="input1" type="text" placeholder="点击按钮提示数据" />
+        &nbsp;
+        <button onClick={this.showData}>点我提示左侧的数据</button>&nbsp;
+        <input
+          ref="input2"
+          onBlur={this.showData2}
+          type="text"
+          placeholder="失去焦点提示数据"
+        />
+      </div>
+    );
+  }
+}
+
+// 渲染组件到页面
+ReactDOM.render(<Demo a="1" b="2" />, document.getElementById("test"));
+```
+
+### 回调函数形式的 refs
+
+```jsx
+class Demo extends React.Component {
+  // 展示左侧输入框的数据
+  showData = () => {
+    const { input1 } = this;
+    alert(input1.value);
+  };
+
+  // 展示右侧输入框的数据
+  showData2 = () => {
+    const { input2 } = this;
+    alert(input2.value);
+  };
+
+  render() {
+    return (
+      <div>
+        <input
+          ref={(c) => (this.input1 = c)}
+          type="text"
+          placeholder="点击按钮提示数据"
+        />
+        &nbsp;
+        <button onClick={this.showData}>点我提示左侧的数据</button>&nbsp;
+        <input
+          onBlur={this.showData2}
+          ref={(c) => (this.input2 = c)}
+          type="text"
+          placeholder="失去焦点提示数据"
+        />
+        &nbsp;
+      </div>
+    );
+  }
+}
+
+// 渲染组件到页面
+ReactDOM.render(<Demo a="1" b="2" />, document.getElementById("test"));
+```
+
+### 回调 ref 中的回调执行次数的问题
+
+```jsx
+class Demo extends React.Component {
+  state = { isHot: false };
+
+  showInfo = () => {
+    const { input1 } = this;
+    alert(input1.value);
+  };
+
+  changeWeather = () => {
+    // 获取原来的状态
+    const { isHot } = this.state;
+    // 更新状态
+    this.setState({ isHot: !isHot });
+  };
+
+  saveInput = (c) => {
+    this.input1 = c;
+    // 只会打印一次，即该回调函数只会执行一次
+    console.log("@", c);
+  };
+
+  render() {
+    const { isHot } = this.state;
+    return (
+      <div>
+        <h2>今天天气很{isHot ? "炎热" : "凉爽"}</h2>
+        <input ref={this.saveInput} type="text" />
+        <br />
+        <br />
+        <button onClick={this.showInfo}>点我提示输入的数据</button>
+        <button onClick={this.changeWeather}>点我切换天气</button>
+      </div>
+    );
+  }
+}
+```
+
+### createRef 的使用
+
+```jsx
+class Demo extends React.Component {
+  // React.createRef 调用后可以返回一个容器，该容器可以存储被 ref 所标识的节点，该容器是“专人专用”
+  myRef = React.createRef();
+  myRef2 = React.createRef();
+
+  // 展示左侧输入框的数据
+  showData = () => {
+    alert(this.myRef.current.value);
+  };
+
+  // 展示右侧输入框的数据
+  showData2 = () => {
+    alert(this.myRef2.current.value);
+  };
+
+  render() {
+    return (
+      <div>
+        <input ref={this.myRef} type="text" placeholder="点击按钮提示数据" />
+        &nbsp;
+        <button onClick={this.showData}>点我提示左侧的数据</button>&nbsp;
+        <input
+          onBlur={this.showData2}
+          ref={this.myRef2}
+          type="text"
+          placeholder="失去焦点提示数据"
+        />
+        &nbsp;
+      </div>
+    );
+  }
+}
+
+// 渲染组件到页面
+ReactDOM.render(<Demo a="1" b="2" />, document.getElementById("test"));
+```
+
+## React 中事件处理
+
+### 事件处理
+
+```jsx
+class Demo extends React.Component {
+  // 创建 ref 容器
+  myRef = React.createRef();
+  myRef2 = React.createRef();
+
+  // 展示左侧输入框的数据
+  showData = (event) => {
+    console.log(event.target);
+    alert(this.myRef.current.value);
+  };
+
+  // 展示右侧输入框的数据
+  showData2 = (event) => {
+    alert(event.target.value);
+  };
+
+  render() {
+    return (
+      <div>
+        <input ref={this.myRef} type="text" placeholder="点击按钮提示数据" />
+        &nbsp;
+        <button onClick={this.showData}>点我提示左侧的数据</button>&nbsp;
+        <input
+          onBlur={this.showData2}
+          type="text"
+          placeholder="失去焦点提示数据"
+        />
+        &nbsp;
+      </div>
+    );
+  }
+}
+```
+
+1. 通过 `onXxx` 属性指定事件处理函数 (注意大小写)
+   1. React 使用的是自定义 (合成) 事件，而不是使用的原生 DOM 事件——为了更好的兼容性
+   2. React 中的事件是通过事件委托方式处理的 (委托给组件最外层的元素)——为了高效
+2. 通过 `event.target` 得到发生事件的 DOM 元素对象——不要过度使用 ref

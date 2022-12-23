@@ -574,3 +574,206 @@ class Demo extends React.Component {
    1. React 使用的是自定义 (合成) 事件，而不是使用的原生 DOM 事件——为了更好的兼容性
    2. React 中的事件是通过事件委托方式处理的 (委托给组件最外层的元素)——为了高效
 2. 通过 `event.target` 得到发生事件的 DOM 元素对象——不要过度使用 ref
+
+## React 表单数据管理
+
+针对对于表单数据管理方式，可以分为两种组件，如下：
+
+- 非受控组件：表单数据将交给 DOM 节点来处理
+- 受控组件：表单数据将交给 React 组件进行管理
+
+> 通常情况下，推荐使用受控组件
+
+### 受控组件
+
+```jsx
+class Login extends React.Component {
+  // 初始化状态
+  state = {
+    username: "", // 用户名
+    password: "", // 密码
+  };
+
+  // 保存用户名到状态中
+  saveUsername = (event) => {
+    this.setState({ username: event.target.value });
+  };
+
+  // 保存密码到状态中
+  savePassword = (event) => {
+    this.setState({ password: event.target.value });
+  };
+
+  // 表单提交的回调
+  handleSubmit = (event) => {
+    event.preventDefault(); // 阻止表单提交
+    const { username, password } = this.state;
+    alert(`你输入的用户名：${username}，你输入的密码是：${password}`);
+  };
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        用户名：
+        <input onChange={this.saveUsername} type="text" name="username" />
+        密码：
+        <input onChange={this.savePassword} type="password" name="password" />
+        <button>登录</button>
+      </form>
+    );
+  }
+}
+
+// 渲染组件
+ReactDOM.render(<Login />, document.getElementById("test"));
+```
+
+### 非受控组件
+
+```jsx
+class Login extends React.Component {
+  handleSubmit = (event) => {
+    event.preventDefault();
+    const { username, password } = this;
+    alert(
+      `你输入的用户名是：${username.value},你输入的密码是：${password.value}`
+    );
+  };
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        用户名：
+        <input ref={(c) => (this.username = c)} type="text" name="username" />
+        密码：
+        <input
+          ref={(c) => (this.password = c)}
+          type="password"
+          name="password"
+        />
+        <button>登录</button>
+      </form>
+    );
+  }
+}
+
+// 渲染组件
+ReactDOM.render(<Login />, document.getElementById("test"));
+```
+
+## 高阶函数
+
+### 柯里化
+
+- 高阶函数：如果一个函数符合下面 2 个规范中的任何一个，那么该函数就是高阶函数：
+
+  1. 若 A 函数，接收的参数是一个函数，那么 A 就可以称之为高阶函数
+  2. 若 A 函数，调用的返回值依然是一个函数，那么 A 就可以称之为高阶函数
+
+> 常见的高阶函数有：`Promise`、`setTimeout`、`arr.map()` 等等
+
+- 函数柯里化：通过函数调用继续返回函数的方式，实现多次接收参数最后统一处理的函数编码方式
+
+  ```js
+  function sum(a) {
+    return (b) => {
+      return (c) => {
+        return a + b + c;
+      };
+    };
+  }
+  ```
+
+```jsx
+class Login extends React.Component {
+  // 初始化状态
+  state = {
+    username: "", // 用户名
+    password: "", // 密码
+  };
+
+  // 保存表单数据到状态中
+  saveFormData = (dataType) => {
+    return (event) => {
+      this.setState({ [dataType]: event.target.value });
+    };
+  };
+
+  // 表单提交的回调
+  handleSubmit = (event) => {
+    event.preventDefault(); // 阻止表单提交
+    const { username, password } = this.state;
+    alert(`你输入的用户名是：${username},你输入的密码是：${password}`);
+  };
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        用户名：
+        <input
+          onChange={this.saveFormData("username")}
+          type="text"
+          name="username"
+        />
+        密码：
+        <input
+          onChange={this.saveFormData("password")}
+          type="password"
+          name="password"
+        />
+        <button>登录</button>
+      </form>
+    );
+  }
+}
+
+// 渲染组件
+ReactDOM.render(<Login />, document.getElementById("test"));
+```
+
+### 不使用函数柯里化的实现
+
+```jsx
+class Login extends React.Component {
+  // 初始化
+  state = {
+    username: "", // 用户名
+    password: "", // 密码
+  };
+
+  // 保存表单数据到状态中
+  saveFormData = (dataType, event) => {
+    this.setState({ [dataType]: event.target.value });
+  };
+
+  // 表单提交的回调
+  handleSubmit = (event) => {
+    event.preventDefault();
+    const { username, password } = this.state;
+    alert(`你输入的用户名是：${username},你输入的密码是：${password}`);
+  };
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        用户名：
+        <input
+          onChange={(event) => this.saveFormData("username", event)}
+          type="text"
+          name="username"
+        />
+        密码：
+        <input
+          onChange={(event) => this.saveFormData("password", event)}
+          type="password"
+          name="password"
+        />
+        <button>登录</button>
+      </form>
+    );
+  }
+}
+
+// 渲染组件
+ReactDOM.render(<Login />, document.getElementById("test"));
+```

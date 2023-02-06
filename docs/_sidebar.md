@@ -95,6 +95,10 @@
   - [解读 setState](React/setState到底是同步还是异步.md)
   - [React 基础](React/React基础.md)
 
+- React 源码解读
+
+  - [React 源码宏观包结构](React源码解读/React源码宏观包结构.md)
+
 - Webpack
 
   - [Webpack 入门配置指南](Webpack/Webpack入门配置指南.md)

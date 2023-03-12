@@ -99,6 +99,7 @@
 
   - [React 源码宏观包结构](React源码解读/React源码宏观包结构.md)
   - [React 源码中的高频对象解析](React源码解读/React源码中的高频对象解析.md)
+  - [React 源码中的 Scheduler 实现原理](<React源码解读/React调度器(Scheduler).md>)
 
 - Webpack
 

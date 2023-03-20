@@ -100,6 +100,7 @@
   - [React 源码宏观包结构](React源码解读/React源码宏观包结构.md)
   - [React 源码中的高频对象解析](React源码解读/React源码中的高频对象解析.md)
   - [React 源码中的 Scheduler 实现原理](<React源码解读/React调度器(Scheduler).md>)
+  - [React 源码之 fiber 树的初次创建](React源码解读/React源码之fiber树初次创建.md)
 
 - Webpack
 

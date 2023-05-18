@@ -102,6 +102,8 @@
   - [React 源码中的高频对象解析](React源码解读/React源码中的高频对象解析.md)
   - [React 源码中的 Scheduler 实现原理](<React源码解读/React调度器(Scheduler).md>)
   - [React 源码之 fiber 树的初次创建](React源码解读/React源码之fiber树初次创建.md)
+  - [React 源码之 fiber 树的对比更新](React源码解读/React源码之fiber树对比更新.md)
+  - [React 源码之 Hook 原理—概览](React源码解读/React源码之Hook原理—概览.md)
 
 - Webpack
 

@@ -1,4 +1,4 @@
-# ElementUI工程化解析(四)
+# ElementUI 工程化解析(四)
 
 ## 发布部署
 
@@ -12,7 +12,7 @@
 
 检查本地代码 `dev` 分支是否和线上分支存在冲突。
 
-```shell
+```bash
 #!/usr/bin/env sh
 # 切换到 dev 分支
 git checkout dev
@@ -52,7 +52,7 @@ echo 'No conflicts.' >&2;
 - master 和 dev 分支 `push` 到远程分支。
 - 发布组件。
 
-```shell
+```bash
 #!/usr/bin/env sh
 # -e 当命令发生错误的时候，停止脚本的执行
 set -e
@@ -75,7 +75,7 @@ then
   VERSION=$VERSION npm run dist
 
   # ssr test 测试
-  node test/ssr/require.test.js            
+  node test/ssr/require.test.js
 
   # publish theme
   echo "Releasing theme-chalk $VERSION ..."
@@ -119,7 +119,7 @@ fi
 
 网站发布部署，用于 `faas deploy` 配置，`2.15` 版本之后移除了 `pub` 命令 `sh build/deploy-faas.sh` 调用，集成到了 CI，详见 `build/deploy-ci.sh`。
 
-```shell
+```bash
 #! /bin/sh
 # -e 当命令发生错误的时候，停止脚本执行
 # -x 运行的命令用一个 + 标记之后显示出来
@@ -175,15 +175,15 @@ addons:
   chrome: stable
 # install 阶段之前执行
 before_install:
-- export TRAVIS_COMMIT_MSG="[deploy] $(git log --format='%h - %B' --no-merges -n 1)"
-- export TRAVIS_COMMIT_USER="$(git log --no-merges -n 1 --format=%an)"
-- export TRAVIS_COMMIT_EMAIL="$(git log --no-merges -n 1 --format=%ae)"
+  - export TRAVIS_COMMIT_MSG="[deploy] $(git log --format='%h - %B' --no-merges -n 1)"
+  - export TRAVIS_COMMIT_USER="$(git log --no-merges -n 1 --format=%an)"
+  - export TRAVIS_COMMIT_EMAIL="$(git log --no-merges -n 1 --format=%ae)"
 # script 阶段成功时执行
 after_success:
-# 执行脚本 build test deploy
-- sh build/deploy-ci.sh
-# coveralls 自动测试代码覆盖率
-- cat ./test/unit/coverage/lcov.info | ./node_modules/.bin/coveralls
+  # 执行脚本 build test deploy
+  - sh build/deploy-ci.sh
+  # coveralls 自动测试代码覆盖率
+  - cat ./test/unit/coverage/lcov.info | ./node_modules/.bin/coveralls
 ```
 
 ### `build/deploy-ci.sh`
@@ -194,7 +194,7 @@ after_success:
 - 发行版本构建 (组件库、主题 `theme-chalk`、项目网站)、打新标签。
 - 开发分支的主题、项目网站构建提交到 Master 分支。
 
-```shell
+```bash
 #! /bin/sh
 # 创建 temp_web 文件夹
 mkdir temp_web

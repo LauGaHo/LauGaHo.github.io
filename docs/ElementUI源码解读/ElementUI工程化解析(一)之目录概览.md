@@ -1,4 +1,4 @@
-# ElementUI工程化解析(一)之目录概览
+# ElementUI 工程化解析(一)之目录概览
 
 ## ElementUI 源码目录结构
 
@@ -65,7 +65,7 @@
 
 ```json
 {
-  "main": "lib/element-ui.common.js",
+  "main": "lib/element-ui.common.js"
 }
 ```
 
@@ -75,12 +75,7 @@
 
 ```json
 {
-  "files": [
-    "lib",
-    "src",
-    "packages",
-    "types"
-  ],
+  "files": ["lib", "src", "packages", "types"]
 }
 ```
 
@@ -100,7 +95,7 @@
 
 ```json
 {
-    "style": "lib/theme-chalk/index.css",
+  "style": "lib/theme-chalk/index.css"
 }
 ```
 
@@ -125,10 +120,10 @@ unpkg.com/:package@:version/:file
 ```javascript
 // pkg 指 package.json
 // 定义了 unpkg 属性时
-const url = "https://unpkg.com/:package@:latestVersion/[pkg.unpkg]"
+const url = "https://unpkg.com/:package@:latestVersion/[pkg.unpkg]";
 
 // 未定义 unpkg 属性时，将回退到 main 属性
-const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
+const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]";
 ```
 
 设置了 `unpkg` 属性后，访问 `unpkg.com/element-ui` 按照规则将自动访问 `unpkg.com/element-ui/lib/index.js`。
@@ -137,7 +132,10 @@ const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
 
 ```html
 <!-- 引入样式 -->
-<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+/>
 <!-- 引入组件库 -->
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
 ```
@@ -163,13 +161,13 @@ const url = "https://unpkg.com/:package@:latestVersion/[pkg.main]"
 >
 > - 执行顺序：如果 npm 脚本中需要执行多个任务，需要明确其执行顺序。如果是 **并行执行** (即同时的平行执行)，使用 `&` 符号。
 >
->   ```shell
+>   ```bash
 >   npm run script1.js & npm run script2.js
 >   ```
 >
 >   如果是 **继发执行** (即只有前一个任务成功，才执行下一个任务)，使用 `&&` 符号。
 >
->   ```shell
+>   ```bash
 >   npm run script1.js && npm run script2.js
 >   ```
 

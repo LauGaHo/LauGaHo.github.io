@@ -17,7 +17,7 @@ Git 是我们每天都接触的工具，Git 的功能十分强大，其中 Git �
 
 ### 新建仓库
 
-```shell
+```bash
 # 在当前目录新建一个 Git 仓库
 git init
 
@@ -32,7 +32,7 @@ git clone [url]
 
 Git 的配置文件是 `.gitconfig`，可以在用户主目录下 (全局配置)，也可以在项目目录下 (项目配置)。
 
-```shell
+```bash
 # 显示当前 Git 配置
 git config --list
 
@@ -46,7 +46,7 @@ git config [--global] user.email "[email address]"
 
 ### 增加、删除文件
 
-```shell
+```bash
 # 添加指定文件到暂存区
 git add [file1] [file2]
 
@@ -72,7 +72,7 @@ git mv [file-origin] [file-renamed]
 
 ### 代码提交
 
-```shell
+```bash
 # 提交暂存区到仓库区
 git commit -m [message]
 
@@ -95,7 +95,7 @@ git commit --amend [file1] [file2]
 
 ### 分支
 
-```shell
+```bash
 # 列出所有本地分支
 git branch
 
@@ -142,7 +142,7 @@ git branch -dr [remote/branch]
 
 ### 标签
 
-```shell
+```bash
 # 列出所有 tag
 git tag
 
@@ -173,7 +173,7 @@ git checkout -b [branch] [tag]
 
 ### 查看信息
 
-```shell
+```bash
 # 显示有变更的文件
 git status
 
@@ -238,7 +238,7 @@ git reflog
 
 ### 远程同步
 
-```shell
+```bash
 # 下载远程仓库中的所有变动
 git fetch [remote]
 
@@ -266,7 +266,7 @@ git push [remote] --all
 
 ### 撤销
 
-```shell
+```bash
 # 恢复暂存区的指定文件到工作区
 git checkout [file]
 git checkout -- [file]

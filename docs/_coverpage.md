@@ -1,4 +1,4 @@
-![logo](https://docsify.js.org/_media/icon.svg)
+![logo](https://cdn.jsdelivr.net/gh/LauGaHo/blog-img@master/uPic/52206004.jpeg)
 
 # 小刘的写作站
 

@@ -90,6 +90,7 @@
   - [ElementUI 工程化解析(一)之目录概览](<ElementUI源码解读/ElementUI工程化解析(一)之目录概览.md>)
   - [ElementUI 工程化解析(二)之自动化构建脚本](<ElementUI源码解读/ElementUI工程化解析(二)之自动化构建脚本.md>)
   - [ElementUI 工程化解析(三)之打包构建](<ElementUI源码解读/ElementUI工程化解析(三)之打包构建.md>)
+  - [ElementUI 工程化解析(四)](<ElementUI源码解读/ElementUI工程化解析(四).md>)
 
 - React
 

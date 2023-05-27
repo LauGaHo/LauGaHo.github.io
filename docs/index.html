@@ -1,84 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Document</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Description">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css"> -->
-  <link rel="stylesheet" href="//unpkg.com/docsify@4/lib/themes/vue.css">
-  <!-- GitTalk评论模块CSS文件 -->
-  <link rel="stylesheet" href="//unpkg.com/gitalk/dist/gitalk.css">
-  <!-- 网站标题图标 -->
-  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-      name: '',
-      repo: 'https://github.com/LauGaHo/LauGaHo.github.io',
-      // 使用_coverpage.md来自定义封面
-      coverpage: true,
-      // 使用history路由模式
-      // routerMode: 'history',
-      // 使用_sidebar.md来自定义侧边栏
-      loadSidebar: true,
-      // 配置显示目录的层级，数字表示可以显示副标题的级数
-      subMaxLevel: 3,
-      // 全文搜索
-      search: {
-        maxAge: 86400000,
-        paths: 'auto',
-        placeholder: '你想要既东西',
-        noData: '对唔住大佬，稳唔到你想要既东西',
-        // 搜索标题的最大层级，1-6
-        depth: 3,
-      },
-      // 切换页面后自动跳转到页面顶部
-      auto2top: true,
-      // 统计字数
-      count:{
-        countable:true,
-        fontsize:'0.9em',
-        color:'rgb(90,90,90)',
-        language:'chinese'
-      }
-    }
-  </script>
-  <!-- Docsify v4 -->
-  <!-- <script src="//cdn.jsdelivr.net/npm/docsify@4"></script> -->
-  <script src="//unpkg.com/docsify@4"></script>
-  <!-- 统计字数 -->
-  <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
-  <!-- GitTalk评论模块 -->
-  <script src="//unpkg.com/docsify/lib/plugins/gitalk.min.js"></script>
-  <script src="//unpkg.com/gitalk/dist/gitalk.min.js"></script>
-  <!-- <script src="js/md5.min.js"></script> -->
-  <script>
-    let gitalk = new Gitalk({
-      clientID: '25ab86a6c25ef747b6c3',
-      clientSecret: '4adf86eee816b4557731dceb18fb5314463c6665',
-      repo: 'LauGaHo.github.io',
-      owner: 'LauGaHo',
-      admin: ['LauGaHo'],
-      id: decodeURI(window.location.hash),      // Ensure uniqueness and length less than 50
-      distractionFreeMode: false  // Facebook-like distraction free mode
-    });
-
-    // 检测到 hash 值发生变化后，直接重新创建一个 gitalk
-    window.onhashchange = function (e) {
-      gitalk = new Gitalk({
-        clientID: '25ab86a6c25ef747b6c3',
-        clientSecret: '4adf86eee816b4557731dceb18fb5314463c6665',
-        repo: 'LauGaHo.github.io',
-        owner: 'LauGaHo',
-        admin: ['LauGaHo'],
-        id: decodeURI(window.location.hash),      // Ensure uniqueness and length less than 50
-        distractionFreeMode: false  // Facebook-like distraction free mode
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Description" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0"
+    />
+    <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css"> -->
+    <link rel="stylesheet" href="//unpkg.com/docsify@4/lib/themes/vue.css" />
+    <!-- GitTalk评论模块CSS文件 -->
+    <link rel="stylesheet" href="//unpkg.com/gitalk/dist/gitalk.css" />
+    <!-- 网站标题图标 -->
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    <!-- js/ts 代码高亮 -->
+    <link
+      rel="stylesheet"
+      href="//cdn.jsdelivr.net/npm/highlight.js/styles/github.min.css"
+    />
+    <script src="//cdn.jsdelivr.net/npm/highlight.js/lib/highlight.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/highlight.js/lib/languages/typescript.min.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      window.$docsify = {
+        name: "",
+        repo: "https://github.com/LauGaHo/LauGaHo.github.io",
+        // 使用_coverpage.md来自定义封面
+        coverpage: true,
+        // 使用history路由模式
+        // routerMode: 'history',
+        // 使用_sidebar.md来自定义侧边栏
+        loadSidebar: true,
+        // 配置显示目录的层级，数字表示可以显示副标题的级数
+        subMaxLevel: 3,
+        // 全文搜索
+        search: {
+          maxAge: 86400000,
+          paths: "auto",
+          placeholder: "你想要既东西",
+          noData: "对唔住大佬，稳唔到你想要既东西",
+          // 搜索标题的最大层级，1-6
+          depth: 3,
+        },
+        // 切换页面后自动跳转到页面顶部
+        auto2top: true,
+        // 统计字数
+        count: {
+          countable: true,
+          fontsize: "0.9em",
+          color: "rgb(90,90,90)",
+          language: "chinese",
+        },
+      };
+    </script>
+    <!-- Docsify v4 -->
+    <!-- <script src="//cdn.jsdelivr.net/npm/docsify@4"></script> -->
+    <script src="//unpkg.com/docsify@4"></script>
+    <!-- 统计字数 -->
+    <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+    <!-- GitTalk评论模块 -->
+    <script src="//unpkg.com/docsify/lib/plugins/gitalk.min.js"></script>
+    <script src="//unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <!-- <script src="js/md5.min.js"></script> -->
+    <script>
+      let gitalk = new Gitalk({
+        clientID: "25ab86a6c25ef747b6c3",
+        clientSecret: "4adf86eee816b4557731dceb18fb5314463c6665",
+        repo: "LauGaHo.github.io",
+        owner: "LauGaHo",
+        admin: ["LauGaHo"],
+        id: decodeURI(window.location.hash), // Ensure uniqueness and length less than 50
+        distractionFreeMode: false, // Facebook-like distraction free mode
       });
-    }
-  </script>
-</body>
+
+      // 检测到 hash 值发生变化后，直接重新创建一个 gitalk
+      window.onhashchange = function (e) {
+        gitalk = new Gitalk({
+          clientID: "25ab86a6c25ef747b6c3",
+          clientSecret: "4adf86eee816b4557731dceb18fb5314463c6665",
+          repo: "LauGaHo.github.io",
+          owner: "LauGaHo",
+          admin: ["LauGaHo"],
+          id: decodeURI(window.location.hash), // Ensure uniqueness and length less than 50
+          distractionFreeMode: false, // Facebook-like distraction free mode
+        });
+      };
+    </script>
+  </body>
 </html>

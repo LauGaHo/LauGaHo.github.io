@@ -1,4 +1,4 @@
-# MacOS中的Python2.7
+# MacOS 中的 Python2.7
 
 ## 问题缘由
 
@@ -12,11 +12,11 @@
 
 迎来曙光：
 
->在 2022/4/17 更新到：从 MacOS 12.4 Beta 版本开始，可以通过 `pyenv` 在 Intel 和 Apple 芯片中安装 Python2。
+> 在 2022/4/17 更新到：从 MacOS 12.4 Beta 版本开始，可以通过 `pyenv` 在 Intel 和 Apple 芯片中安装 Python2。
 
 在 M 系列芯片中安装 2.7.18 版本的 Python2。
 
-```shel
+```bash
 brew install pyenv
 
 pyenv install 2.7.18
@@ -32,7 +32,7 @@ python --version
 
 需要将上述路径添加到环境变量中，例如：
 
-```shell
+```bash
 echo 'PATH=$(pyenv root)/shims:$PATH' >> ~/.zshrc
 ```
 

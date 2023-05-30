@@ -10,3 +10,12 @@
   border-radius: 50%;
   border: 1px solid #ffffff;
 }
+
+/********************************** Cover ************************************/
+
+/*** Light Mode ***/
+@media (prefers-color-scheme: light) {
+  :root {
+    --cover-heading-color: #000000;
+  }
+}

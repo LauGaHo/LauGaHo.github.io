@@ -6,7 +6,7 @@
 
 /* themeable 主题下修改 cover 页的头像大小和形状 */
 .cover-main img {
-  width: 150px;
+  width: 125px;
   border-radius: 50%;
   border: 1px solid #ffffff;
 }

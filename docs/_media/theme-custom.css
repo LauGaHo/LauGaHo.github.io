@@ -10,6 +10,12 @@
   border-radius: 50%;
   border: 1px solid #ffffff;
 }
+/* light mode 下，themeable 主题下 cover 页的边界为黑色 */
+@media (prefers-color-scheme: light) {
+  .cover-main img {
+    border: 1px solid #000000;
+  }
+}
 
 /********************************** Cover ************************************/
 

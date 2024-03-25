@@ -13,6 +13,7 @@
   - [展开运算符](JS/JS：展开运算符.md)
   - [Map 和 Set](JS/JS：Map和Set.md)
   - [Promise 实现原理](JS/JS：Promise实现原理.md)
+  - [JS 中的二进制](JS/JS：二进制.md)
 
 - 面试
 

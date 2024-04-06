@@ -1,5 +1,5 @@
 :root {
-  --sidebar-width: 100rem;
+  --sidebar-width: 30rem;
 }
 /* themeable 主题下无法显示背景图片，故需要消除伪类元素 */
 .cover:before,

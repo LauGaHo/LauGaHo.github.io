@@ -30,16 +30,17 @@
   }
 }
 
-/* @font-face { */
-/*   font-family: "ComicShannsMonoNerdFontMono-Regular"; */
-/*   src: url(/public/ComicShannsMonoNerdFontMono-Regular.otf) format("opentype"); */
-/* } */
-/**/
-/* body { */
-/*   font-family: "ComicShannsMonoNerdFontMono-Regular", monospace; */
-/* } */
-/**/
-/* pre, */
-/* code { */
-/*   font-family: "ComicShannsMonoNerdFontMono-Regular", monospace !important; */
-/* } */
+@font-face {
+  font-family: "ComicShannsMonoNerdFontMono-Regular";
+  src: url(../../public/ComicShannsMonoNerdFontMono-Regular.otf)
+    format("opentype");
+}
+
+body {
+  font-family: "ComicShannsMonoNerdFontMono-Regular", monospace;
+}
+
+pre,
+code {
+  font-family: "ComicShannsMonoNerdFontMono-Regular", monospace !important;
+}

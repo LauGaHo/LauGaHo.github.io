@@ -32,7 +32,7 @@
 
 @font-face {
   font-family: "ComicShannsMonoNerdFontMono-Regular";
-  src: url(../ComicShannsMonoNerdFontMono-Regular.ttf) format("truetype");
+  src: url(./ComicShannsMonoNerdFontMono-Regular.ttf) format("truetype");
 }
 
 body {

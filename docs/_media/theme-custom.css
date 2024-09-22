@@ -29,3 +29,12 @@
     --cover-heading-color: #000000;
   }
 }
+
+@font-face {
+  font-family: "ComicShannsMonoNerdFontMono-Regular";
+  src: url(./ComicShannsMonoNerdFontMono-Regular.otf) format("opentype");
+}
+
+body {
+  font-family: "ComicShannsMonoNerdFontMono-Regular", monospace;
+}

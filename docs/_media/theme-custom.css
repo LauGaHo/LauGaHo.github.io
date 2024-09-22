@@ -32,9 +32,14 @@
 
 @font-face {
   font-family: "ComicShannsMonoNerdFontMono-Regular";
-  src: url(../ComicShannsMonoNerdFontMono-Regular.otf) format("opentype");
+  src: url(ComicShannsMonoNerdFontMono-Regular.otf) format("opentype");
 }
 
 body {
   font-family: "ComicShannsMonoNerdFontMono-Regular", monospace;
+}
+
+pre,
+code {
+  font-family: "ComicShannsMonoNerdFontMono-Regular", monospace !important;
 }

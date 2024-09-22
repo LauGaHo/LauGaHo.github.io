@@ -35,11 +35,19 @@
   src: url(./ComicShannsMonoNerdFontMono-Regular.ttf) format("truetype");
 }
 
+@font-face {
+  font-family: "LXGWWenKaiMono-Regular";
+  src: url(./LXGWWenKaiMono-Regular.ttf) format("truetype");
+  unicode-range: U+0000-FFFF;
+}
+
 body {
-  font-family: "ComicShannsMonoNerdFontMono-Regular", monospace;
+  font-family: "ComicShannsMonoNerdFontMono-Regular", "LXGWWenKaiMono-Regular",
+    monospace;
 }
 
 pre,
 code {
-  font-family: "ComicShannsMonoNerdFontMono-Regular", monospace !important;
+  font-family: "ComicShannsMonoNerdFontMono-Regular", "LXGWWenKaiMono-Regular",
+    monospace !important;
 }

@@ -4,8 +4,8 @@
 
 <!-- > 个人前端技术博客 -->
 
-- 前端框架：Angular、Vue
-- UI 类库：NG-ZORRO
+- 前端框架：Angular, Vue, React
+- UI 类库：NG-ZORRO, ElementUI, PrimeNG
 
 <!-- [GitHub](https://github.com/LauGaHo/LauGaHo.github.io) -->
 <!-- [Get Started](#quick-start) -->
